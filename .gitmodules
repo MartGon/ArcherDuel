@@ -1,0 +1,3 @@
+[submodule "src/MyEngine"]
+	path = src/MyEngine
+	url = https://github.com/MartGon/MyEngine

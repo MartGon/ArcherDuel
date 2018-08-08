@@ -1,7 +1,7 @@
 
 
 # Add subfolder
-add_subdirectory(Engine)
+add_subdirectory(MyEngine)
 
 # Add files in this folder
 file(GLOB sdlpong_SRC "*.h" "*.cpp")
