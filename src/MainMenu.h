@@ -5,4 +5,6 @@ class MainMenu : public Scene
 {
 public:
 	void loadMedia() override;
+
+	void onClickBow();
 };
