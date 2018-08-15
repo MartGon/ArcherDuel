@@ -12,6 +12,8 @@
 void MainMenu::loadMedia()
 {
 	Bow *bow = new Bow();
+	Vector2<int> nativeRes = RendererManager::getNativeResolution();
+	bow->setRelativePosition(Vector2<float>(nativeRes.x/2, nativeRes.y/2));
 
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
@@ -19,7 +21,7 @@ void MainMenu::loadMedia()
 	GameObject *arrow = new GameObject();
 	arrow->setComponent(new TextureRenderer("arrow.png", colorKey));
 	arrow->setComponent(new Navigator());
-	arrow->transform.position = Vector2<float>(bow->transform.position.x + 7, bow->transform.position.y);
+	arrow->transform.position = Vector2<float>(bow->transform.position.x + 16, bow->transform.position.y + 14);
 
 	bow->arrow = arrow;
 }

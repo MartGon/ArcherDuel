@@ -6,6 +6,18 @@ class Bow : public GameObject
 public:
 	Bow();
 
+	// States
+	enum BowState 
+	{
+		BOW_STATE_IDLE,
+		BOW_STATE_PULLING,
+		BOW_STATE_PULLED,
+		BOW_STATE_RELEASING
+	};
+
+	// State
+	BowState state = BOW_STATE_IDLE;
+
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	Animator* animator = nullptr;
@@ -25,4 +37,7 @@ public:
 	void onAnimationFinished(Animation* anim) override;
 		// Event
 	void handleEvent(const SDL_Event &event) override;
+
+private:
+	Vector2<float> getArrowInitialPosition();
 };

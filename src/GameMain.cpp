@@ -3,7 +3,7 @@
 
 int main(int argc, char* args[])
 {
-	// Setup
+	// Setup 720x480
 	gFirstScene = new MainMenu();
 	setWindowResolution(720, 480);
 
