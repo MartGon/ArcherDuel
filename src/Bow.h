@@ -21,6 +21,7 @@ public:
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	Animator* animator = nullptr;
+	Collider* collider = nullptr;
 
 	// Arrow
 	GameObject* arrow = nullptr;
@@ -28,6 +29,9 @@ public:
 	// Animations
 	Animation* pull = nullptr;
 	Animation* rel = nullptr;
+
+	// Shoot dir
+	Vector2<float> dir;
 
 	// Hooks
 		// Behaviour

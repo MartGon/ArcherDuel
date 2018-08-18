@@ -6,8 +6,15 @@ Bow::Bow() : GameObject()
 {
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
-	tRenderer = setComponent(new TextureRenderer());
 
+	// Collider
+	collider = setComponent(new Collider(16, 30));
+
+	// Texture Renderer
+	tRenderer = setComponent(new TextureRenderer());
+	Vector2<float> iArrow = getArrowInitialPosition();
+
+	// Setup Animator
 	animator = setComponent(new Animator());
 	pull = animator->addAnimation("MyBow", colorKey, tRenderer, 5, 1, 1);
 	animator->setCurrentAnimation(pull);
@@ -32,15 +39,26 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	if (anim->id == pull->id)
 	{
 		Vector2<float> pos = arrow->transform.position;
+		Vector2<float> aDir = Vector2<float>(1, 0);
+		TextureRenderer* aRenderer = arrow->getComponent<TextureRenderer>();
 
+		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
+		// V2: Modifying the rotation center along the arrow position does the trick
+		// TODO - Need a set pos method that also modifies the center
 		if (frameNumber > 1)
 		{
-			pos.x = pos.x - 1;
+			pos.x = pos.x - (1 * aDir.x);
+			pos.y = pos.y - (1 * aDir.y);
+			aRenderer->center->x += 1;
 		}
 		else
-			pos.x = pos.x - 3;
-
+		{
+			pos.x = pos.x - (3 * aDir.x);
+			pos.y = pos.y - (3 * aDir.y);
+			aRenderer->center->x += 3;
+		}
 		arrow->transform.position = pos;
+		
 	}
 	else if (anim->id == rel->id)
 	{
@@ -60,32 +78,45 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 
 void Bow::onAnimationFinished(Animation *anim)
 {
+	TextureRenderer *aRenderer = arrow->getComponent<TextureRenderer>();
+
 	if (anim->id == pull->id)
+	{
 		state = BOW_STATE_PULLED;
+	}
 	else if (anim->id == rel->id)
 	{
 		Navigator* nav = arrow->getComponent<Navigator>();
-		Vector2<float> arrowPos = arrow->transform.position;
-		Vector2<float> dest;
-
-		int x, y;
-		SDL_GetMouseState(&x, &y);
-
-		dest.x = x;
-		dest.y = y;
-
-		dest = dest / RendererManager::getScaler();
-
-		nav->setDirection(Vector2<float>(dest.x- arrowPos.x, dest.y - arrowPos.y));
+		nav->setDirection(dir);
 		nav->speed = 3;
 		nav->isEnabled = true;
 		state = BOW_STATE_IDLE;
+
+		aRenderer->center = new Vector2<int>(2, 2);
 	}
 }
 
 void Bow::onUpdate()
 {
 
+	Vector2<float> dest;
+
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+
+	dest.x = x;
+	dest.y = y;
+
+	dest = dest / RendererManager::getScaler();
+
+	dir = dest - getArrowInitialPosition();
+
+	transform.zRotation = dir.getAngle();
+		
+	if (arrow)
+	{
+		arrow->transform.zRotation = dir.getAngle();
+	}
 }
 
 void Bow::handleEvent(const SDL_Event &event)
@@ -94,6 +125,7 @@ void Bow::handleEvent(const SDL_Event &event)
 		return;
 
 	Navigator * nav = nullptr;
+	TextureRenderer *aRenderer = nullptr;
 	switch (event.key.keysym.sym)
 	{
 	case SDLK_p:
@@ -122,5 +154,5 @@ void Bow::handleEvent(const SDL_Event &event)
 
 Vector2<float> Bow::getArrowInitialPosition()
 {
-	return Vector2<float>(transform.position.x + 16, transform.position.y + 14);
+	return Vector2<float>(transform.position.x + 6, transform.position.y + 13);
 }
