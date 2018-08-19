@@ -1,10 +1,10 @@
 #include "MainGameLoop.h"
-#include "MainMenu.h"
+#include "LevelOne.h"
 
 int main(int argc, char* args[])
 {
 	// Setup 720x480
-	gFirstScene = new MainMenu();
+	gFirstScene = new LevelOne();
 	setWindowResolution(720, 480);
 
 	// Engine loop

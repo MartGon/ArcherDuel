@@ -40,7 +40,6 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	{
 		Vector2<float> pos = arrow->transform.position;
 		Vector2<float> aDir = Vector2<float>(1, 0);
-		TextureRenderer* aRenderer = arrow->getComponent<TextureRenderer>();
 
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
@@ -49,13 +48,13 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		{
 			pos.x = pos.x - (1 * aDir.x);
 			pos.y = pos.y - (1 * aDir.y);
-			aRenderer->center->x += 1;
+			arrow->transform.rotationCenter->x += 1;
 		}
 		else
 		{
 			pos.x = pos.x - (3 * aDir.x);
 			pos.y = pos.y - (3 * aDir.y);
-			aRenderer->center->x += 3;
+			arrow->transform.rotationCenter->x += 3;
 		}
 		arrow->transform.position = pos;
 		
@@ -88,11 +87,14 @@ void Bow::onAnimationFinished(Animation *anim)
 	{
 		Navigator* nav = arrow->getComponent<Navigator>();
 		nav->setDirection(dir);
-		nav->speed = 3;
+		nav->speed = 5;
 		nav->isEnabled = true;
-		state = BOW_STATE_IDLE;
+		nav->isKinematic = true;
+		//nav->acceleration.x = 0.05f;
+		nav->acceleration.y = -0.005f;
+		state = BOW_STATE_ARROW_LAUNCHED;
 
-		aRenderer->center = new Vector2<int>(2, 2);
+		arrow->transform.rotationCenter = new Vector2<int>(2, 2);
 	}
 }
 
@@ -107,16 +109,25 @@ void Bow::onUpdate()
 	dest.x = x;
 	dest.y = y;
 
+	// Destination point
 	dest = dest / RendererManager::getScaler();
 
-	dir = dest - getArrowInitialPosition();
+	//printf("Dest es %f, %f\n", dest.x, dest.y);
+
+	// Direction vector
+	// Taking always the center of the window as reference
+	dir = dest - /*getArrowInitialPosition()*/ Vector2<float>(RendererManager::getNativeResolution().x / 2, RendererManager::getNativeResolution().y / 2);
+
+	//printf("Dir es %f, %f\n", dir.x, dir.y);
 
 	transform.zRotation = dir.getAngle();
 		
-	if (arrow)
+	if (state != BOW_STATE_ARROW_LAUNCHED)
 	{
 		arrow->transform.zRotation = dir.getAngle();
 	}
+	else
+		arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
 }
 
 void Bow::handleEvent(const SDL_Event &event)
@@ -147,6 +158,7 @@ void Bow::handleEvent(const SDL_Event &event)
 	case SDLK_l:
 		arrow->transform.position = getArrowInitialPosition();
 		arrow->getComponent<Navigator>()->isEnabled = false;
+		state = BOW_STATE_IDLE;
 	default:
 		break;
 	}
