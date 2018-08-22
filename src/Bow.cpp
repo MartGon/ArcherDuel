@@ -1,6 +1,7 @@
 #include "Bow.h"
 #include "Navigator.h"
 #include "RendererManager.h"
+#include "RotatableBoxCollider.h"
 
 Bow::Bow() : GameObject()
 {
@@ -127,9 +128,13 @@ void Bow::onUpdate()
 		arrow->transform.zRotation = dir.getAngle();
 	}
 	else
+	{
 		arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
+	}
 
-	arrow->getComponent<Collider>()->drawCollisionBoundaries(RendererManager::renderer);
+	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
+	rot->setRotation(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
+	arrow->getComponent<RotatableBoxCollider>()->draw();
 }
 
 void Bow::handleEvent(const SDL_Event &event)

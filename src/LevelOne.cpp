@@ -7,6 +7,7 @@
 #include "Button.h"
 #include "Texture.h"
 #include "Transform.h"
+#include "RotatableBoxCollider.h"
 
 const int LevelOne::LEVEL_WIDTH = 720;
 const int LevelOne::LEVEL_HEIGHT = 480;
@@ -40,6 +41,12 @@ void LevelOne::loadMedia()
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+
+	// Test new rotatable Colliders
+	GameObject* test = new GameObject();
+	RotatableBoxCollider* col = arrow->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
+	//col->rotate(Vector2<int>(0, 0), 180);
+	std::cout << col->vertexValuesToStr();
 }
 
 void LevelOne::onClickBow()
@@ -50,17 +57,25 @@ void LevelOne::onClickBow()
 void LevelOne::onUpdate()
 {
 	Collider* col = arrow->getComponent<Collider>();
-	col->drawCollisionBoundaries(RendererManager::renderer);
+	//col->drawCollisionBoundaries(RendererManager::renderer);
 	Vector2<int> res = RendererManager::getNativeResolution();
 	Vector2<int> arrowPos = arrow->transform.position;
+
 	// TODO - Change camera to consider center to be the actual camera position
 	Vector2<int> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
 	RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+
+	// Testing rotable colliders
+	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
+	//rot->draw();
+	//rot->rotate(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
 {
 	TextureRenderer *aRenderer = nullptr;
+	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
+	rot->draw();
 
 	int cam_speed = 5;
 
@@ -68,9 +83,13 @@ void LevelOne::handleEvent(const SDL_Event& event)
 	{
 	case SDLK_UP:
 		moveCamera(0, -cam_speed);
+		rot->setRotation(Vector2<int>(-1, 1), cam_speed += 5);
+		std::cout << rot->vertexValuesToStr();
 		break;
 	case SDLK_DOWN:
 		moveCamera(0, cam_speed);
+		rot->setRotation(Vector2<int>(-1, 1), cam_speed -= 5);
+		std::cout << rot->vertexValuesToStr();
 		break;
 	case SDLK_RIGHT:
 		moveCamera(cam_speed, 0);
