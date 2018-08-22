@@ -87,7 +87,7 @@ void Bow::onAnimationFinished(Animation *anim)
 	{
 		Navigator* nav = arrow->getComponent<Navigator>();
 		nav->setDirection(dir);
-		nav->speed = 5;
+		nav->speed = 3;
 		nav->isEnabled = true;
 		nav->isKinematic = true;
 		//nav->acceleration.x = 0.05f;
@@ -128,6 +128,8 @@ void Bow::onUpdate()
 	}
 	else
 		arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
+
+	arrow->getComponent<Collider>()->drawCollisionBoundaries(RendererManager::renderer);
 }
 
 void Bow::handleEvent(const SDL_Event &event)

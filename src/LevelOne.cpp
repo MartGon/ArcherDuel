@@ -27,6 +27,7 @@ void LevelOne::loadMedia()
 	arrow = new GameObject();
 	TextureRenderer* aRenderer = arrow->setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
 	Navigator* nav = arrow->setComponent(new Navigator());
+	arrow->setComponent(new Collider(aRenderer->texture));
 	nav->isEnabled = false;
 	// x + 6, y + 13
 	arrow->transform.position = Vector2<float>(bow->transform.position.x + 6, bow->transform.position.y + 13);
@@ -48,8 +49,11 @@ void LevelOne::onClickBow()
 
 void LevelOne::onUpdate()
 {
+	Collider* col = arrow->getComponent<Collider>();
+	col->drawCollisionBoundaries(RendererManager::renderer);
 	Vector2<int> res = RendererManager::getNativeResolution();
 	Vector2<int> arrowPos = arrow->transform.position;
+	// TODO - Change camera to consider center to be the actual camera position
 	Vector2<int> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
 	RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 }
