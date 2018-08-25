@@ -135,6 +135,9 @@ void Bow::onUpdate()
 	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
 	rot->setRotation(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
 	arrow->getComponent<RotatableBoxCollider>()->draw();
+
+    if(test)
+        test->getComponent<RotatableBoxCollider>()->draw();
 }
 
 void Bow::handleEvent(const SDL_Event &event)

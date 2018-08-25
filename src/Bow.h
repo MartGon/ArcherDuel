@@ -26,6 +26,7 @@ public:
 
 	// Arrow
 	GameObject* arrow = nullptr;
+    GameObject* test = nullptr;
 
 	// Animations
 	Animation* pull = nullptr;

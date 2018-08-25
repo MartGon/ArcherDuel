@@ -15,6 +15,7 @@ public:
 
 	Bow* bow = nullptr;
 	GameObject* arrow = nullptr;
+    GameObject* test = nullptr;
 
 	// Level Dimensions
 

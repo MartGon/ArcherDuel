@@ -32,21 +32,33 @@ void LevelOne::loadMedia()
 	nav->isEnabled = false;
 	// x + 6, y + 13
 	arrow->transform.position = Vector2<float>(bow->transform.position.x + 6, bow->transform.position.y + 13);
+    RotatableBoxCollider* col = arrow->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
 
 	// Rotation
 	arrow->transform.rotationCenter = new Vector2<int>(2, 2);
 
 	// Setting
 	bow->arrow = arrow;
+    
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
 	// Test new rotatable Colliders
-	GameObject* test = new GameObject();
-	RotatableBoxCollider* col = arrow->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
+	test = new GameObject();
+    test->setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
+    test->setRelativePosition(Vector2<int>(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2));
+    test->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 24), Vector2<int>(112, 0), Vector2<int>(112, 24)));
+    bow->test = test;
+
 	//col->rotate(Vector2<int>(0, 0), 180);
 	std::cout << col->vertexValuesToStr();
+
+    // Project test
+    Vector2<int> a(1, 1);
+    Vector2<int> b(1, 0);
+
+    printf("El módulo del proyectado es %f", b.project(a));
 }
 
 void LevelOne::onClickBow()
@@ -67,6 +79,9 @@ void LevelOne::onUpdate()
 
 	// Testing rotable colliders
 	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
+        if (rot->checkCollision(*test->getComponent<RotatableBoxCollider>()) || test->getComponent<RotatableBoxCollider>()->checkCollision(*rot))
+            printf("Colisión");
+    test->getComponent<RotatableBoxCollider>()->draw();
 	//rot->draw();
 	//rot->rotate(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
 }
