@@ -9,7 +9,7 @@ Bow::Bow() : GameObject()
 	colorKey->blue = 0xFF;
 
 	// Collider
-	collider = setComponent(new Collider(16, 30));
+	//collider = setComponent(new BoxCollider(16, 30));
 
 	// Texture Renderer
 	tRenderer = setComponent(new TextureRenderer());
@@ -133,11 +133,11 @@ void Bow::onUpdate()
 	}
 
 	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
-	rot->setRotation(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
-	arrow->getComponent<RotatableBoxCollider>()->draw();
+	//rot->setRotation(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
+	arrow->getComponent<RotatableBoxCollider>()->drawCollisionBoundaries();
 
     if(test)
-        test->getComponent<RotatableBoxCollider>()->draw();
+        test->getComponent<BoxCollider>()->drawCollisionBoundaries();
 }
 
 void Bow::handleEvent(const SDL_Event &event)

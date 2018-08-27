@@ -22,7 +22,7 @@ public:
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	Animator* animator = nullptr;
-	Collider* collider = nullptr;
+	BoxCollider* collider = nullptr;
 
 	// Arrow
 	GameObject* arrow = nullptr;
