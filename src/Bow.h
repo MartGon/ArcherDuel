@@ -26,7 +26,6 @@ public:
 
 	// Arrow
 	GameObject* arrow = nullptr;
-    GameObject* test = nullptr;
 
 	// Animations
 	Animation* pull = nullptr;
@@ -44,6 +43,6 @@ public:
 		// Event
 	void handleEvent(const SDL_Event &event) override;
 
-private:
+	// Own Methods
 	Vector2<float> getArrowInitialPosition();
 };

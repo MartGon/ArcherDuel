@@ -1,13 +1,5 @@
 #include "LevelOne.h"
-#include "MainGameLoop.h"
-#include "TextureRenderer.h"
-#include "RendererManager.h"
-#include "Animator.h"
-#include "Navigator.h"
-#include "Button.h"
-#include "Texture.h"
-#include "Transform.h"
-#include "RotatableBoxCollider.h"
+#include "Arrow.h"
 
 const int LevelOne::LEVEL_WIDTH = 720;
 const int LevelOne::LEVEL_HEIGHT = 480;
@@ -22,6 +14,7 @@ void LevelOne::loadMedia()
 	GameObject *background = new GameObject();
 	background->setComponent(new TextureRenderer("BackgroundTest.png", nullptr, 1));
 
+	// Bow
 	bow = new Bow();
 	Vector2<int> nativeRes = RendererManager::getNativeResolution();
 	bow->setRelativePosition(Vector2<float>(nativeRes.x / 2 , LEVEL_HEIGHT - nativeRes.y/2));
@@ -29,72 +22,51 @@ void LevelOne::loadMedia()
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
 
-	arrow = new GameObject();
-	TextureRenderer* aRenderer = arrow->setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
-	Navigator* nav = arrow->setComponent(new Navigator());
-	nav->isEnabled = false;
-
-	// x + 6, y + 13
-	arrow->transform.position = Vector2<float>(bow->transform.position.x + 6, bow->transform.position.y + 13);
-    RotatableBoxCollider* col = arrow->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
-
-	// Rotation
-	arrow->transform.rotationCenter = new Vector2<int>(2, 2);
-
-	// Setting
-	bow->arrow = arrow;
+	// Arrow
+	bow->arrow = new Arrow();
+	bow->arrow->transform.position = bow->getArrowInitialPosition();
     
+	// Player
+	player = new Player();
+	Vector2<float> offset(-30, 0);
+	player->setRelativePosition(Vector2<float>(nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2) + offset);
+	
+	// PlayerTwo
+	Player* playerTwo = new Player();
+	playerTwo->setRelativePosition(Vector2<float>(LEVEL_WIDTH - nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2));
+	playerTwo->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
+
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
-
-	// Test new rotatable Colliders
-	test = new GameObject();
-    test->setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
-    test->setRelativePosition(Vector2<int>(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2));
-    test->setComponent(new BoxCollider(124, 24));
-    bow->test = test;
-
-	std::cout << col->vertexValuesToStr();
 }
 
 void LevelOne::onClickBow()
 {
-	printf("I was clicked\n");
+
 }
 
 void LevelOne::onUpdate()
 {
-	BoxCollider* col = arrow->getComponent<BoxCollider>();
 	Vector2<int> res = RendererManager::getNativeResolution();
-	Vector2<int> arrowPos = arrow->transform.position;
+	Vector2<int> arrowPos = bow->arrow->transform.position;
 
 	// TODO - Change camera to consider center to be the actual camera position
 	Vector2<int> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
 	RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
-
-	// Testing rotable colliders
-	test->getComponent<BoxCollider>()->debug = true;
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
 {
 	TextureRenderer *aRenderer = nullptr;
-	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
-	rot->debug = true;
-
 	int cam_speed = 5;
 
 	switch (event.key.keysym.sym)
 	{
 	case SDLK_UP:
 		moveCamera(0, -cam_speed);
-		rot->setRotation(Vector2<int>(-1, 1), cam_speed += 5);
-		std::cout << rot->vertexValuesToStr();
 		break;
 	case SDLK_DOWN:
 		moveCamera(0, cam_speed);
-		rot->setRotation(Vector2<int>(-1, 1), cam_speed -= 5);
-		std::cout << rot->vertexValuesToStr();
 		break;
 	case SDLK_RIGHT:
 		moveCamera(cam_speed, 0);

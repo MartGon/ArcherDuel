@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "Bow.h"
+#include "Player.h"
 
 class LevelOne : public Scene
 {
@@ -14,8 +15,7 @@ public:
 	void handleEvent(const SDL_Event& event) override;
 
 	Bow* bow = nullptr;
-	GameObject* arrow = nullptr;
-    GameObject* test = nullptr;
+	Player* player = nullptr;
 
 	// Level Dimensions
 
