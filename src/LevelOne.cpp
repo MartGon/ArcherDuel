@@ -14,9 +14,13 @@ const int LevelOne::LEVEL_HEIGHT = 480;
 
 void LevelOne::loadMedia()
 {
+	// Setting managers
+	setManager(new RendererManager());
+	setManager(new CollisionManager());
+
 	// Background
 	GameObject *background = new GameObject();
-	background->setComponent(new TextureRenderer("BackgroundTest.png"));
+	background->setComponent(new TextureRenderer("BackgroundTest.png", nullptr, 1));
 
 	bow = new Bow();
 	Vector2<int> nativeRes = RendererManager::getNativeResolution();
@@ -28,8 +32,8 @@ void LevelOne::loadMedia()
 	arrow = new GameObject();
 	TextureRenderer* aRenderer = arrow->setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
 	Navigator* nav = arrow->setComponent(new Navigator());
-	//arrow->setComponent(new BoxCollider(aRenderer->texture));
 	nav->isEnabled = false;
+
 	// x + 6, y + 13
 	arrow->transform.position = Vector2<float>(bow->transform.position.x + 6, bow->transform.position.y + 13);
     RotatableBoxCollider* col = arrow->setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
@@ -40,7 +44,6 @@ void LevelOne::loadMedia()
 	// Setting
 	bow->arrow = arrow;
     
-
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
@@ -51,14 +54,7 @@ void LevelOne::loadMedia()
     test->setComponent(new BoxCollider(124, 24));
     bow->test = test;
 
-	//col->rotate(Vector2<int>(0, 0), 180);
 	std::cout << col->vertexValuesToStr();
-
-    // Project test
-    Vector2<int> a(1, 1);
-    Vector2<int> b(1, 0);
-
-    printf("El módulo del proyectado es %f", b.project(a));
 }
 
 void LevelOne::onClickBow()
@@ -69,7 +65,6 @@ void LevelOne::onClickBow()
 void LevelOne::onUpdate()
 {
 	BoxCollider* col = arrow->getComponent<BoxCollider>();
-	//col->drawCollisionBoundaries(RendererManager::renderer);
 	Vector2<int> res = RendererManager::getNativeResolution();
 	Vector2<int> arrowPos = arrow->transform.position;
 
@@ -78,20 +73,14 @@ void LevelOne::onUpdate()
 	RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
 	// Testing rotable colliders
-	/*RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
-        if (rot->checkCollision(*test->getComponent<RotatableBoxCollider>()) || test->getComponent<RotatableBoxCollider>()->checkCollision(*rot))
-            printf("Colisión");
-			*/
-    test->getComponent<BoxCollider>()->drawCollisionBoundaries();
-	//rot->draw();
-	//rot->rotate(*(arrow->transform.rotationCenter), arrow->transform.zRotation);
+	test->getComponent<BoxCollider>()->debug = true;
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
 {
 	TextureRenderer *aRenderer = nullptr;
 	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
-	rot->drawCollisionBoundaries();
+	rot->debug = true;
 
 	int cam_speed = 5;
 
