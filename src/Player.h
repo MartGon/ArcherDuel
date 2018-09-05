@@ -9,4 +9,7 @@ public:
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	BoxCollider* bCollider = nullptr;
+
+    // Hooks
+    void handleEvent(const SDL_Event &event) override;
 };

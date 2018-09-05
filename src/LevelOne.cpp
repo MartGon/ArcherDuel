@@ -18,6 +18,7 @@ void LevelOne::loadMedia()
 	bow = new Bow();
 	Vector2<int> nativeRes = RendererManager::getNativeResolution();
 	bow->setRelativePosition(Vector2<float>(nativeRes.x / 2 , LEVEL_HEIGHT - nativeRes.y/2));
+    bow->transform.rotationCenter = new Vector2<int>(-20, 10);
 
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
@@ -25,14 +26,21 @@ void LevelOne::loadMedia()
 	// Arrow
 	bow->arrow = new Arrow();
 	bow->arrow->transform.position = bow->getArrowInitialPosition();
-    
+    bow->arrow->transform.rotationCenter = new Vector2<int>(-26, -3);
+
+    printf("Bow center %s\n", (*(bow->transform.rotationCenter) + (Vector2<int>)bow->transform.position).toStr().c_str());
+    printf("Arrow center %s", (*(bow->arrow->transform.rotationCenter) + (Vector2<int>)bow->arrow->transform.position).toStr().c_str());
+
 	// Player
 	player = new Player();
-	Vector2<float> offset(-30, 0);
+    player->bCollider->debug = true;
+    player->transform.scale = Vector2<float>(0.65f, 0.75f);
+	Vector2<float> offset(-20, 0);
 	player->setRelativePosition(Vector2<float>(nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2) + offset);
 	
 	// PlayerTwo
 	Player* playerTwo = new Player();
+    playerTwo->transform.scale = Vector2<float>(0.65f, 0.75f);
 	playerTwo->setRelativePosition(Vector2<float>(LEVEL_WIDTH - nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2));
 	playerTwo->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
 

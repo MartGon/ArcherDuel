@@ -2,6 +2,7 @@
 #include "Navigator.h"
 #include "RendererManager.h"
 #include "RotatableBoxCollider.h"
+#include "Utilities.h"
 
 Bow::Bow() : GameObject()
 {
@@ -29,7 +30,7 @@ Bow::Bow() : GameObject()
 
 	for (auto &frame : rel->frames)
 	{
-		frame->duration = 1;
+		frame->duration = 2;
 	}
 
 	animator->isEnabled = false;
@@ -40,21 +41,18 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	if (anim->id == pull->id)
 	{
 		Vector2<float> pos = arrow->transform.position;
-		Vector2<float> aDir = Vector2<float>(1, 0);
 
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
 		// TODO - Need a set pos method that also modifies the center
 		if (frameNumber > 1)
 		{
-			pos.x = pos.x - (1 * aDir.x);
-			pos.y = pos.y - (1 * aDir.y);
+			pos.x = pos.x - 1;
 			arrow->transform.rotationCenter->x += 1;
 		}
 		else
 		{
-			pos.x = pos.x - (3 * aDir.x);
-			pos.y = pos.y - (3 * aDir.y);
+			pos.x = pos.x - 3;
 			arrow->transform.rotationCenter->x += 3;
 		}
 		arrow->transform.position = pos;
@@ -62,17 +60,20 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	}
 	else if (anim->id == rel->id)
 	{
-		Vector2<float> pos = arrow->transform.position;
-
-		int lastFrame = (anim->frames.size() - 1);
-		if (frameNumber ==  lastFrame)
-		{
-			pos.x = pos.x + 3;
-		}
-		else
-			pos.x = pos.x + 1;
-
-		arrow->transform.position = pos;
+        Vector2<float> pos = arrow->transform.position;
+        
+        int lastFrame = (anim->frames.size() - 1);
+        if (frameNumber < lastFrame)
+        {
+            pos.x = pos.x + 1;
+            arrow->transform.rotationCenter->x -= 1;
+        }
+        else
+        {
+            pos.x = pos.x + 3;
+            arrow->transform.rotationCenter->x -= 3;
+        }
+        arrow->transform.position = pos;
 	}
 }
 
@@ -95,7 +96,11 @@ void Bow::onAnimationFinished(Animation *anim)
 		nav->acceleration.y = -0.005f;
 		state = BOW_STATE_ARROW_LAUNCHED;
 
-		arrow->transform.rotationCenter = new Vector2<int>(2, 2);
+        // Change position
+        arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
+	    arrow->transform.rotationCenter = new Vector2<int>(0, 0);
+        //arrow->transform.rotationCenter = nullptr;
+        
 	}
 }
 
@@ -162,8 +167,13 @@ void Bow::handleEvent(const SDL_Event &event)
 		state = BOW_STATE_RELEASING;
 		break;
 	case SDLK_l:
+        if (state != BOW_STATE_ARROW_LAUNCHED)
+            return;
+
+        arrow->transform.rotationCenter = new Vector2<int>(-26, -3);
 		arrow->transform.position = getArrowInitialPosition();
 		arrow->getComponent<Navigator>()->isEnabled = false;
+        arrow->getComponent<Collider>()->isEnabled = true;
 		state = BOW_STATE_IDLE;
 	default:
 		break;
