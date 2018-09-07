@@ -26,7 +26,8 @@ void LevelOne::loadMedia()
 	// Arrow
 	bow->arrow = new Arrow();
 	bow->arrow->transform.position = bow->getArrowInitialPosition();
-    bow->arrow->transform.rotationCenter = new Vector2<int>(-26, -3);
+    //bow->arrow->transform.rotationCenter = new Vector2<int>(-26, -3);
+    bow->arrow->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
 
     printf("Bow center %s\n", (*(bow->transform.rotationCenter) + (Vector2<int>)bow->transform.position).toStr().c_str());
     printf("Arrow center %s", (*(bow->arrow->transform.rotationCenter) + (Vector2<int>)bow->arrow->transform.position).toStr().c_str());

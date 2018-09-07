@@ -92,15 +92,13 @@ void Bow::onAnimationFinished(Animation *anim)
 		nav->speed = 3;
 		nav->isEnabled = true;
 		nav->isKinematic = true;
-		//nav->acceleration.x = 0.05f;
 		nav->acceleration.y = -0.005f;
 		state = BOW_STATE_ARROW_LAUNCHED;
 
         // Change position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
-	    arrow->transform.rotationCenter = new Vector2<int>(0, 0);
-        //arrow->transform.rotationCenter = nullptr;
-        
+	    //arrow->transform.rotationCenter = new Vector2<int>(0, 0);
+        arrow->transform.rotationCenter = nullptr;
 	}
 }
 
@@ -170,8 +168,8 @@ void Bow::handleEvent(const SDL_Event &event)
         if (state != BOW_STATE_ARROW_LAUNCHED)
             return;
 
-        arrow->transform.rotationCenter = new Vector2<int>(-26, -3);
-		arrow->transform.position = getArrowInitialPosition();
+        arrow->transform.position = getArrowInitialPosition();
+        arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 		arrow->getComponent<Navigator>()->isEnabled = false;
         arrow->getComponent<Collider>()->isEnabled = true;
 		state = BOW_STATE_IDLE;
