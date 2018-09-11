@@ -89,7 +89,7 @@ void Bow::onAnimationFinished(Animation *anim)
 	{
 		Navigator* nav = arrow->getComponent<Navigator>();
 		nav->setDirection(dir);
-		nav->speed = 3;
+		nav->speed = 3 + (10 * charge * 0.01);
 		nav->isEnabled = true;
 		nav->isKinematic = true;
 		nav->acceleration.y = -0.005f;
@@ -97,46 +97,40 @@ void Bow::onAnimationFinished(Animation *anim)
 
         // Change position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
-	    //arrow->transform.rotationCenter = new Vector2<int>(0, 0);
         arrow->transform.rotationCenter = nullptr;
+
+        // Reset charge
+        charge = 0;
 	}
 }
 
 void Bow::onUpdate()
 {
 
-	Vector2<float> dest;
-
-	int x, y;
-	SDL_GetMouseState(&x, &y);
-
-	dest.x = x;
-	dest.y = y;
-
-	// Destination point
-	dest = dest / RendererManager::getScaler();
-
-	//printf("Dest es %f, %f\n", dest.x, dest.y);
-
-	// Direction vector
-	// Taking always the center of the window as reference
-	dir = dest - /*getArrowInitialPosition()*/ Vector2<float>(RendererManager::getNativeResolution().x / 2, RendererManager::getNativeResolution().y / 2);
-
-	//printf("Dir es %f, %f\n", dir.x, dir.y);
-
-	transform.zRotation = dir.getAngle();
-		
-	if (state != BOW_STATE_ARROW_LAUNCHED)
-	{
-		arrow->transform.zRotation = dir.getAngle();
-	}
-	else
-	{
-		arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
-	}
-
-	RotatableBoxCollider* rot = arrow->getComponent<RotatableBoxCollider>();
-	//rot->drawCollisionBoundaries();
+    switch (state)
+    {
+    case Bow::BOW_STATE_IDLE:
+        dir = Vector2<float>(-angle);
+        transform.zRotation = dir.getAngle();
+        arrow->transform.zRotation = dir.getAngle();
+        break;
+    case Bow::BOW_STATE_PULLING:
+        // Nothing
+        break;
+    case Bow::BOW_STATE_PULLED:
+        // Charge Bar
+        charge = charge++ % 101;
+        printf("La carga es %i\n", charge);
+        break;
+    case Bow::BOW_STATE_RELEASING:
+        // Nothing
+        break;
+    case Bow::BOW_STATE_ARROW_LAUNCHED:
+        arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
+        break;
+    default:
+        break;
+    }
 }
 
 void Bow::handleEvent(const SDL_Event &event)
@@ -145,7 +139,8 @@ void Bow::handleEvent(const SDL_Event &event)
 		return;
 
 	Navigator * nav = nullptr;
-	TextureRenderer *aRenderer = nullptr;
+    TextureRenderer *aRenderer = nullptr;
+
 	switch (event.key.keysym.sym)
 	{
 	case SDLK_p:
@@ -173,12 +168,52 @@ void Bow::handleEvent(const SDL_Event &event)
 		arrow->getComponent<Navigator>()->isEnabled = false;
         arrow->getComponent<Collider>()->isEnabled = true;
 		state = BOW_STATE_IDLE;
+        break;
+    case SDLK_u:
+        if (state != BOW_STATE_IDLE)
+            return;
+
+        if (angle < 90)
+            angle += angle_inc;
+        break;
+    case SDLK_j:
+        if (state != BOW_STATE_IDLE)
+            return;
+
+        if (angle >= angle_inc)
+            angle -= angle_inc;
+        break;
 	default:
 		break;
 	}
 }
 
+// Own methods
+
 Vector2<float> Bow::getArrowInitialPosition()
 {
 	return Vector2<float>(transform.position.x + 6, transform.position.y + 13);
+}
+
+void Bow::pointBowToMouse()
+{
+
+    Vector2<float> dest;
+
+    int x, y;
+    SDL_GetMouseState(&x, &y);
+
+    dest.x = x;
+    dest.y = y;
+
+    // Destination point
+    dest = dest / RendererManager::getScaler();
+
+    //printf("Dest es %f, %f\n", dest.x, dest.y);
+
+    // Direction vector
+    // Taking always the center of the window as reference
+    dir = dest - Vector2<float>(RendererManager::getNativeResolution().x / 2, RendererManager::getNativeResolution().y / 2);
+
+    //printf("Dir es %f, %f\n", dir.x, dir.y);
 }

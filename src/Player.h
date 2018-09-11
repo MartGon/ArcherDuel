@@ -6,6 +6,9 @@ class Player : public GameObject
 public:
 	Player();
 
+    // Attributes
+    float health_points = 100;
+
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	BoxCollider* bCollider = nullptr;

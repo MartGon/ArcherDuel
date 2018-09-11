@@ -32,7 +32,12 @@ public:
 	Animation* rel = nullptr;
 
 	// Shoot dir
+    double angle = 0;
 	Vector2<float> dir;
+    double angle_inc = 5;
+
+    // Gameplay
+    int charge = 1;
 
 	// Hooks
 		// Behaviour
@@ -45,4 +50,5 @@ public:
 
 	// Own Methods
 	Vector2<float> getArrowInitialPosition();
+    void pointBowToMouse();
 };

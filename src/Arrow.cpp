@@ -29,6 +29,6 @@ void Arrow::onColliderEnter(Collider* collider)
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
 		nav->isEnabled = false;
-		//rotCollider->isEnabled = false;
+		rotCollider->isEnabled = false;
 	}
 }

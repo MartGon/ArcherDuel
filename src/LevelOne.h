@@ -6,6 +6,12 @@
 class LevelOne : public Scene
 {
 public:
+    enum PlayerTurn
+    {
+        PLAYER_ONE_TURN,
+        PLAYER_TWO_TURN
+    };
+
 	void loadMedia() override;
 
 	void onClickBow();
@@ -14,8 +20,11 @@ public:
 
 	void handleEvent(const SDL_Event& event) override;
 
+    // GameObjects
 	Bow* bow = nullptr;
 	Player* player = nullptr;
+    Bow* p2_bow = nullptr;
+    Player* playerTwo = nullptr;
 
 	// Level Dimensions
 
@@ -24,4 +33,6 @@ public:
 
 	// Test
 	void moveCamera(int xOffset, int yOffset);
+    int cam_speed = 5;
+    bool free_camera = false;
 };
