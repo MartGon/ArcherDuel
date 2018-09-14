@@ -1,8 +1,8 @@
 #pragma once
 #include "Scene.h"
 #include "Bow.h"
-#include "Player.h"
 
+class Player;
 class LevelOne : public Scene
 {
 public:
@@ -27,9 +27,13 @@ public:
     Player* playerTwo = nullptr;
 
 	// Level Dimensions
-
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;
+
+    // GameState
+    PlayerTurn turn = PLAYER_TWO_TURN;
+    bool canPlayerAct(Player* player);
+    void finishTurn();
 
 	// Test
 	void moveCamera(int xOffset, int yOffset);

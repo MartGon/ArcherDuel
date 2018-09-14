@@ -1,4 +1,6 @@
 #include "Bow.h"
+#include "Player.h"
+#include "LevelOne.h"
 #include "Navigator.h"
 #include "RendererManager.h"
 #include "RotatableBoxCollider.h"
@@ -106,13 +108,13 @@ void Bow::onAnimationFinished(Animation *anim)
 
 void Bow::onUpdate()
 {
-
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
         dir = Vector2<float>(-angle);
         transform.zRotation = dir.getAngle();
-        arrow->transform.zRotation = dir.getAngle();
+        if(arrow)
+            arrow->transform.zRotation = dir.getAngle();
         break;
     case Bow::BOW_STATE_PULLING:
         // Nothing
@@ -137,6 +139,9 @@ void Bow::handleEvent(const SDL_Event &event)
 {
 	if (event.type != SDL_KEYDOWN)
 		return;
+
+    if (!owner->level->canPlayerAct(owner))
+        return;
 
 	Navigator * nav = nullptr;
     TextureRenderer *aRenderer = nullptr;
@@ -173,15 +178,30 @@ void Bow::handleEvent(const SDL_Event &event)
         if (state != BOW_STATE_IDLE)
             return;
 
-        if (angle < 90)
-            angle += angle_inc;
+        if (owner->level->turn == owner->level->PLAYER_ONE_TURN)
+        {
+            if (angle < 90)
+                angle += angle_inc;
+        }
+        else
+        {
+            if (angle >= (angle_inc + 90))
+                angle -= angle_inc;
+        }
         break;
     case SDLK_j:
         if (state != BOW_STATE_IDLE)
             return;
-
-        if (angle >= angle_inc)
-            angle -= angle_inc;
+        if (owner->level->turn == owner->level->PLAYER_ONE_TURN)
+        {
+            if (angle >= angle_inc)
+                angle -= angle_inc;
+        }
+        else
+        {
+            if (angle < 180)
+                angle += angle_inc;
+        }
         break;
 	default:
 		break;
@@ -190,9 +210,20 @@ void Bow::handleEvent(const SDL_Event &event)
 
 // Own methods
 
-Vector2<float> Bow::getArrowInitialPosition()
+Vector2<float> Bow::getArrowInitialPosition(bool reversed)
 {
-	return Vector2<float>(transform.position.x + 6, transform.position.y + 13);
+    if(reversed)
+        return Vector2<float>(transform.position.x - 6, transform.position.y - 13);
+    else
+        return Vector2<float>(transform.position.x + 6, transform.position.y + 13);
+}
+
+void Bow::loadArrow()
+{
+    arrow = new Arrow();
+    arrow->transform.position = getArrowInitialPosition();
+    arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+    arrow->bow = this;
 }
 
 void Bow::pointBowToMouse()

@@ -1,5 +1,6 @@
 #include "Arrow.h"
 #include "Player.h"
+#include "LevelOne.h"
 
 Arrow::Arrow()
 {
@@ -30,5 +31,29 @@ void Arrow::onColliderEnter(Collider* collider)
 	{
 		nav->isEnabled = false;
 		rotCollider->isEnabled = false;
+        mov_finished = true;
 	}
+}
+
+void Arrow::afterMove()
+{
+    if (transform.position.y > bow->owner->level->LEVEL_HEIGHT)
+    {
+        nav->goToPreviousPos();
+        nav->isEnabled = false;
+        mov_finished = true;
+    }
+}
+
+void Arrow::onUpdate()
+{
+    if (!mov_finished)
+        return;
+    else
+    {
+        bow->owner->level->finishTurn();
+        bow->state = Bow::BOW_STATE_IDLE;
+        bow->arrow = nullptr;
+        mov_finished = false;
+    }
 }

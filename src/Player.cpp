@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "LevelOne.h"
 
 Player::Player()
 {
@@ -18,19 +19,25 @@ void Player::handleEvent(const SDL_Event & event)
     if (event.type != SDL_KEYDOWN)
         return;
 
-    switch (event.key.keysym.sym)
+    if (!level->canPlayerAct(this))
+        return;
+
+    if (mov_enabled)
     {
-    case SDLK_d:
-        transform.position = transform.position + Vector2<float>(5, 0);
-        break;
-    case SDLK_a:
-        transform.position = transform.position + Vector2<float>(-5, 0);
-        break;
-    case SDLK_w:
-        transform.position = transform.position + Vector2<float>(0, -5);
-        break;
-    case SDLK_s:
-        transform.position = transform.position + Vector2<float>(0, 5);
-        break;
+        switch (event.key.keysym.sym)
+        {
+        case SDLK_d:
+            transform.position = transform.position + Vector2<float>(movement_speed, 0);
+            break;
+        case SDLK_a:
+            transform.position = transform.position + Vector2<float>(-movement_speed, 0);
+            break;
+        case SDLK_w:
+            transform.position = transform.position + Vector2<float>(0, -movement_speed);
+            break;
+        case SDLK_s:
+            transform.position = transform.position + Vector2<float>(0, movement_speed);
+            break;
+        }
     }
 }

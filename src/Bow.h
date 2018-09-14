@@ -1,6 +1,8 @@
 #pragma once
 #include "GameObject.h"
+#include "Arrow.h"
 
+class Player;
 class Bow : public GameObject
 {
 public:
@@ -25,7 +27,7 @@ public:
 	BoxCollider* collider = nullptr;
 
 	// Arrow
-	GameObject* arrow = nullptr;
+	Arrow* arrow = nullptr;
 
 	// Animations
 	Animation* pull = nullptr;
@@ -39,6 +41,9 @@ public:
     // Gameplay
     int charge = 1;
 
+    // Owner
+    Player* owner = nullptr;
+
 	// Hooks
 		// Behaviour
 	void onUpdate() override;
@@ -49,6 +54,7 @@ public:
 	void handleEvent(const SDL_Event &event) override;
 
 	// Own Methods
-	Vector2<float> getArrowInitialPosition();
+	Vector2<float> getArrowInitialPosition(bool reversed = false);
+    void loadArrow();
     void pointBowToMouse();
 };

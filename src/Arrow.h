@@ -2,10 +2,17 @@
 #include "Navigator.h"
 #include "GameObject.h"
 
+class Bow;
 class Arrow : public GameObject
 {
 public:
 	Arrow();
+
+    // Attributes
+    bool mov_finished = false;
+
+    // GameObjects
+    Bow* bow = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;
@@ -14,4 +21,6 @@ public:
 
 	// Hooks
 	void onColliderEnter(Collider* collider);
+    void afterMove();
+    void onUpdate();
 };
