@@ -106,15 +106,17 @@ void Bow::onAnimationFinished(Animation *anim)
 	}
 }
 
+void Bow::onStart()
+{
+    rotateArrow();
+}
+
 void Bow::onUpdate()
 {
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
-        dir = Vector2<float>(-angle);
-        transform.zRotation = dir.getAngle();
-        if(arrow)
-            arrow->transform.zRotation = dir.getAngle();
+        rotateArrow();
         break;
     case Bow::BOW_STATE_PULLING:
         // Nothing
@@ -247,4 +249,12 @@ void Bow::pointBowToMouse()
     dir = dest - Vector2<float>(RendererManager::getNativeResolution().x / 2, RendererManager::getNativeResolution().y / 2);
 
     //printf("Dir es %f, %f\n", dir.x, dir.y);
+}
+
+void Bow::rotateArrow()
+{
+    dir = Vector2<float>(-angle);
+    transform.zRotation = dir.getAngle();
+    if (arrow)
+        arrow->transform.zRotation = dir.getAngle();
 }

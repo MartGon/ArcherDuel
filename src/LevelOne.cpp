@@ -46,7 +46,7 @@ void LevelOne::loadMedia()
 	// PlayerTwo
 	playerTwo = new Player();
     playerTwo->transform.scale = Vector2<float>(0.65f, 0.75f);
-	playerTwo->setRelativePosition(Vector2<float>(LEVEL_WIDTH - nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2));
+	playerTwo->setRelativePosition(Vector2<float>(LEVEL_WIDTH - (nativeRes.x / 2), LEVEL_HEIGHT - nativeRes.y / 2));
 	playerTwo->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
     playerTwo->level = this;
    
@@ -56,6 +56,7 @@ void LevelOne::loadMedia()
     p2_bow->setRelativePosition(Vector2<float>(LEVEL_WIDTH - (nativeRes.x / 2), LEVEL_HEIGHT - nativeRes.y / 2) - offset);
     p2_bow->transform.rotationCenter = new Vector2<int>(-20, 10);
     p2_bow->angle = 180;
+
     p2_bow->owner = playerTwo;
     playerTwo->bow = p2_bow;
 

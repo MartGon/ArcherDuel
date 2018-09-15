@@ -20,7 +20,7 @@ public:
 	Navigator *nav = nullptr;
 
 	// Hooks
-	void onColliderEnter(Collider* collider);
-    void afterMove();
-    void onUpdate();
+	void onColliderEnter(Collider* collider) override;
+    void afterMove() override;
+    void onUpdate() override;
 };

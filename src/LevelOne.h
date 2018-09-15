@@ -31,7 +31,7 @@ public:
 	static const int LEVEL_HEIGHT;
 
     // GameState
-    PlayerTurn turn = PLAYER_TWO_TURN;
+    PlayerTurn turn = PLAYER_ONE_TURN;
     bool canPlayerAct(Player* player);
     void finishTurn();
 

@@ -46,6 +46,7 @@ public:
 
 	// Hooks
 		// Behaviour
+    void onStart() override;
 	void onUpdate() override;
 		// Animation
 	void beforeAnimationFrame(Animation* anim, int frameNumber) override;
@@ -57,4 +58,5 @@ public:
 	Vector2<float> getArrowInitialPosition(bool reversed = false);
     void loadArrow();
     void pointBowToMouse();
+    void rotateArrow();
 };
