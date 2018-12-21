@@ -36,7 +36,7 @@ void LevelOne::loadMedia()
 	// Player
 	player = new Player();
     //player->bCollider->debug = true;
-    player->transform.scale = Vector2<float>(0.65f, 0.75f);
+    player->transform.scale = Vector2<float>(2.f, 2.f);
 	Vector2<float> offset(-25, 0);
 	player->setRelativePosition(Vector2<float>(nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2) + offset);
     player->level = this;
@@ -50,7 +50,6 @@ void LevelOne::loadMedia()
 	playerTwo->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
     playerTwo->level = this;
    
-
     // Bow Two
     p2_bow = new Bow();
     p2_bow->setRelativePosition(Vector2<float>(LEVEL_WIDTH - (nativeRes.x / 2), LEVEL_HEIGHT - nativeRes.y / 2) - offset);
