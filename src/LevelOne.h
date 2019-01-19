@@ -30,6 +30,9 @@ public:
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;
 
+	// Object level Placement
+	void placeFloorBlocks();
+
     // GameState
     PlayerTurn turn = PLAYER_ONE_TURN;
     bool canPlayerAct(Player* player);
@@ -38,5 +41,5 @@ public:
 	// Test
 	void moveCamera(int xOffset, int yOffset);
     int cam_speed = 5;
-    bool free_camera = false;
+    bool free_camera = true;
 };

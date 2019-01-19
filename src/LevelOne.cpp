@@ -1,9 +1,13 @@
 #include "LevelOne.h"
 #include "Arrow.h"
 #include "Player.h"
+#include "Tower.h"
+#include "GrassBlock.h"
 
-const int LevelOne::LEVEL_WIDTH = 720;
-const int LevelOne::LEVEL_HEIGHT = 480;
+// Original 720 * 480
+
+const int LevelOne::LEVEL_WIDTH = 480;
+const int LevelOne::LEVEL_HEIGHT = 320;
 
 void LevelOne::loadMedia()
 {
@@ -13,63 +17,48 @@ void LevelOne::loadMedia()
 
 	// Background
 	GameObject *background = new GameObject();
-	background->setComponent(new TextureRenderer("BackgroundTest.png", nullptr, 1));
-
-	// Bow
-	bow = new Bow();
-	Vector2<int> nativeRes = RendererManager::getNativeResolution();
-	bow->setRelativePosition(Vector2<float>(nativeRes.x / 2 , LEVEL_HEIGHT - nativeRes.y/2));
-    bow->transform.rotationCenter = new Vector2<int>(-20, 10);
-
-	MapRGB *colorKey = new MapRGB();
-	colorKey->blue = 0xFF;
-
-	// Arrow
-	bow->arrow = new Arrow();
-	bow->arrow->transform.position = bow->getArrowInitialPosition();
-    bow->arrow->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
-    bow->arrow->bow = bow;
-
-    printf("Bow center %s\n", (*(bow->transform.rotationCenter) + (Vector2<int>)bow->transform.position).toStr().c_str());
-    printf("Arrow center %s\n", (*(bow->arrow->transform.rotationCenter) + (Vector2<int>)bow->arrow->transform.position).toStr().c_str());
+	background->setComponent(new TextureRenderer("ShittyBackground.png", nullptr, 1));
+	background->transform.scale = Vector2<float>(2, 2);
 
 	// Player
-	player = new Player();
-    //player->bCollider->debug = true;
-    player->transform.scale = Vector2<float>(2.f, 2.f);
-	Vector2<float> offset(-25, 0);
-	player->setRelativePosition(Vector2<float>(nativeRes.x / 2, LEVEL_HEIGHT - nativeRes.y / 2) + offset);
-    player->level = this;
-    player->bow = bow;
-    bow->owner = player;
-	
-	// PlayerTwo
-	playerTwo = new Player();
-    playerTwo->transform.scale = Vector2<float>(0.65f, 0.75f);
-	playerTwo->setRelativePosition(Vector2<float>(LEVEL_WIDTH - (nativeRes.x / 2), LEVEL_HEIGHT - nativeRes.y / 2));
-	playerTwo->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
-    playerTwo->level = this;
-   
-    // Bow Two
-    p2_bow = new Bow();
-    p2_bow->setRelativePosition(Vector2<float>(LEVEL_WIDTH - (nativeRes.x / 2), LEVEL_HEIGHT - nativeRes.y / 2) - offset);
-    p2_bow->transform.rotationCenter = new Vector2<int>(-20, 10);
-    p2_bow->angle = 180;
+	Player* player = new Player();
+	Vector2<float> player_pos(64, LEVEL_HEIGHT - 111 - 32);
+	player->transform.position = player_pos;
 
-    p2_bow->owner = playerTwo;
-    playerTwo->bow = p2_bow;
+	// Tower
+	Tower* tower = new Tower();
+	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
+	tower->transform.position = tower_pos;
 
-    // Arrow two
-    p2_bow->arrow = new Arrow();
-    p2_bow->arrow->transform.position = p2_bow->getArrowInitialPosition();
-    p2_bow->arrow->setAbsoluteRotationCenter(p2_bow->getAbsoluteRotationCenter());
-    p2_bow->arrow->bow = p2_bow;
+	// Player2
+	Player* player2 = new Player();
+	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
+	player2->transform.position = player2_pos;
 
-    printf("Bow center %s\n", (*(p2_bow->transform.rotationCenter) + (Vector2<int>)p2_bow->transform.position).toStr().c_str());
-    printf("Arrow center %s\n", (*(p2_bow->arrow->transform.rotationCenter) + (Vector2<int>)p2_bow->arrow->transform.position).toStr().c_str());
+	// Tower
+	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);
+	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 32);
+	tower2->transform.position = tower2_pos;
+
+	// Grass blocks
+	placeFloorBlocks();
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+}
+
+void LevelOne::placeFloorBlocks()
+{
+	Texture block_texture("HDGrass.png", RendererManager::renderer);
+	int block_height = block_texture.mHeight;
+	int block_width = block_texture.mWidth;
+
+	int block_amount = LEVEL_WIDTH / block_width;
+	for (int i = 0; i <= block_amount; i++)
+	{
+		GrassBlock* block = new GrassBlock(i & 1);
+		block->transform.position = Vector2<float>(i * block_width, LEVEL_HEIGHT - block_texture.mHeight);
+	}
 }
 
 void LevelOne::onClickBow()
@@ -80,8 +69,6 @@ void LevelOne::onClickBow()
 void LevelOne::onUpdate()
 {
     // Camera measures
-	
-
 	// TODO - Change camera to consider center to be the actual camera position
     if (!free_camera)
     {
@@ -96,8 +83,6 @@ void LevelOne::onUpdate()
         Vector2<float> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
         RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
     }
-
-    // 
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
