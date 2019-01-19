@@ -12,8 +12,8 @@ const int LevelOne::LEVEL_HEIGHT = 320;
 void LevelOne::loadMedia()
 {
 	// Setting managers
-	setManager(new RendererManager());
 	setManager(new CollisionManager());
+	setManager(new RendererManager());
 
 	// Background
 	GameObject *background = new GameObject();
@@ -31,9 +31,9 @@ void LevelOne::loadMedia()
 	tower->transform.position = tower_pos;
 
 	// Player2
-	Player* player2 = new Player();
-	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
-	player2->transform.position = player2_pos;
+	//Player* player2 = new Player();
+	//Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
+	//player2->transform.position = player2_pos;
 
 	// Tower
 	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);
@@ -70,7 +70,7 @@ void LevelOne::onUpdate()
 {
     // Camera measures
 	// TODO - Change camera to consider center to be the actual camera position
-    if (!free_camera)
+   /* if (!free_camera)
     {
         Vector2<int> res = RendererManager::getNativeResolution();
         Vector2<int> arrowPos;
@@ -82,7 +82,7 @@ void LevelOne::onUpdate()
         
         Vector2<float> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
         RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
-    }
+    }*/
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
@@ -111,9 +111,11 @@ void LevelOne::handleEvent(const SDL_Event& event)
 		break;
     case SDLK_3:
         free_camera = false;
+		isPaused = false;
         break;
     case SDLK_4:
         free_camera = true;
+		isPaused = true;
         break;
 	default:
 		break;
