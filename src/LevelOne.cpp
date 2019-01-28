@@ -6,6 +6,7 @@
 
 // Original 720 * 480
 
+// TODO - Escalar todo a x2 para evitar problemas con arco, arquero
 const int LevelOne::LEVEL_WIDTH = 480;
 const int LevelOne::LEVEL_HEIGHT = 320;
 
@@ -24,6 +25,7 @@ void LevelOne::loadMedia()
 	Player* player = new Player();
 	Vector2<float> player_pos(64, LEVEL_HEIGHT - 111 - 32);
 	player->transform.position = player_pos;
+	player->level = this;
 
 	// Tower
 	Tower* tower = new Tower();
@@ -68,21 +70,7 @@ void LevelOne::onClickBow()
 
 void LevelOne::onUpdate()
 {
-    // Camera measures
-	// TODO - Change camera to consider center to be the actual camera position
-   /* if (!free_camera)
-    {
-        Vector2<int> res = RendererManager::getNativeResolution();
-        Vector2<int> arrowPos;
 
-        if (turn == PLAYER_ONE_TURN)
-            arrowPos = bow->arrow->transform.position;
-        else
-            arrowPos = p2_bow->arrow->transform.position;
-        
-        Vector2<float> cameraPos = Vector2<int>(arrowPos.x - res.x / 2, arrowPos.y - res.y / 2);
-        RendererManager::setCameraPosition(cameraPos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
-    }*/
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)

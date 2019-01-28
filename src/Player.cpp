@@ -33,6 +33,9 @@ Player::Player()
 	}
 	//move->frames.at(0)->duration = 10;
 	//move->frames.at(2)->duration = 10;
+
+	// Create Bow
+	bow = new Bow();
 }
 
 // Hooks
@@ -60,12 +63,22 @@ void Player::handleEvent(const SDL_Event & event)
 			if (airborne)
 			{
 				nav->setDirection(Vector2<float>(0, 1));
-				nav->speed = 5;
+				nav->speed = 3;
 				animator->isEnabled = false;
 			}
             break;
         }
     }
+}
+
+void Player::onStart() 
+{
+	// Set Bow position
+	Vector2<float> offset(11, 4);
+	bow->transform.position = transform.position + offset;
+
+	// Load an arrow
+	bow->loadArrow();
 }
 
 void Player::onUpdate()
@@ -76,11 +89,13 @@ void Player::onUpdate()
 	{
 		animator->isEnabled = true;
 		transform.position = transform.position + Vector2<float>(-movement_speed, 0);
+		bow->transform.position = bow->transform.position + Vector2<float>(-movement_speed, 0);
 	}
 	else if (currentKeyStates[SDL_SCANCODE_D])
 	{
 		animator->isEnabled = true;
 		transform.position = transform.position + Vector2<float>(movement_speed, 0);
+		bow->transform.position = bow->transform.position + Vector2<float>(movement_speed, 0);
 	}
 	else
 		animator->isEnabled = false;

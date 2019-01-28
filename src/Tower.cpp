@@ -9,9 +9,9 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	colorKey->blue = 130;
 	
 	if(roofColor)
-		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2Bluew.png", colorKey, 255));
+		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2Bluew.png", colorKey, 253));
 	else
-		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2.png", colorKey, 255));
+		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2.png", colorKey, 253));
 
 	// Colliders
 	BoxCollider* collider = nullptr;

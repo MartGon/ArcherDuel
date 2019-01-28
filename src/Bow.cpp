@@ -8,15 +8,15 @@
 
 Bow::Bow() : GameObject()
 {
+	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
-
-	// Collider
-	//collider = setComponent(new BoxCollider(16, 30));
-
-	// Texture Renderer
 	tRenderer = setComponent(new TextureRenderer());
+	tRenderer->layer = 254;
 	Vector2<float> iArrow = getArrowInitialPosition();
+
+	// Set scale
+	transform.scale = Vector2<float>(0.5f, 0.5f);
 
 	// Setup Animator
 	animator = setComponent(new Animator());
@@ -108,6 +108,8 @@ void Bow::onAnimationFinished(Animation *anim)
 
 void Bow::onStart()
 {
+	// Load an arrow
+	loadArrow();
     rotateArrow();
 }
 
@@ -117,6 +119,7 @@ void Bow::onUpdate()
     {
     case Bow::BOW_STATE_IDLE:
         rotateArrow();
+		pointBowToMouse();
         break;
     case Bow::BOW_STATE_PULLING:
         // Nothing
@@ -139,13 +142,11 @@ void Bow::onUpdate()
 
 void Bow::handleEvent(const SDL_Event &event)
 {
+	/*
 	if (event.type != SDL_KEYDOWN)
 		return;
 
-    if (!owner->level->canPlayerAct(owner))
-        return;
-
-	Navigator * nav = nullptr;
+	Navigator *nav = nullptr;
     TextureRenderer *aRenderer = nullptr;
 
 	switch (event.key.keysym.sym)
@@ -170,6 +171,7 @@ void Bow::handleEvent(const SDL_Event &event)
         if (state != BOW_STATE_ARROW_LAUNCHED)
             return;
 
+		loadArrow();
         arrow->transform.position = getArrowInitialPosition();
         arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 		arrow->getComponent<Navigator>()->isEnabled = false;
@@ -208,6 +210,7 @@ void Bow::handleEvent(const SDL_Event &event)
 	default:
 		break;
 	}
+	*/
 }
 
 // Own methods
@@ -217,7 +220,7 @@ Vector2<float> Bow::getArrowInitialPosition(bool reversed)
     if(reversed)
         return Vector2<float>(transform.position.x - 6, transform.position.y - 13);
     else
-        return Vector2<float>(transform.position.x + 6, transform.position.y + 13);
+        return Vector2<float>(transform.position.x + 3, transform.position.y + 6.5f);
 }
 
 void Bow::loadArrow()
@@ -230,7 +233,6 @@ void Bow::loadArrow()
 
 void Bow::pointBowToMouse()
 {
-
     Vector2<float> dest;
 
     int x, y;

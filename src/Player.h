@@ -40,6 +40,7 @@ public:
     // Hooks
 		// General
     void handleEvent(const SDL_Event &event) override;
+	void onStart() override;
 	void onUpdate() override;
 
 		// Navigator
