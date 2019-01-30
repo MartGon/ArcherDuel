@@ -5,18 +5,20 @@
 Arrow::Arrow()
 {
 	// Setting components
+	name = "arrow";
 
 	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
-	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", colorKey));
-	tRenderer->layer = 255;
+	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", colorKey, 255));
 
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);
 
 	// Rotatable Box Collider
-	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3), Vector2<int>(14, 0), Vector2<int>(14, 3)));
+	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
+		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
+	rotCollider->isEnabled = false;
     rotCollider->debug = true;
 
 	// Navigator
@@ -24,19 +26,21 @@ Arrow::Arrow()
 	nav->isEnabled = false;
 
 	// Rotation
-	transform.rotationCenter = new Vector2<int>(0, 0);
+	//transform.rotationCenter = new Vector2<int>(0, 0);
 }
 
 // Hooks
 
 void Arrow::onColliderEnter(Collider* collider)
 {
-	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
-	{
+	printf("Arrow Collision\n");
+
+	//if (Player* player = dynamic_cast<Player*>(collider->gameObject))
+	//{
 		nav->isEnabled = false;
 		rotCollider->isEnabled = false;
         mov_finished = true;
-	}
+	//}
 }
 
 void Arrow::afterMove()
@@ -56,7 +60,7 @@ void Arrow::onUpdate()
     else
     {
        // bow->owner->level->finishTurn();
-        bow->state = Bow::BOW_STATE_IDLE;
+       // bow->state = Bow::BOW_STATE_IDLE;
         bow->arrow = nullptr;
         mov_finished = false;
     }

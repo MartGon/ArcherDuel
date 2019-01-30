@@ -18,7 +18,7 @@ Player::Player()
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(5, 15));
 	bCollider->offset = Vector2<float>(3, 4);
-    bCollider->debug = true;
+    //bCollider->debug = true;
 
 	// Animator
 	animator = setComponent(new Animator());
@@ -34,8 +34,16 @@ Player::Player()
 	//move->frames.at(0)->duration = 10;
 	//move->frames.at(2)->duration = 10;
 
-	// Create Bow
+	// Create Bow and set Player to its parent
 	bow = new Bow();
+	bow->transform.parent = &this->transform;
+	
+	// Set Center
+	//bow->setAbsoluteRotationCenter(Vector2<int>(5, 12));
+	
+	// Offset is 11, 4
+	Vector2<float> offset(11, 4);
+	bow->transform.position = offset;
 }
 
 // Hooks
@@ -73,12 +81,7 @@ void Player::handleEvent(const SDL_Event & event)
 
 void Player::onStart() 
 {
-	// Set Bow position
-	Vector2<float> offset(11, 4);
-	bow->transform.position = transform.position + offset;
-
-	// Load an arrow
-	bow->loadArrow();
+	
 }
 
 void Player::onUpdate()
@@ -89,13 +92,13 @@ void Player::onUpdate()
 	{
 		animator->isEnabled = true;
 		transform.position = transform.position + Vector2<float>(-movement_speed, 0);
-		bow->transform.position = bow->transform.position + Vector2<float>(-movement_speed, 0);
+		//bow->transform.position = bow->transform.position + Vector2<float>(-movement_speed, 0);
 	}
 	else if (currentKeyStates[SDL_SCANCODE_D])
 	{
 		animator->isEnabled = true;
 		transform.position = transform.position + Vector2<float>(movement_speed, 0);
-		bow->transform.position = bow->transform.position + Vector2<float>(movement_speed, 0);
+		//bow->transform.position = bow->transform.position + Vector2<float>(movement_speed, 0);
 	}
 	else
 		animator->isEnabled = false;

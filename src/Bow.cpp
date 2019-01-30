@@ -5,6 +5,7 @@
 #include "RendererManager.h"
 #include "RotatableBoxCollider.h"
 #include "Utilities.h"
+#include "SceneManager.h"
 
 Bow::Bow() : GameObject()
 {
@@ -12,8 +13,8 @@ Bow::Bow() : GameObject()
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
 	tRenderer = setComponent(new TextureRenderer());
-	tRenderer->layer = 254;
-	Vector2<float> iArrow = getArrowInitialPosition();
+	tRenderer->setLayer(254);
+	SceneManager::scene->addComponentToManager(tRenderer);
 
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);
@@ -36,6 +37,9 @@ Bow::Bow() : GameObject()
 	}
 
 	animator->isEnabled = false;
+
+	// Set Rotation Center
+	setAbsoluteRotationCenter(Vector2<int>(4, 7));
 }
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
@@ -43,19 +47,21 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	if (anim->id == pull->id)
 	{
 		Vector2<float> pos = arrow->transform.position;
+		Vector2<float> scale = arrow->transform.scale;
 
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
+		// V3: The center is not modified along the pull animation, just the position
 		// TODO - Need a set pos method that also modifies the center
 		if (frameNumber > 1)
 		{
-			pos.x = pos.x - 1;
-			arrow->transform.rotationCenter->x += 1;
+			pos.x = pos.x - 1 * scale.x * Vector2<float>(angle).x;
+			pos.y = pos.y + 1 * scale.y * Vector2<float>(angle).y;
 		}
 		else
 		{
-			pos.x = pos.x - 3;
-			arrow->transform.rotationCenter->x += 3;
+			pos.x = pos.x - 3 * scale.x * Vector2<float>(angle).x;
+			pos.y = pos.y + 3 * scale.y * Vector2<float>(angle).y;
 		}
 		arrow->transform.position = pos;
 		
@@ -89,7 +95,8 @@ void Bow::onAnimationFinished(Animation *anim)
 	}
 	else if (anim->id == rel->id)
 	{
-		Navigator* nav = arrow->getComponent<Navigator>();
+		// Setting up navigator
+		Navigator* nav = arrow->nav;
 		nav->setDirection(dir);
 		nav->speed = 3 + (10 * charge * 0.01);
 		nav->isEnabled = true;
@@ -100,6 +107,12 @@ void Bow::onAnimationFinished(Animation *anim)
         // Change position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
         arrow->transform.rotationCenter = nullptr;
+
+		arrow->transform.position = arrow->getAbsolutePosition();
+		arrow->transform.parent = nullptr;
+
+		// Enabling collider
+		arrow->rotCollider->isEnabled = true;
 
         // Reset charge
         charge = 0;
@@ -119,7 +132,7 @@ void Bow::onUpdate()
     {
     case Bow::BOW_STATE_IDLE:
         rotateArrow();
-		pointBowToMouse();
+		//pointBowToMouse();
         break;
     case Bow::BOW_STATE_PULLING:
         // Nothing
@@ -133,7 +146,8 @@ void Bow::onUpdate()
         // Nothing
         break;
     case Bow::BOW_STATE_ARROW_LAUNCHED:
-        arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
+		if(arrow)
+			arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
         break;
     default:
         break;
@@ -142,7 +156,7 @@ void Bow::onUpdate()
 
 void Bow::handleEvent(const SDL_Event &event)
 {
-	/*
+
 	if (event.type != SDL_KEYDOWN)
 		return;
 
@@ -172,63 +186,47 @@ void Bow::handleEvent(const SDL_Event &event)
             return;
 
 		loadArrow();
-        arrow->transform.position = getArrowInitialPosition();
-        arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
-		arrow->getComponent<Navigator>()->isEnabled = false;
-        arrow->getComponent<Collider>()->isEnabled = true;
 		state = BOW_STATE_IDLE;
         break;
     case SDLK_u:
         if (state != BOW_STATE_IDLE)
             return;
 
-        if (owner->level->turn == owner->level->PLAYER_ONE_TURN)
-        {
-            if (angle < 90)
-                angle += angle_inc;
-        }
-        else
-        {
-            if (angle >= (angle_inc + 90))
-                angle -= angle_inc;
-        }
+        //if (angle < 90)
+            angle += angle_inc;
         break;
     case SDLK_j:
         if (state != BOW_STATE_IDLE)
             return;
-        if (owner->level->turn == owner->level->PLAYER_ONE_TURN)
-        {
-            if (angle >= angle_inc)
-                angle -= angle_inc;
-        }
-        else
-        {
-            if (angle < 180)
-                angle += angle_inc;
-        }
+
+        if (angle >= angle_inc)
+            angle -= angle_inc;
+
         break;
 	default:
 		break;
 	}
-	*/
 }
 
 // Own methods
 
 Vector2<float> Bow::getArrowInitialPosition(bool reversed)
 {
+	// With original scale is Vector2<float>(6, 13)
+
     if(reversed)
-        return Vector2<float>(transform.position.x - 6, transform.position.y - 13);
+        return Vector2<float>(-3, -6.5f);
     else
-        return Vector2<float>(transform.position.x + 3, transform.position.y + 6.5f);
+        return Vector2<float>(3, 6.5f);
 }
 
 void Bow::loadArrow()
 {
     arrow = new Arrow();
     arrow->transform.position = getArrowInitialPosition();
-    arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+    arrow->transform.rotationCenter = new Vector2<int>(1, 1);
     arrow->bow = this;
+	arrow->transform.parent = &this->transform;
 }
 
 void Bow::pointBowToMouse()
