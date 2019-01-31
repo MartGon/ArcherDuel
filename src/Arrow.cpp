@@ -35,33 +35,22 @@ void Arrow::onColliderEnter(Collider* collider)
 {
 	printf("Arrow Collision\n");
 
-	//if (Player* player = dynamic_cast<Player*>(collider->gameObject))
-	//{
-		nav->isEnabled = false;
-		rotCollider->isEnabled = false;
-        mov_finished = true;
-	//}
+	nav->isEnabled = false;
+	rotCollider->isEnabled = false;
+
+	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
+	{
+		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
+		transform.parent = &player->transform;
+	}
 }
 
 void Arrow::afterMove()
 {
-    /*if (transform.position.y > bow->owner->level->LEVEL_HEIGHT)
-    {
-        nav->goToPreviousPos();
-        nav->isEnabled = false;
-        mov_finished = true;
-    }*/
+	transform.zRotation = nav->getDirection().getAngle();
 }
 
 void Arrow::onUpdate()
 {
-    if (!mov_finished)
-        return;
-    else
-    {
-       // bow->owner->level->finishTurn();
-       // bow->state = Bow::BOW_STATE_IDLE;
-        bow->arrow = nullptr;
-        mov_finished = false;
-    }
+	
 }

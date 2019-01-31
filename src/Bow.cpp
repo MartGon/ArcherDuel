@@ -13,7 +13,7 @@ Bow::Bow() : GameObject()
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
 	tRenderer = setComponent(new TextureRenderer());
-	tRenderer->setLayer(254);
+	tRenderer->setLayer(255);
 	SceneManager::scene->addComponentToManager(tRenderer);
 
 	// Set scale
@@ -37,9 +37,6 @@ Bow::Bow() : GameObject()
 	}
 
 	animator->isEnabled = false;
-
-	// Set Rotation Center
-	setAbsoluteRotationCenter(Vector2<int>(4, 7));
 }
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
@@ -55,13 +52,13 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		// TODO - Need a set pos method that also modifies the center
 		if (frameNumber > 1)
 		{
-			pos.x = pos.x - 1 * scale.x * Vector2<float>(angle).x;
-			pos.y = pos.y + 1 * scale.y * Vector2<float>(angle).y;
+			pos.x = pos.x - 1 * scale.x * dir.x;
+			pos.y = pos.y - 1 * scale.y * dir.y;
 		}
 		else
 		{
-			pos.x = pos.x - 3 * scale.x * Vector2<float>(angle).x;
-			pos.y = pos.y + 3 * scale.y * Vector2<float>(angle).y;
+			pos.x = pos.x - 3 * scale.x * dir.x;
+			pos.y = pos.y - 3 * scale.y * dir.y;
 		}
 		arrow->transform.position = pos;
 		
@@ -98,7 +95,7 @@ void Bow::onAnimationFinished(Animation *anim)
 		// Setting up navigator
 		Navigator* nav = arrow->nav;
 		nav->setDirection(dir);
-		nav->speed = 3 + (10 * charge * 0.01);
+		nav->speed = 2 + (charge * 0.1);
 		nav->isEnabled = true;
 		nav->isKinematic = true;
 		nav->acceleration.y = -0.005f;
@@ -113,6 +110,9 @@ void Bow::onAnimationFinished(Animation *anim)
 
 		// Enabling collider
 		arrow->rotCollider->isEnabled = true;
+
+		// Remove arrow
+		arrow = nullptr;
 
         // Reset charge
         charge = 0;
@@ -131,8 +131,8 @@ void Bow::onUpdate()
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
-        rotateArrow();
-		//pointBowToMouse();
+		pointBowToMouse();
+        //rotateArrow();
         break;
     case Bow::BOW_STATE_PULLING:
         // Nothing
@@ -140,14 +140,14 @@ void Bow::onUpdate()
     case Bow::BOW_STATE_PULLED:
         // Charge Bar
         charge = charge++ % 101;
-        printf("La carga es %i\n", charge);
+        //printf("La carga es %i\n", charge);
         break;
     case Bow::BOW_STATE_RELEASING:
         // Nothing
         break;
     case Bow::BOW_STATE_ARROW_LAUNCHED:
-		if(arrow)
-			arrow->transform.zRotation = arrow->getComponent<Navigator>()->getDirection().getAngle();
+		loadArrow();
+		state = BOW_STATE_IDLE;
         break;
     default:
         break;
@@ -222,11 +222,17 @@ Vector2<float> Bow::getArrowInitialPosition(bool reversed)
 
 void Bow::loadArrow()
 {
+	// Create new arrow
     arrow = new Arrow();
-    arrow->transform.position = getArrowInitialPosition();
-    arrow->transform.rotationCenter = new Vector2<int>(1, 1);
-    arrow->bow = this;
+
+	// Set references
+	arrow->bow = this;
 	arrow->transform.parent = &this->transform;
+
+	// Adjust transform
+	Vector2<int> absCenter = this->getAbsoluteRotationCenter();
+    arrow->transform.position = getArrowInitialPosition();
+	arrow->setAbsoluteRotationCenter(absCenter);
 }
 
 void Bow::pointBowToMouse()
@@ -245,10 +251,15 @@ void Bow::pointBowToMouse()
     //printf("Dest es %f, %f\n", dest.x, dest.y);
 
     // Direction vector
-    // Taking always the center of the window as reference
-    dir = dest - Vector2<float>(RendererManager::getNativeResolution().x / 2, RendererManager::getNativeResolution().y / 2);
+	Vector2<float> center = getAbsoluteRotationCenter();
+    dir = (dest - center);
+	dir.normalize();
 
     //printf("Dir es %f, %f\n", dir.x, dir.y);
+
+	transform.zRotation = dir.getAngle();
+	if (arrow)
+		arrow->transform.zRotation = dir.getAngle();
 }
 
 void Bow::rotateArrow()

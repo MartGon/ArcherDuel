@@ -23,7 +23,7 @@ void LevelOne::loadMedia()
 
 	// Player
 	Player* player = new Player();
-	Vector2<float> player_pos(64, LEVEL_HEIGHT - 111 - 32);
+	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
 	player->transform.position = player_pos;
 	player->level = this;
 

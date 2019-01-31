@@ -7,7 +7,7 @@ Player::Player()
 	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();
 	colorKey->green = 255;
-	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 255));
+	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 254));
 
 	// Navigator
 	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1));
@@ -39,7 +39,7 @@ Player::Player()
 	bow->transform.parent = &this->transform;
 	
 	// Set Center
-	//bow->setAbsoluteRotationCenter(Vector2<int>(5, 12));
+	bow->transform.rotationCenter = new Vector2<int>(-5, 7);
 	
 	// Offset is 11, 4
 	Vector2<float> offset(11, 4);
@@ -115,8 +115,9 @@ void Player::afterMove()
 void Player::onColliderEnter(Collider *collider) 
 {
 	GameObject* owner = collider->gameObject;
+	Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject);
 
-	if (owner)
+	if (!arrow)
 	{
 		float height = owner->transform.position.y + collider->offset.y;
 		transform.position = Vector2<float>(transform.position.x, height - 19 + 1);
@@ -127,5 +128,4 @@ void Player::onColliderEnter(Collider *collider)
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.
-// TODO - Aun asi, se renderiza antes de chequear las colisones -> HACK: Poner primer el CollisionManager -> Problema: No se pueden ver los boundaries -> Solucion: Dibujar en RendererManager
 // TODO - Navigator acceleration deberia cambiar speed y no vector -> HACK: Poner direction a 0, 0 cada vez que se choca con el suelo, +1 en posicion y para evitar flickering
