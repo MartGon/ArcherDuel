@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "ChargeBar.h"
 #include "Bow.h"
 
 class LevelOne;
@@ -23,6 +24,7 @@ public:
     Bow* bow = nullptr;
 	GameObject* pHand = nullptr;
 	GameObject* rHand = nullptr;
+	ChargeBar* chargeBar = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;

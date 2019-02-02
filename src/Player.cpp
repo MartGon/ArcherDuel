@@ -61,6 +61,11 @@ Player::Player()
 	rHand->transform.parent = &this->transform;
 	rHand->transform.position = Vector2<float>(16, 11);
 	rHand->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
+
+	// Add ChargerBar
+	chargeBar = new ChargeBar();
+	chargeBar->transform.parent = &this->transform;
+	chargeBar->transform.position = Vector2<float>(-10, -10);
 }
 
 // Hooks
@@ -133,9 +138,14 @@ void Player::onUpdate()
 		tRenderer->flip = SDL_FLIP_NONE;
 
 	// Update hands rotation
-
 	pHand->transform.zRotation = orientation;
 	rHand->transform.zRotation = orientation;
+
+	// Update charge bar
+	if (bow->state == bow->BOW_STATE_PULLED)
+	{
+		chargeBar->updateChargeValue();
+	}
 }
 
 	// Navigator
