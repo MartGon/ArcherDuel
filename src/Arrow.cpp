@@ -15,18 +15,15 @@ Arrow::Arrow()
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);
 
-	// Rotatable Box Collider
-	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
-		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
-	rotCollider->isEnabled = false;
-    rotCollider->debug = true;
-
 	// Navigator
 	nav = setComponent(new Navigator());
 	nav->isEnabled = false;
 
-	// Rotation
-	//transform.rotationCenter = new Vector2<int>(0, 0);
+	// Rotatable Box Collider
+	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
+		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
+	rotCollider->isEnabled = false;
+    //rotCollider->debug = true;
 }
 
 // Hooks
@@ -54,3 +51,5 @@ void Arrow::onUpdate()
 {
 	
 }
+
+// TODO - Los colliders de la flecha no aparecen ir acordes al movimiento. HACK: Poner el navigator antes del collider

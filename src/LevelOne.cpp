@@ -76,41 +76,43 @@ void LevelOne::onUpdate()
 void LevelOne::handleEvent(const SDL_Event& event)
 {
 	TextureRenderer *aRenderer = nullptr;
-
-	switch (event.key.keysym.sym)
+	if (event.type == SDL_KEYDOWN)
 	{
-	case SDLK_UP:
-		moveCamera(0, -cam_speed);
-		break;
-	case SDLK_DOWN:
-		moveCamera(0, cam_speed);
-		break;
-	case SDLK_RIGHT:
-		moveCamera(cam_speed, 0);
-		break;
-	case SDLK_LEFT:
-		moveCamera(-cam_speed, 0);
-		break;
-	case SDLK_PLUS:
-		cam_speed++;
-		break;
-	case SDLK_MINUS:
-		cam_speed--;
-		break;
-    case SDLK_3:
-        free_camera = false;
-		isPaused = false;
-        break;
-    case SDLK_4:
-        free_camera = true;
-		isPaused = true;
-        break;
-	default:
-		break;
+		switch (event.key.keysym.sym)
+		{
+		case SDLK_UP:
+			moveCamera(0, -cam_speed);
+			break;
+		case SDLK_DOWN:
+			moveCamera(0, cam_speed);
+			break;
+		case SDLK_RIGHT:
+			moveCamera(cam_speed, 0);
+			break;
+		case SDLK_LEFT:
+			moveCamera(-cam_speed, 0);
+			break;
+		case SDLK_PLUS:
+			cam_speed++;
+			break;
+		case SDLK_MINUS:
+			cam_speed--;
+			break;
+		case SDLK_3:
+			free_camera = false;
+			isPaused = false;
+			break;
+		case SDLK_4:
+			free_camera = true;
+			isPaused = true;
+			break;
+		default:
+			break;
+		}
 	}
 
-	for (auto gameObjectPair : gameObjectMap)
-		gameObjectPair.second->handleEvent(event);
+	for (int i = 0; i < gameObjectMap.size(); i++)
+		gameObjectMap.at(i)->handleEvent(event);
 }
 
 void LevelOne::moveCamera(int xOffset, int yOffset)
