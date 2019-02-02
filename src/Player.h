@@ -21,6 +21,8 @@ public:
 
     // Gameobjects
     Bow* bow = nullptr;
+	GameObject* pHand = nullptr;
+	GameObject* rHand = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;

@@ -36,6 +36,7 @@ Player::Player()
 
 	// Create Bow and set Player to its parent
 	bow = new Bow();
+	bow->owner = this;
 	bow->transform.parent = &this->transform;
 	
 	// Set Center
@@ -44,6 +45,22 @@ Player::Player()
 	// Offset is 11, 4
 	Vector2<float> offset(11, 4);
 	bow->transform.position = offset;
+
+	// Add player pHand
+	pHand = new GameObject();
+	pHand->setComponent(new TextureRenderer("ArcherHand.png", colorKey, 255));
+	pHand->setScale(Vector2<float>(0.65f, 0.65f));
+	pHand->transform.parent = &this->transform;
+	pHand->transform.position = Vector2<float>(13, 11);
+	pHand->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
+
+	// Add player rHand
+	rHand = new GameObject();
+	rHand->setComponent(new TextureRenderer("ArcherHand.png", colorKey, 252));
+	rHand->setScale(Vector2<float>(0.65f, 0.65f));
+	rHand->transform.parent = &this->transform;
+	rHand->transform.position = Vector2<float>(16, 11);
+	rHand->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
 }
 
 // Hooks
@@ -108,9 +125,17 @@ void Player::onUpdate()
 	double orientation = bow->transform.zRotation;
 
 	if (orientation > 90 && orientation <= 270)
+	{
 		tRenderer->flip = SDL_FLIP_HORIZONTAL;
+		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_VERTICAL;
+	}
 	else
 		tRenderer->flip = SDL_FLIP_NONE;
+
+	// Update hands rotation
+
+	pHand->transform.zRotation = orientation;
+	rHand->transform.zRotation = orientation;
 }
 
 	// Navigator

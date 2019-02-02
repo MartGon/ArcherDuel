@@ -13,7 +13,7 @@ Bow::Bow() : GameObject()
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
 	tRenderer = setComponent(new TextureRenderer());
-	tRenderer->setLayer(255);
+	tRenderer->setLayer(253);
 	SceneManager::scene->addComponentToManager(tRenderer);
 
 	// Set scale
@@ -41,11 +41,12 @@ Bow::Bow() : GameObject()
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 {
+	Vector2<float> pos = arrow->transform.position;
+	Vector2<float> hPos = owner->pHand->transform.position;
+	Vector2<float> scale = transform.scale;
+
 	if (anim->id == pull->id)
 	{
-		Vector2<float> pos = arrow->transform.position;
-		Vector2<float> scale = arrow->transform.scale;
-
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
 		// V3: The center is not modified along the pull animation, just the position
@@ -54,32 +55,36 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		if (frameNumber > 1)
 		{
 			pos.x = pos.x - 1 * scale.x;
+			hPos.x = hPos.x - 1 * scale.x;
 		}
 		else
 		{
 			pos.x = pos.x - 3 * scale.x;
+			hPos.x = hPos.x - 3 * scale.x;
 		}
-		arrow->transform.position = pos;
-		arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
-		
 	}
 	else if (anim->id == rel->id)
-	{
-        Vector2<float> pos = arrow->transform.position;
-        
+	{   
         int lastFrame = (anim->frames.size() - 1);
         if (frameNumber < lastFrame)
         {
             pos.x = pos.x + 1;
-            arrow->transform.rotationCenter->x -= 1;
+			//hPos.x = hPos.x + 1 * scale.x;
         }
         else
         {
             pos.x = pos.x + 3;
-            arrow->transform.rotationCenter->x -= 3;
+			//hPos.x = hPos.x + 3 * scale.x;
         }
-        arrow->transform.position = pos;
 	}
+
+	// Set arrow new pos and rotation center
+	arrow->transform.position = pos;
+	arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+
+	// Set archer new pos and rotation center
+	owner->pHand->transform.position = hPos;
+	owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 }
 
 void Bow::onAnimationFinished(Animation *anim)
@@ -116,6 +121,10 @@ void Bow::onAnimationFinished(Animation *anim)
 
         // Reset charge
         charge = 0;
+
+		// Reset pHand position and center
+		owner->pHand->transform.position = Vector2<float>(13, 11);
+		owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 	}
 }
 

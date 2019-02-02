@@ -10,7 +10,7 @@ Arrow::Arrow()
 	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();
 	colorKey->blue = 0xFF;
-	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", colorKey, 255));
+	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", colorKey, 254));
 
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);

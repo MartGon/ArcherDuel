@@ -42,7 +42,7 @@ public:
     int charge = 1;
 
     // Owner
-    //Player* owner = nullptr;
+    Player* owner = nullptr;
 
 	// Hooks
 		// Behaviour
