@@ -49,18 +49,18 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
 		// V3: The center is not modified along the pull animation, just the position
+		// V4: Modifying the rotation center along the arrow position does the trick, or when pulled the arrow doesn't follow the rotation
 		// TODO - Need a set pos method that also modifies the center
 		if (frameNumber > 1)
 		{
-			pos.x = pos.x - 1 * scale.x * dir.x;
-			pos.y = pos.y - 1 * scale.y * dir.y;
+			pos.x = pos.x - 1 * scale.x;
 		}
 		else
 		{
-			pos.x = pos.x - 3 * scale.x * dir.x;
-			pos.y = pos.y - 3 * scale.y * dir.y;
+			pos.x = pos.x - 3 * scale.x;
 		}
 		arrow->transform.position = pos;
+		arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 		
 	}
 	else if (anim->id == rel->id)
@@ -123,7 +123,6 @@ void Bow::onStart()
 {
 	// Load an arrow
 	loadArrow();
-    rotateArrow();
 }
 
 void Bow::onUpdate()
@@ -132,13 +131,13 @@ void Bow::onUpdate()
     {
     case Bow::BOW_STATE_IDLE:
 		pointBowToMouse();
-        //rotateArrow();
         break;
     case Bow::BOW_STATE_PULLING:
-        // Nothing
+		pointBowToMouse();
         break;
     case Bow::BOW_STATE_PULLED:
         // Charge Bar
+		pointBowToMouse();
         charge = charge++ % 101;
         //printf("La carga es %i\n", charge);
         break;
@@ -215,9 +214,9 @@ Vector2<float> Bow::getArrowInitialPosition(bool reversed)
 	// With original scale is Vector2<float>(6, 13)
 
     if(reversed)
-        return Vector2<float>(-3, -6.5f);
+        return Vector2<float>(-3, 7.f);
     else
-        return Vector2<float>(3, 6.5f);
+        return Vector2<float>(3, 7.f);
 }
 
 void Bow::loadArrow()
@@ -239,6 +238,7 @@ void Bow::pointBowToMouse()
 {
     Vector2<float> dest;
 
+	// Get Mouse position
     int x, y;
     SDL_GetMouseState(&x, &y);
 
@@ -250,14 +250,17 @@ void Bow::pointBowToMouse()
 
     //printf("Dest es %f, %f\n", dest.x, dest.y);
 
-    // Direction vector
+    // Calculate Direction vector
 	Vector2<float> center = getAbsoluteRotationCenter();
     dir = (dest - center);
 	dir.normalize();
 
     //printf("Dir es %f, %f\n", dir.x, dir.y);
 
+	// Rotate Bow
 	transform.zRotation = dir.getAngle();
+
+	// Rotate arrow
 	if (arrow)
 		arrow->transform.zRotation = dir.getAngle();
 }
@@ -265,7 +268,7 @@ void Bow::pointBowToMouse()
 void Bow::rotateArrow()
 {
     dir = Vector2<float>(-angle);
-    transform.zRotation = dir.getAngle();
+    //transform.zRotation = dir.getAngle();
     if (arrow)
         arrow->transform.zRotation = dir.getAngle();
 }

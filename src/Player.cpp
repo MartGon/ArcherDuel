@@ -88,6 +88,7 @@ void Player::onUpdate()
 {
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
+	// Check movement
 	if (currentKeyStates[SDL_SCANCODE_A])
 	{
 		animator->isEnabled = true;
@@ -102,6 +103,14 @@ void Player::onUpdate()
 	}
 	else
 		animator->isEnabled = false;
+
+	// Check sprite orientation
+	double orientation = bow->transform.zRotation;
+
+	if (orientation > 90 && orientation <= 270)
+		tRenderer->flip = SDL_FLIP_HORIZONTAL;
+	else
+		tRenderer->flip = SDL_FLIP_NONE;
 }
 
 	// Navigator
