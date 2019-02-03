@@ -38,8 +38,8 @@ public:
 	Vector2<float> dir;
     double angle_inc = 5;
 
-    // Gameplay
-    int charge = 1;
+	// GamePlay
+	bool instant_cast = false;
 
     // Owner
     Player* owner = nullptr;
@@ -59,4 +59,5 @@ public:
     void loadArrow();
     void pointBowToMouse();
     void rotateArrow();
+	void shoot();
 };

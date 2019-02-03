@@ -135,17 +135,14 @@ void Player::onUpdate()
 		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_VERTICAL;
 	}
 	else
+	{
 		tRenderer->flip = SDL_FLIP_NONE;
+		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_NONE;
+	}
 
 	// Update hands rotation
 	pHand->transform.zRotation = orientation;
 	rHand->transform.zRotation = orientation;
-
-	// Update charge bar
-	if (bow->state == bow->BOW_STATE_PULLED)
-	{
-		chargeBar->updateChargeValue();
-	}
 }
 
 	// Navigator

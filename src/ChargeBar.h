@@ -13,8 +13,11 @@ public:
 
 	// Own methods
 	void updateChargeValue();
-	int getChargeValue();
-	void resetChargeValue();
+	float getChargeValue();
+
+	// Hiding
+	void enable();
+	void disable();
 
 private:
 
@@ -24,5 +27,16 @@ private:
 	// Indicator
 	bool decreasing = false;
 	int frameCounter = 0;
-	int framesToMove = 1;
+	int framesToMove = 0;
+
+	// Indicator limits
+	static const float lLimit;
+	static const float rLimit;
+
+	// Charge zone limit
+	static const float limit1;
+	static const float limit2;
+	static const float limit3;
+	static const float limit4;
+	static const float limit5;
 };

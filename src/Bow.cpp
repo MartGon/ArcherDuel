@@ -97,13 +97,17 @@ void Bow::onAnimationFinished(Animation *anim)
 	}
 	else if (anim->id == rel->id)
 	{
-		// Setting up navigator
+		// Get charge value
+		float charge = owner->chargeBar->getChargeValue();
+		owner->chargeBar->disable();
+
+		// Setting up arrow navigator
 		Navigator* nav = arrow->nav;
 		nav->setDirection(dir);
-		nav->speed = 2 + (charge * 0.1);
+		nav->speed = 2 * charge;
 		nav->isEnabled = true;
-		nav->isKinematic = true;
-		nav->acceleration.y = -0.005f;
+
+		// Set bow state
 		state = BOW_STATE_ARROW_LAUNCHED;
 
         // Change position
@@ -119,9 +123,6 @@ void Bow::onAnimationFinished(Animation *anim)
 		// Remove arrow
 		arrow = nullptr;
 
-        // Reset charge
-        charge = 0;
-
 		// Reset pHand position and center
 		owner->pHand->transform.position = Vector2<float>(13, 11);
 		owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
@@ -136,19 +137,30 @@ void Bow::onStart()
 
 void Bow::onUpdate()
 {
+	// Always point to mouse
+	pointBowToMouse();
+
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
-		pointBowToMouse();
+		// Nothing
         break;
     case Bow::BOW_STATE_PULLING:
-		pointBowToMouse();
+		// Nothing
+		owner->chargeBar->enable();
         break;
     case Bow::BOW_STATE_PULLED:
         // Charge Bar
-		pointBowToMouse();
-        charge = charge++ % 101;
-        //printf("La carga es %i\n", charge);
+		if (instant_cast)
+		{
+			// Shoot
+			shoot();
+
+			// Reset flag
+			instant_cast = false;
+		}
+		else
+			owner->chargeBar->updateChargeValue();
         break;
     case Bow::BOW_STATE_RELEASING:
         // Nothing
@@ -165,55 +177,82 @@ void Bow::onUpdate()
 void Bow::handleEvent(const SDL_Event &event)
 {
 
-	if (event.type != SDL_KEYDOWN)
-		return;
-
-	Navigator *nav = nullptr;
-    TextureRenderer *aRenderer = nullptr;
-
-	switch (event.key.keysym.sym)
+	if (event.type == SDL_KEYDOWN)
 	{
-	case SDLK_p:
-		if (state != BOW_STATE_IDLE)
-			return;
+		switch (event.key.keysym.sym)
+		{
+		case SDLK_p:
+			if (state != BOW_STATE_IDLE)
+				return;
 
-		animator->setCurrentAnimation(pull);
-		animator->isEnabled = true;
-		state = BOW_STATE_PULLING;
-		break;
-	case SDLK_r:
-		if (state != BOW_STATE_PULLED)
-			return;
+			animator->setCurrentAnimation(pull);
+			animator->isEnabled = true;
+			state = BOW_STATE_PULLING;
+			break;
+		case SDLK_r:
+			if (state != BOW_STATE_PULLED)
+				return;
 
-		animator->setCurrentAnimation(rel);
-		animator->isEnabled = true;
-		state = BOW_STATE_RELEASING;
-		break;
-	case SDLK_l:
-        if (state != BOW_STATE_ARROW_LAUNCHED)
-            return;
+			shoot();
+			break;
+		case SDLK_l:
+			if (state != BOW_STATE_ARROW_LAUNCHED)
+				return;
 
-		loadArrow();
-		state = BOW_STATE_IDLE;
-        break;
-    case SDLK_u:
-        if (state != BOW_STATE_IDLE)
-            return;
+			loadArrow();
+			state = BOW_STATE_IDLE;
+			break;
+		case SDLK_u:
+			if (state != BOW_STATE_IDLE)
+				return;
 
-        //if (angle < 90)
-            angle += angle_inc;
-        break;
-    case SDLK_j:
-        if (state != BOW_STATE_IDLE)
-            return;
+			//if (angle < 90)
+			angle += angle_inc;
+			break;
+		case SDLK_j:
+			if (state != BOW_STATE_IDLE)
+				return;
 
-        if (angle >= angle_inc)
-            angle -= angle_inc;
+			if (angle >= angle_inc)
+				angle -= angle_inc;
 
-        break;
-	default:
-		break;
+			break;
+		default:
+			break;
+		}
 	}
+	else if (event.type == SDL_MOUSEBUTTONDOWN)
+	{
+		switch (event.button.button)
+		{
+		case SDL_BUTTON_LEFT:
+			if (state != BOW_STATE_IDLE)
+				return;
+
+			// Pull Bow
+			animator->setCurrentAnimation(pull);
+			animator->isEnabled = true;
+			state = BOW_STATE_PULLING;
+			break;
+		}
+	}
+	else if (event.type == SDL_MOUSEBUTTONUP)
+	{
+		switch (event.button.button)
+		{
+		case SDL_BUTTON_LEFT:
+			// If released during pull animation, it will be an instant cast
+			if (state == BOW_STATE_PULLING)
+				instant_cast = true;
+			if (state == BOW_STATE_PULLED)
+			{
+				// Release bow
+				shoot();
+				break;
+			}
+		}
+	}
+
 }
 
 // Own methods
@@ -280,4 +319,11 @@ void Bow::rotateArrow()
     //transform.zRotation = dir.getAngle();
     if (arrow)
         arrow->transform.zRotation = dir.getAngle();
+}
+
+void Bow::shoot()
+{
+	animator->setCurrentAnimation(rel);
+	animator->isEnabled = true;
+	state = BOW_STATE_RELEASING;
 }

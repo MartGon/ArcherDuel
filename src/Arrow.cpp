@@ -18,6 +18,8 @@ Arrow::Arrow()
 	// Navigator
 	nav = setComponent(new Navigator());
 	nav->isEnabled = false;
+	nav->isKinematic = true;
+	nav->acceleration.y = -0.005f;
 
 	// Rotatable Box Collider
 	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 

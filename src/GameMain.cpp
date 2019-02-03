@@ -5,7 +5,7 @@ int main(int argc, char* args[])
 {
 	// Setup 720x480
 	gFirstScene = new LevelOne();
-	setWindowResolution(960, 640);
+	setWindowResolution(1440, 960);
 
 	// Engine loop
 	engine_main();
