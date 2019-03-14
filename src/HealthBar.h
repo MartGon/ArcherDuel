@@ -6,16 +6,33 @@ public:
 	HealthBar();
 
 	// Components
+
+	// Texture Renderers
 	TextureRenderer* leftEndingTRenderer = nullptr;
 	TextureRenderer* rightEndingTRenderer = nullptr;
 	TextureRenderer* emptyBarTRenderer = nullptr;
 	TextureRenderer* filledBarTRenderer = nullptr;
 
+	// Animator
+	Animator* animator = nullptr;
+
+	// Animation
+	enum HealtBarAnimations 
+	{
+		ANIMATION_HEALTH_BAR_BLINK
+	};
+
+	Animation* blink = nullptr;
+
+	// Overrided Methods
+	void beforeAnimationFrame(Animation* anim, int frameNumber) override;
+
 	// Own methods
 	void setScale(Vector2<float> scale);
 	Vector2<float> getScale();
 
-	void setHealthPercentage(float percent);
+	void setHealthPercentage(float percent, bool blink_animation = false);
+	void reduceHealthByPercent(float percent);
 
 private:
 
@@ -24,4 +41,10 @@ private:
 	Texture healthBarEndingFilled;
 	Texture healthBarFragEmpty;
 	Texture healthBarFragFilled;
+
+	// Animation
+	float blinkFilledBarScaleBefore = 0.0f;
+	float blinkFilledBarScaleAfter = 0.0f;
+	int duration = 15;
+	int duration_counter = 0;
 };

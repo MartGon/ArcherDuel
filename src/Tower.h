@@ -1,5 +1,7 @@
 #include "GameObject.h"
 
+class HealthBar;
+
 class Tower : public GameObject
 {
 public:
@@ -13,4 +15,18 @@ public:
 
 	// Components
 	TextureRenderer* tRenderer;
+
+	// Inner GameObjects
+	HealthBar* healthBar = nullptr;
+
+	// Overrided methods
+	void onColliderEnter(Collider* collider) override;
+
+	// Own Methods
+	void takeDamage(float dmg);
+
+private:
+	// Attributes
+	float max_health = 100.0f;
+	float health = 100.0f;
 };

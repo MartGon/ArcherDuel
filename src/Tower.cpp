@@ -1,4 +1,6 @@
 #include "Tower.h"
+#include "HealthBar.h"
+#include "Arrow.h"
 
 Tower::Tower(RoofColor roofColor) : GameObject()
 {
@@ -40,4 +42,42 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	collider = setComponent(new BoxCollider(103 - 25 + 1, 159 - 135));
 	collider->offset = Vector2<float>(25, 136);
 	//collider->debug = true;
+
+	// HealthBar
+	healthBar = new HealthBar();
+	healthBar->setScale(Vector2<float>(110, 1));
+	healthBar->transform.parent = &this->transform;
+
+	// HealtBar offset
+	Vector2<float> hb_offset(7, 185);
+	healthBar->transform.position = hb_offset; 
+}
+
+// Overrided Methods
+void Tower::onColliderEnter(Collider * collider)
+{
+	GameObject* owner = collider->gameObject;
+
+	if (Arrow* arrow = dynamic_cast<Arrow*>(owner))
+	{
+		// TODO - Get dmg from the arrow
+		takeDamage(10);
+	}
+}
+
+// Own Methods
+void Tower::takeDamage(float dmg)
+{
+	health = health - dmg;
+
+	// Do something when hp is below 0
+	if (health <= 0)
+	{
+
+	}
+
+	// Update healthbar
+	float health_percent = health / max_health * 100;
+	healthBar->setHealthPercentage(health_percent, true);
+	//healthBar->reduceHealthByPercent(health_percent);
 }
