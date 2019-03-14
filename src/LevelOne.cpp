@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Tower.h"
 #include "GrassBlock.h"
+#include "HealthBar.h"
 
 // Original 720 * 480
 
@@ -47,6 +48,12 @@ void LevelOne::loadMedia()
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+
+	// Temporal
+	HealthBar* healthBar = new HealthBar();
+	healthBar->setScale(Vector2<float>(100, 1));
+	healthBar->setHealthPercentage(50);
+	healthBar->setHealthPercentage(100);
 }
 
 void LevelOne::placeFloorBlocks()
