@@ -1,9 +1,13 @@
 #include "GameObject.h"
+#include "TextLabel.h"
 
 class HealthBar : public GameObject
 {
 public:
 	HealthBar();
+
+	// Own GameObjects
+	TextLabel* tLabel = nullptr;
 
 	// Components
 

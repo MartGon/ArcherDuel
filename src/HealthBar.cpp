@@ -53,6 +53,11 @@ HealthBar::HealthBar()
 	animator->animations.push_back(blink);
 	animator->setCurrentAnimation(blink);
 	animator->isEnabled = false;
+
+	// Text Label test
+	tLabel = new TextLabel();
+	tLabel->transform.parent = &this->transform;
+	tLabel->transform.position = Vector2<float>(0, -5);
 }
 
 // Overrided Methods

@@ -38,6 +38,9 @@ public:
     bool canPlayerAct(Player* player);
     void finishTurn();
 
+	// GUI
+	void exitGame();
+
 	// Test
 	void moveCamera(int xOffset, int yOffset);
     int cam_speed = 5;

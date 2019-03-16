@@ -4,6 +4,7 @@
 #include "Tower.h"
 #include "GrassBlock.h"
 #include "HealthBar.h"
+#include "Button.h"
 
 // Original 720 * 480
 
@@ -48,6 +49,12 @@ void LevelOne::loadMedia()
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+
+	// Button
+	Button* button = new Button(Texture("ExitButton.png", RendererManager::renderer));
+	button->setScale(Vector2<float>(0.25f, 0.25f));
+	button->transform.position = Vector2<float>(5, 5);
+	button->setOnClickListener(std::bind(&LevelOne::exitGame, this));
 }
 
 void LevelOne::placeFloorBlocks()
@@ -112,6 +119,7 @@ void LevelOne::handleEvent(const SDL_Event& event)
 		}
 	}
 
+	// TODO - Set this code to Scene
 	for (int i = 0; i < gameObjectMap.size(); i++)
 		gameObjectMap.at(i)->handleEvent(event);
 }
@@ -168,4 +176,11 @@ void LevelOne::finishTurn()
     default:
         break;
     }
+}
+
+// GUI
+
+void LevelOne::exitGame()
+{
+	std::cout << "Exit game" << std::endl;
 }

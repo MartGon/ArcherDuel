@@ -50,7 +50,12 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 
 	// HealtBar offset
 	Vector2<float> hb_offset(7, 185);
-	healthBar->transform.position = hb_offset; 
+	healthBar->transform.position = hb_offset;
+	
+	// HealthBar Text
+	std::string text = roofColor ? "blue tower" : "red tower";
+	healthBar->tLabel->setText(text);
+
 }
 
 // Overrided Methods
