@@ -45,6 +45,6 @@ private:
 	// Animation
 	float blinkFilledBarScaleBefore = 0.0f;
 	float blinkFilledBarScaleAfter = 0.0f;
-	int duration = 15;
+	int duration = 8;
 	int duration_counter = 0;
 };

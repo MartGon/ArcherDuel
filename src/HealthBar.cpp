@@ -36,8 +36,8 @@ HealthBar::HealthBar()
 	Frame* emptyBarFrame = new Frame();
 	Frame* filledBarFrame = new Frame();
 
-	emptyBarFrame->duration = 7;
-	filledBarFrame->duration = 7;
+	emptyBarFrame->duration = 5;
+	filledBarFrame->duration = 5;
 
 	emptyBarFrame->texture = healthBarFragFilled;
 	filledBarFrame->texture = healthBarFragFilled;
