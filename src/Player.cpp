@@ -66,6 +66,9 @@ Player::Player()
 	chargeBar = new ChargeBar();
 	chargeBar->transform.parent = &this->transform;
 	chargeBar->transform.position = Vector2<float>(-10, -10);
+
+	setComponent(new AudioPlayer("adwsl.wav"));
+
 }
 
 // Hooks

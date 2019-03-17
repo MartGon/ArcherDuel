@@ -35,6 +35,10 @@ public:
 	Animation* pull = nullptr;
 	Animation* rel = nullptr;
 
+	// Audio
+	int pull_index = 0;
+	int rel_index = 0;
+
 	// Shoot dir
     double angle = 0;
 	Vector2<float> dir;

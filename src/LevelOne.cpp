@@ -35,9 +35,10 @@ void LevelOne::loadMedia()
 	tower->transform.position = tower_pos;
 
 	// Player2
-	//Player* player2 = new Player();
-	//Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
-	//player2->transform.position = player2_pos;
+	Player* player2 = new Player();
+	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
+	player2->transform.position = player2_pos;
+	player2->level = this;
 
 	// Tower
 	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);

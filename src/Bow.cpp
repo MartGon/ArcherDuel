@@ -39,8 +39,9 @@ Bow::Bow() : GameObject()
 	animator->isEnabled = false;
 
 	// Audio Player
-	//aPlayer = new AudioPlayer("bow1.wav");
-	aPlayer = setComponent(new AudioPlayer("bow1.wav"));
+	aPlayer = setComponent(new AudioPlayer());
+	rel_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-release-16.wav"));
+	pull_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("adwsl.wav"));
 }
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
@@ -51,6 +52,10 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 
 	if (anim->id == pull->id)
 	{
+		// Play Sound effect
+		if (frameNumber == 1)
+			aPlayer->play(pull_index);
+
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
 		// V3: The center is not modified along the pull animation, just the position
@@ -70,8 +75,8 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	else if (anim->id == rel->id)
 	{   
 		// Play Sound effect
-		if(frameNumber == 1)
-			aPlayer->play();
+		if (frameNumber == 1)
+			aPlayer->play(rel_index);
 
         int lastFrame = (anim->frames.size() - 1);
         if (frameNumber < lastFrame)
