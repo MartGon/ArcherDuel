@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include "Arrow.h"
+#include "AudioPlayer.h"
 
 class Player;
 class Bow : public GameObject
@@ -25,6 +26,7 @@ public:
 	TextureRenderer* tRenderer = nullptr;
 	Animator* animator = nullptr;
 	BoxCollider* collider = nullptr;
+	AudioPlayer* aPlayer = nullptr;
 
 	// Arrow
 	Arrow* arrow = nullptr;

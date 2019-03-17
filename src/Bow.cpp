@@ -37,6 +37,10 @@ Bow::Bow() : GameObject()
 	}
 
 	animator->isEnabled = false;
+
+	// Audio Player
+	//aPlayer = new AudioPlayer("bow1.wav");
+	aPlayer = setComponent(new AudioPlayer("bow1.wav"));
 }
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
@@ -65,6 +69,10 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 	}
 	else if (anim->id == rel->id)
 	{   
+		// Play Sound effect
+		if(frameNumber == 1)
+			aPlayer->play();
+
         int lastFrame = (anim->frames.size() - 1);
         if (frameNumber < lastFrame)
         {
