@@ -17,6 +17,9 @@ public:
     float movement_speed = 1.f;
     bool mov_enabled = true;
 
+	// Misc
+	bool isAI = false;
+
     // Game
     LevelOne* level = nullptr;
 
@@ -52,4 +55,21 @@ public:
 
 		// Collider
 	void onColliderEnter(Collider *collider) override;
+
+	// AI Hooks
+
+	// Own Methods
+	virtual void onPlayerUpdate() {};
+
+		// Movement
+	enum MovDirection 
+	{
+		MOV_NONE,
+		MOV_DIR_LEFT,
+		MOV_DIR_RIGHT
+	};
+
+	void jump();
+	void fast_fall();
+	void strafe(MovDirection dir);
 };

@@ -195,23 +195,19 @@ void Bow::onUpdate()
 
 void Bow::handleEvent(const SDL_Event &event)
 {
+	// Check if the player is an AI
+	if (Player* player = this->owner)
+		if (player->isAI)
+			return;
 
 	if (event.type == SDL_KEYDOWN)
 	{
 		switch (event.key.keysym.sym)
 		{
 		case SDLK_p:
-			if (state != BOW_STATE_IDLE)
-				return;
-
-			animator->setCurrentAnimation(pull);
-			animator->isEnabled = true;
-			state = BOW_STATE_PULLING;
+			draw();
 			break;
 		case SDLK_r:
-			if (state != BOW_STATE_PULLED)
-				return;
-
 			shoot();
 			break;
 		case SDLK_l:
@@ -301,8 +297,28 @@ void Bow::loadArrow()
 	arrow->setAbsoluteRotationCenter(absCenter);
 }
 
+void Bow::aimBow(Vector2<float> target) 
+{
+	// Calculate vector
+	Vector2<float> center = getAbsoluteRotationCenter();
+	dir = (target - center);
+	dir.normalize();
+
+	// Rotate Bow
+	transform.zRotation = dir.getAngle();
+
+	// Rotate arrow
+	if (arrow)
+		arrow->transform.zRotation = dir.getAngle();
+}
+
 void Bow::pointBowToMouse()
 {
+	// Check if the player is an AI
+	if (Player* player = this->owner)
+		if (player->isAI)
+			return;
+
     Vector2<float> dest;
 
 	// Get Mouse position
@@ -315,21 +331,8 @@ void Bow::pointBowToMouse()
     // Destination point
     dest = dest / RendererManager::getScaler();
 
-    //printf("Dest es %f, %f\n", dest.x, dest.y);
-
-    // Calculate Direction vector
-	Vector2<float> center = getAbsoluteRotationCenter();
-    dir = (dest - center);
-	dir.normalize();
-
-    //printf("Dir es %f, %f\n", dir.x, dir.y);
-
-	// Rotate Bow
-	transform.zRotation = dir.getAngle();
-
-	// Rotate arrow
-	if (arrow)
-		arrow->transform.zRotation = dir.getAngle();
+	// Aim to point
+	aimBow(dest);
 }
 
 void Bow::rotateArrow()
@@ -340,9 +343,28 @@ void Bow::rotateArrow()
         arrow->transform.zRotation = dir.getAngle();
 }
 
+void Bow::draw()
+{
+	if (state != BOW_STATE_IDLE)
+		return;
+
+	// Set pull animation
+	animator->setCurrentAnimation(pull);
+	animator->isEnabled = true;
+
+	// Change state
+	state = BOW_STATE_PULLING;
+}
+
 void Bow::shoot()
 {
+	if (state != BOW_STATE_PULLED)
+		return;
+	
+	// Set rel animation
 	animator->setCurrentAnimation(rel);
 	animator->isEnabled = true;
+
+	// Change state
 	state = BOW_STATE_RELEASING;
 }

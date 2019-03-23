@@ -6,6 +6,8 @@
 #include "HealthBar.h"
 #include "Button.h"
 #include "AudioManager.h"
+#include "PlayerAI.h"
+#include "Random.h"
 
 // Original 720 * 480
 
@@ -39,10 +41,12 @@ void LevelOne::loadMedia()
 	tower->transform.position = tower_pos;
 
 	// Player2
-	Player* player2 = new Player();
+	PlayerAI* player2 = new PlayerAI();
 	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 	player2->transform.position = player2_pos;
 	player2->level = this;
+	player2->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
+	player2->enemy = player;
 
 	// Tower
 	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);
@@ -126,6 +130,9 @@ void LevelOne::handleEvent(const SDL_Event& event)
 			free_camera = true;
 			isPaused = true;
 			break;
+		case SDLK_m:
+			printMousePos();
+			break;
 		default:
 			break;
 		}
@@ -144,6 +151,18 @@ void LevelOne::moveCamera(int xOffset, int yOffset)
 	cam_pos.y += yOffset;
 
 	RendererManager::setCameraPosition(cam_pos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+}
+
+void LevelOne::printMousePos()
+{
+	Vector2<int> mouse_pos;
+
+	SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+
+	auto scaler = RendererManager::getScaler();
+	mouse_pos = (Vector2<float>)mouse_pos / scaler;
+
+	std::cout << "Mouse pos is (" << mouse_pos.x << ", " << mouse_pos.y << ") " << std::endl;
 }
 
 // Gamestate 

@@ -43,6 +43,7 @@ public:
 
 	// Test
 	void moveCamera(int xOffset, int yOffset);
+	void printMousePos();
     int cam_speed = 5;
     bool free_camera = true;
 };

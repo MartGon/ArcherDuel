@@ -25,7 +25,7 @@ Player::Player()
 	move = animator->addAnimation("Archer_Walk", colorKey, tRenderer, 4, 1, PLAYER_ANIMATION_WALK);
 	move->loop = true;
 	animator->setCurrentAnimation(move);
-	//animator->isEnabled = false;
+	animator->isEnabled = false;
 
 	for (auto &frame : move->frames)
 	{
@@ -73,6 +73,9 @@ Player::Player()
 	// General
 void Player::handleEvent(const SDL_Event & event)
 {
+	if (isAI)
+		return;
+
     if (event.type != SDL_KEYDOWN)
         return;
 
@@ -81,21 +84,10 @@ void Player::handleEvent(const SDL_Event & event)
         switch (event.key.keysym.sym)
         {
         case SDLK_w:
-			// Jump
-			if (!airborne)
-			{
-				nav->setDirection(Vector2<float>(0, -1));
-				nav->speed = 3;
-				animator->isEnabled = false;
-			}
+			jump();
             break;
         case SDLK_s:
-			if (airborne)
-			{
-				nav->setDirection(Vector2<float>(0, 1));
-				nav->speed = 3;
-				animator->isEnabled = false;
-			}
+			fast_fall();
             break;
         }
     }
@@ -110,21 +102,20 @@ void Player::onUpdate()
 {
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
-	// Check movement
-	if (currentKeyStates[SDL_SCANCODE_A])
+	// Check if is AI before move
+	if (!isAI)
 	{
-		animator->isEnabled = true;
-		transform.position = transform.position + Vector2<float>(-movement_speed, 0);
-		//bow->transform.position = bow->transform.position + Vector2<float>(-movement_speed, 0);
-	}
-	else if (currentKeyStates[SDL_SCANCODE_D])
-	{
-		animator->isEnabled = true;
-		transform.position = transform.position + Vector2<float>(movement_speed, 0);
-		//bow->transform.position = bow->transform.position + Vector2<float>(movement_speed, 0);
+		MovDirection dir = MOV_NONE;
+		// Check movement
+		if (currentKeyStates[SDL_SCANCODE_A])
+			dir = MOV_DIR_LEFT;
+		else if (currentKeyStates[SDL_SCANCODE_D])
+			dir = MOV_DIR_RIGHT;
+
+		strafe(dir);
 	}
 	else
-		animator->isEnabled = false;
+		onPlayerUpdate();
 
 	// Check sprite orientation
 	double orientation = bow->transform.zRotation;
@@ -149,7 +140,7 @@ void Player::onUpdate()
 
 void Player::afterMove() 
 {
-	airborne = true;
+	//airborne = true;
 }
 
 	// Collider
@@ -160,12 +151,58 @@ void Player::onColliderEnter(Collider *collider)
 
 	if (!arrow)
 	{
-		float height = owner->transform.position.y + collider->offset.y;
-		transform.position = Vector2<float>(transform.position.x, height - 19 + 1);
+		float height = owner->transform.position.y + collider->offset.y - 19 + 1;
+
+		// Hack to allow the AI to jump
+		if (height == transform.position.y)
+			return;
+
+		transform.position = Vector2<float>(transform.position.x, height);
 
 		nav->setDirection(Vector2<float>(0, 0));
 		airborne = false;
 	}
+}
+
+// Own methods
+
+void Player::jump()
+{
+	if (!airborne)
+	{
+		nav->setDirection(Vector2<float>(0, -1));
+		nav->speed = 3;
+		animator->isEnabled = false;
+		airborne = true;
+	}
+}
+
+void Player::fast_fall() 
+{
+	if (airborne)
+	{
+		nav->setDirection(Vector2<float>(0, 1));
+		nav->speed = 3;
+		animator->isEnabled = false;
+	}
+}
+
+void Player::strafe(MovDirection dir)
+{ 
+	if (dir == MOV_NONE)
+	{
+		animator->isEnabled = false;
+		return;
+	}
+
+	// Set sign
+	float mov_dist = dir == MOV_DIR_RIGHT ? movement_speed : -movement_speed;
+
+	// Enable mov animation
+	animator->isEnabled = true;
+
+	// Mov distance
+	transform.position = transform.position + Vector2<float>(mov_dist, 0);
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

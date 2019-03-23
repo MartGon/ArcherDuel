@@ -62,8 +62,15 @@ public:
 
 	// Own Methods
 	Vector2<float> getArrowInitialPosition(bool reversed = false);
-    void loadArrow();
+
+	// Aiming
+	void aimBow(Vector2<float> target);
     void pointBowToMouse();
+	// Arrow
     void rotateArrow();
+	void loadArrow();
+
+	// Shooting
+	void draw();
 	void shoot();
 };
