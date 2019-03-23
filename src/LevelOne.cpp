@@ -5,6 +5,7 @@
 #include "GrassBlock.h"
 #include "HealthBar.h"
 #include "Button.h"
+#include "AudioManager.h"
 
 // Original 720 * 480
 
@@ -17,6 +18,9 @@ void LevelOne::loadMedia()
 	// Setting managers
 	setManager(new CollisionManager());
 	setManager(new RendererManager());
+	AudioManager* aManager = new AudioManager();
+	aManager->enable();
+	setManager(aManager);
 
 	// Background
 	GameObject *background = new GameObject();
@@ -56,6 +60,13 @@ void LevelOne::loadMedia()
 	button->setScale(Vector2<float>(0.25f, 0.25f));
 	button->transform.position = Vector2<float>(5, 5);
 	button->setOnClickListener(std::bind(&LevelOne::exitGame, this));
+
+	// Music Player
+	GameObject* music = new GameObject();
+	AudioPlayer* aPlayer = music->setComponent(new AudioPlayer("adwsl.wav"));
+	aPlayer->volume = SDL_MIX_MAXVOLUME / 4;
+	aPlayer->loop = true;
+	aPlayer->play();
 }
 
 void LevelOne::placeFloorBlocks()

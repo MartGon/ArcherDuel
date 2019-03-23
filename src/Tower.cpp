@@ -66,7 +66,7 @@ void Tower::onColliderEnter(Collider * collider)
 	if (Arrow* arrow = dynamic_cast<Arrow*>(owner))
 	{
 		// TODO - Get dmg from the arrow
-		takeDamage(10);
+		takeDamage(1);
 	}
 }
 
