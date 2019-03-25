@@ -116,7 +116,7 @@ void Bow::onAnimationFinished(Animation *anim)
 	}
 	else if (anim->id == rel->id)
 	{
-		// Get charge value
+		// Get charge value an disable charge bar
 		float charge = owner->chargeBar->getChargeValue();
 		owner->chargeBar->disable();
 
@@ -126,17 +126,21 @@ void Bow::onAnimationFinished(Animation *anim)
 		nav->speed = 2 * charge;
 		nav->isEnabled = true;
 
+		// Disable acceleration if max charge
+		if(charge == 6.0)
+			nav->isKinematic = false;
+
 		// Set bow state
 		state = BOW_STATE_ARROW_LAUNCHED;
 
-        // Change position
+        // Change arrow position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
         arrow->transform.rotationCenter = nullptr;
 
 		arrow->transform.position = arrow->getAbsolutePosition();
 		arrow->transform.parent = nullptr;
 
-		// Enabling collider
+		// Enabling arrow collider
 		arrow->rotCollider->isEnabled = true;
 
 		// Remove arrow
@@ -280,6 +284,24 @@ Vector2<float> Bow::getArrowInitialPosition(bool reversed)
         return Vector2<float>(-3, 7.f);
     else
         return Vector2<float>(3, 7.f);
+}
+
+void Bow::reset()
+{
+	// Arrow position
+	arrow->transform.position = getArrowInitialPosition();
+	arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+
+	// Animation
+	animator->setCurrentAnimation(pull);
+	animator->isEnabled = false;
+	
+	// State
+	state = BOW_STATE_IDLE;
+	
+	// Onwer pHand
+	owner->pHand->transform.position = Vector2<float>(13, 11);
+	owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 }
 
 void Bow::loadArrow()

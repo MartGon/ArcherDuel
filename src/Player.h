@@ -11,6 +11,8 @@ public:
 
     // Attributes
     float health_points = 100;
+	bool isStunned = false;
+	int stun_duration = 0;	// Duration in frames
 
     // Movement
 	bool airborne = false;
@@ -25,24 +27,28 @@ public:
 
     // Gameobjects
     Bow* bow = nullptr;
+	ChargeBar* chargeBar = nullptr;
 	GameObject* pHand = nullptr;
 	GameObject* rHand = nullptr;
-	ChargeBar* chargeBar = nullptr;
+	GameObject* dizzy_effect = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	BoxCollider* bCollider = nullptr;
 	Animator* animator = nullptr;
+	Navigator* knock_nav = nullptr;
 	Navigator* nav = nullptr;
 
 	// Animation
 	enum PlayerAnimation
 	{
 		PLAYER_ANIMATION_IDLE,
-		PLAYER_ANIMATION_WALK
+		PLAYER_ANIMATION_WALK,
+		PLAYER_ANIMATION_DIZZY
 	};
 
 	Animation* move = nullptr;
+	Animation* dizzy = nullptr;
 
     // Hooks
 		// General
@@ -57,10 +63,9 @@ public:
 	void onColliderEnter(Collider *collider) override;
 
 	// AI Hooks
-
-	// Own Methods
 	virtual void onPlayerUpdate() {};
 
+	// Own Methods
 		// Movement
 	enum MovDirection 
 	{
@@ -72,4 +77,9 @@ public:
 	void jump();
 	void fast_fall();
 	void strafe(MovDirection dir);
+
+		// Status effects
+	void stun(int duration);
+	void knockback(Vector2<float> dir, float strength);
+	void recover();
 };

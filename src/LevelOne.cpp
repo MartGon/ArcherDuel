@@ -6,7 +6,6 @@
 #include "HealthBar.h"
 #include "Button.h"
 #include "AudioManager.h"
-#include "PlayerAI.h"
 #include "Random.h"
 
 // Original 720 * 480
@@ -30,7 +29,7 @@ void LevelOne::loadMedia()
 	background->transform.scale = Vector2<float>(2, 2);
 
 	// Player
-	Player* player = new Player();
+	player = new Player();
 	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
 	player->transform.position = player_pos;
 	player->level = this;
@@ -41,12 +40,13 @@ void LevelOne::loadMedia()
 	tower->transform.position = tower_pos;
 
 	// Player2
-	PlayerAI* player2 = new PlayerAI();
+	player2 = new PlayerAI();
 	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 	player2->transform.position = player2_pos;
 	player2->level = this;
 	player2->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
 	player2->enemy = player;
+	//player2->isActive = false;
 
 	// Tower
 	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);
@@ -132,6 +132,13 @@ void LevelOne::handleEvent(const SDL_Event& event)
 			break;
 		case SDLK_m:
 			printMousePos();
+			if (player)
+			{
+				player->stun(240);
+				player->knockback(Vector2<float>(1, 0), 4);
+			}
+			if (player2)
+				player2->stun(120);
 			break;
 		default:
 			break;
@@ -176,7 +183,7 @@ bool LevelOne::canPlayerAct(Player* player)
             return true;
         break;
     case PLAYER_TWO_TURN:
-        if (player == this->playerTwo)
+        if (player == this->player2)
             return true;
         break;
     default:
@@ -199,10 +206,10 @@ void LevelOne::finishTurn()
         player->bow->loadArrow();
         break;
     case PLAYER_TWO_TURN:
-        if (playerTwo->bow->arrow)
+        if (player2->bow->arrow)
             return;
 
-        playerTwo->bow->loadArrow();
+        player2->bow->loadArrow();
         break;
     default:
         break;

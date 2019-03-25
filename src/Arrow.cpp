@@ -19,7 +19,7 @@ Arrow::Arrow()
 	nav = setComponent(new Navigator());
 	nav->isEnabled = false;
 	nav->isKinematic = true;
-	nav->acceleration.y = -0.005f;
+	nav->acceleration.y = -0.015f;
 
 	// Rotatable Box Collider
 	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
@@ -39,8 +39,17 @@ void Arrow::onColliderEnter(Collider* collider)
 
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
-		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
-		transform.parent = &player->transform;
+		//transform.position = getAbsolutePosition() - player->getAbsolutePosition();
+		//transform.parent = &player->transform;
+		
+		// Stun player hit
+		player->stun(120);
+
+		// Knock player back
+		player->knockback(nav->getDirection(), nav->speed);
+
+		// Disable arrow
+		isActive = false;
 	}
 }
 

@@ -113,7 +113,7 @@ void PlayerAI::onMoveToWayPoint()
 	if (dir == MOV_NONE)
 	{
 		// Check for doing a jump
-		bool doJump = Random::getRandomUniformInteger(0, 1);
+		bool doJump = Random::getRandomUniformInteger(0, 0);
 
 		if (doJump)
 			jump();

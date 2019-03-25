@@ -9,11 +9,15 @@ Player::Player()
 	colorKey->green = 255;
 	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 254));
 
-	// Navigator
-	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1));
-	nav->isKinematic = true;
-	nav->acceleration = Vector2<float>(0, -0.05);
+	// Move Navigator
+	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
 	nav->isEnabled = true;
+	//nav->isEnabled = false;
+
+	// Knockback Navigator
+	knock_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, 0)));
+	knock_nav->stopAtInflectionPoint = true;
+	knock_nav->isEnabled = false;
 
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(5, 15));
@@ -66,6 +70,18 @@ Player::Player()
 	chargeBar = new ChargeBar();
 	chargeBar->transform.parent = &this->transform;
 	chargeBar->transform.position = Vector2<float>(-10, -10);
+
+	// GameObject - Dizzy Effect
+	dizzy_effect = new GameObject();
+	dizzy_effect->transform.parent = &this->transform;
+	dizzy_effect->transform.position = Vector2<float>(2, -7);
+	TextureRenderer* dizzy_tRenderer = dizzy_effect->setComponent(new TextureRenderer("dizzy_effect1.png", colorKey, 255));
+	Animator* dizzy_anim = dizzy_effect->setComponent(new Animator("dizzy_effect", colorKey, dizzy_tRenderer, 4, 1 ));
+	dizzy_anim->currentAnimation->loop = true;
+	dizzy_effect->isActive = false;
+
+	// Animation - Dizzy
+	dizzy = animator->addAnimation("Archer_Dizzy_", colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
 }
 
 // Hooks
@@ -74,6 +90,9 @@ Player::Player()
 void Player::handleEvent(const SDL_Event & event)
 {
 	if (isAI)
+		return;
+
+	if (isStunned)
 		return;
 
     if (event.type != SDL_KEYDOWN)
@@ -100,6 +119,13 @@ void Player::onStart()
 
 void Player::onUpdate()
 {
+	// Update stun and return
+	if (isStunned)
+	{ 
+		recover();
+		return;
+	}
+
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
 	// Check if is AI before move
@@ -203,6 +229,76 @@ void Player::strafe(MovDirection dir)
 
 	// Mov distance
 	transform.position = transform.position + Vector2<float>(mov_dist, 0);
+}
+
+// Status effects
+
+void Player::stun(int duration) 
+{
+	// Check valid values
+	if (duration <= 0)
+		return;
+
+	// Update status effect data
+	isStunned = true;
+	stun_duration = duration;
+
+	// Disable bow, arrow, hands and chargebar
+	bow->isActive = false;
+	bow->arrow->isActive = false;
+	rHand->isActive = false;
+	pHand->isActive = false;
+	chargeBar->disable();
+
+	// Reset bow state if pulled
+	if (bow->state = bow->BOW_STATE_PULLED)
+		bow->reset();
+
+	// Enable dizzy animation
+	animator->setCurrentAnimation(dizzy);
+	animator->isEnabled = true;
+
+	// Enable visual effect
+	dizzy_effect->isActive = true;
+}
+
+void Player::knockback(Vector2<float> dir, float strength)
+{
+	// Enable nav
+	knock_nav->isEnabled = true;
+
+	// Knockback data
+	knock_nav->setDirection(dir);
+	knock_nav->speed = strength;
+
+	// Knockback Resistance
+	knock_nav->acceleration = -knock_nav->getDirection();
+	knock_nav->acceleration.normalize();
+	knock_nav->acceleration = knock_nav->acceleration * 0.5f;
+}
+
+void Player::recover()
+{
+	// Reduce duration by one frame
+	--stun_duration;
+
+	if (!stun_duration)
+	{
+		// Disable flag
+		isStunned = false;
+
+		// Enable bow and arrow
+		bow->isActive = true;
+		bow->arrow->isActive = true;
+		rHand->isActive = true;
+		pHand->isActive = true;
+
+		// Disable visual effect
+		dizzy_effect->isActive = false;
+
+		// Disable animation
+		animator->setCurrentAnimation(move);
+	}
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

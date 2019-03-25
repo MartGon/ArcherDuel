@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "Bow.h"
+#include "PlayerAI.h"
 
 class Player;
 class LevelOne : public Scene
@@ -24,7 +25,7 @@ public:
 	Bow* bow = nullptr;
 	Player* player = nullptr;
     Bow* p2_bow = nullptr;
-    Player* playerTwo = nullptr;
+    PlayerAI* player2 = nullptr;
 
 	// Level Dimensions
 	static const int LEVEL_WIDTH;
