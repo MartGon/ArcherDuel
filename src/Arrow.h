@@ -1,6 +1,7 @@
 #pragma once
 #include "Navigator.h"
 #include "GameObject.h"
+#include "TextLabel.h"
 
 class Bow;
 class Arrow : public GameObject
@@ -9,10 +10,12 @@ public:
 	Arrow();
 
     // Attributes
-    bool mov_finished = false;
+    bool isPinned = false;
 
     // GameObjects
     Bow* bow = nullptr;
+	TextLabel* dmg_label = nullptr;
+	TextureRenderer* dmg_tRenderer = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;

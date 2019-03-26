@@ -88,12 +88,10 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
         if (frameNumber < lastFrame)
         {
             pos.x = pos.x + 1;
-			//hPos.x = hPos.x + 1 * scale.x;
         }
         else
         {
             pos.x = pos.x + 3;
-			//hPos.x = hPos.x + 3 * scale.x;
         }
 	}
 

@@ -62,12 +62,6 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 void Tower::onColliderEnter(Collider * collider)
 {
 	GameObject* owner = collider->gameObject;
-
-	if (Arrow* arrow = dynamic_cast<Arrow*>(owner))
-	{
-		// TODO - Get dmg from the arrow
-		takeDamage(1);
-	}
 }
 
 // Own Methods
