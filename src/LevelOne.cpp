@@ -7,6 +7,7 @@
 #include "Button.h"
 #include "AudioManager.h"
 #include "Random.h"
+#include "Timer.h"
 
 // Original 720 * 480
 
@@ -33,6 +34,7 @@ void LevelOne::loadMedia()
 	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
 	player->transform.position = player_pos;
 	player->level = this;
+	players.push_back(player);
 
 	// Tower
 	Tower* tower = new Tower();
@@ -46,6 +48,8 @@ void LevelOne::loadMedia()
 	player2->level = this;
 	player2->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
 	player2->enemy = player;
+	player2->player_number = Player::PlayerNumber::PLAYER_TWO;
+	players.push_back(player2);
 	//player2->isActive = false;
 
 	// Tower
@@ -94,7 +98,19 @@ void LevelOne::onClickBow()
 
 void LevelOne::onUpdate()
 {
-
+	// Check for players position
+	for (auto player : players)
+	{
+		if (player)
+		{
+			if (!isPlayerPosValid(player))
+			{
+				resetPlayerPosition(player);
+				player->isActive = false;
+				Timer* timer = new Timer(3 * 1000, this, player);
+			}
+		}
+	}
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
@@ -146,8 +162,20 @@ void LevelOne::handleEvent(const SDL_Event& event)
 	}
 
 	// TODO - Set this code to Scene
-	for (int i = 0; i < gameObjectMap.size(); i++)
-		gameObjectMap.at(i)->handleEvent(event);
+	for (auto go : gameObjectMap)
+		go.second->handleEvent(event);
+}
+
+// Timer handler
+
+void LevelOne::onTimerFinish(void* param)
+{
+	std::cout << "On timer finish called\n";
+	Player* player = static_cast<Player*>(param);
+	
+	player->isActive = true;
+	player->isInmunne = true;
+	player->tRenderer->setBlink(6, 60 * 3);
 }
 
 void LevelOne::moveCamera(int xOffset, int yOffset)
@@ -214,6 +242,42 @@ void LevelOne::finishTurn()
     default:
         break;
     }
+}
+
+// Game
+
+bool LevelOne::isPlayerPosValid(Player* player)
+{
+	if (!player)
+		return false;
+
+	if (!player->isActive)
+		return true;
+
+	BoxCollider* col = player->bCollider;
+	bool isInside = col->cRight > 0 && col->cLeft < LEVEL_WIDTH && col->cBottom > 0 && col->cTop < LEVEL_HEIGHT;
+
+	return isInside;
+}
+
+void LevelOne::resetPlayerPosition(Player* player)
+{
+	Player::PlayerNumber pn = player->player_number;
+
+	switch (pn)
+	{
+	case Player::PlayerNumber::PLAYER_ONE:
+		player->transform.position = Vector2<float>(64, LEVEL_HEIGHT - 143);
+		break;
+	case Player::PlayerNumber::PLAYER_TWO:
+		player->transform.position = Vector2<float>(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
+		break;
+	default:
+		break;
+	}
+
+	// TODO - Needed to avoid despawning the player again
+	player->bCollider->calculateColliderBoundaries();
 }
 
 // GUI

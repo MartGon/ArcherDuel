@@ -2,6 +2,8 @@
 #include "HealthBar.h"
 #include "Arrow.h"
 
+// TODO - Hacer que la torre se destruya por partes, al destruir una se baja un nivel
+
 Tower::Tower(RoofColor roofColor) : GameObject()
 {
 	// Texture Renderer

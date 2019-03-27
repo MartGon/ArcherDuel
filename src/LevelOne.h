@@ -2,9 +2,10 @@
 #include "Scene.h"
 #include "Bow.h"
 #include "PlayerAI.h"
+#include "TimerHandler.h"
 
 class Player;
-class LevelOne : public Scene
+class LevelOne : public Scene, public TimerHandler
 {
 public:
     enum PlayerTurn
@@ -13,19 +14,21 @@ public:
         PLAYER_TWO_TURN
     };
 
+	// Overrided methods
+		// Scene
 	void loadMedia() override;
-
-	void onClickBow();
-
 	void onUpdate() override;
-
 	void handleEvent(const SDL_Event& event) override;
+		// Timer
+	void onTimerFinish(void* param) override;
 
     // GameObjects
 	Bow* bow = nullptr;
 	Player* player = nullptr;
     Bow* p2_bow = nullptr;
     PlayerAI* player2 = nullptr;
+
+	std::vector<Player*> players;
 
 	// Level Dimensions
 	static const int LEVEL_WIDTH;
@@ -38,6 +41,11 @@ public:
     PlayerTurn turn = PLAYER_ONE_TURN;
     bool canPlayerAct(Player* player);
     void finishTurn();
+	void onClickBow();
+
+	// Game
+	bool isPlayerPosValid(Player* player);
+	void resetPlayerPosition(Player* player);
 
 	// GUI
 	void exitGame();

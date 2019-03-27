@@ -134,7 +134,7 @@ void PlayerAI::onMoveToWayPoint()
 void PlayerAI::onAttack() 
 {
 	// Get some offset for height
-	height_offset = Random::getRandomUniformInteger(0, 5) * -10;
+	height_offset = Random::getRandomUniformInteger(2, 7) * -10;
 
 	// Pull Bow
 	bow->draw();

@@ -2,6 +2,7 @@
 #include "Navigator.h"
 #include "GameObject.h"
 #include "TextLabel.h"
+#include "AudioPlayer.h"
 
 class Bow;
 class Arrow : public GameObject
@@ -21,9 +22,16 @@ public:
 	TextureRenderer* tRenderer = nullptr;
 	RotatableBoxCollider* rotCollider = nullptr;
 	Navigator *nav = nullptr;
+	AudioPlayer* aPlayer = nullptr;
+
+	// Audio files
+	int audio_impact_building_1 = 0;
+	int audio_impact_building_2 = 0;
+	int audio_impact_player = 0;
 
 	// Hooks
 	void onColliderEnter(Collider* collider) override;
     void afterMove() override;
     void onUpdate() override;
+	void onVanish() override;
 };

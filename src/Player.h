@@ -9,10 +9,18 @@ class Player : public GameObject
 public:
 	Player();
 
+	enum class PlayerNumber
+	{
+		PLAYER_ONE,
+		PLAYER_TWO
+	};
+
     // Attributes
     float health_points = 100;
 	bool isStunned = false;
+	bool isInmunne = false;
 	int stun_duration = 0;	// Duration in frames
+	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
 
     // Movement
 	bool airborne = false;
@@ -55,6 +63,9 @@ public:
     void handleEvent(const SDL_Event &event) override;
 	void onStart() override;
 	void onUpdate() override;
+
+		// Texture Renderer
+	void onBlinkFinish() override;
 
 		// Navigator
 	void afterMove() override;

@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "LevelOne.h"
 #include "Tower.h"
+#include "Random.h"
 
 Arrow::Arrow()
 {
@@ -40,6 +41,12 @@ Arrow::Arrow()
 
 	// Disable until the arrow is pinned
 	dmg_label->isActive = false;
+
+	// Audio player
+	aPlayer = setComponent(new AudioPlayer("arrow-impact-building1.wav"));
+	audio_impact_building_2 = aPlayer->addAudioToList(aPlayer->loadAudioFile("arrow-impact-building2.wav"));
+	audio_impact_player = aPlayer->addAudioToList(aPlayer->loadAudioFile("arrow-impact-player.wav"));
+	aPlayer->pause();
 }
 
 // Hooks
@@ -48,13 +55,19 @@ void Arrow::onColliderEnter(Collider* collider)
 {
 	printf("Arrow Collision\n");
 
-	nav->isEnabled = false;
-	rotCollider->isEnabled = false;
-
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
-		//transform.position = getAbsolutePosition() - player->getAbsolutePosition();
-		//transform.parent = &player->transform;
+		// Check inmunnity
+		if (player->isInmunne)
+			return;
+
+		// Disable nav and collisions
+		nav->isEnabled = false;
+		rotCollider->isEnabled = false;
+
+		// Set player to new parent
+		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
+		transform.parent = &player->transform;
 		
 		// Stun player hit
 		player->stun(120);
@@ -63,10 +76,21 @@ void Arrow::onColliderEnter(Collider* collider)
 		player->knockback(nav->getDirection(), nav->speed * 0.65);
 
 		// Disable arrow
-		isActive = false;
+		isActive = true;
+
+		// Play sound effect
+		aPlayer->setAudioToPlay(audio_impact_player);
+		aPlayer->play();
+
+		// Set to vanish
+		tRenderer->isVanishing = true;
 	}
-	if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
+	else if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
 	{
+		// Disable nav and collisions
+		nav->isEnabled = false;
+		rotCollider->isEnabled = false;
+
 		// Deal dmg to the tower
 		tower->takeDamage(nav->speed);
 
@@ -76,10 +100,19 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Enable dmg label
 		dmg_label->isActive = true;
 
+		// Set label to vanish
+		dmg_tRenderer->isVanishing = true;
+
 		// Set flag
 		isPinned = true;
 
-		std::cout << "This arrow did " << nav->speed << "dmg \n";
+		// Notify
+		//std::cout << "This arrow did " << nav->speed << "dmg \n";
+
+		// Play random building sound
+		int index = Random::getRandomUniformInteger(audio_impact_building_1, audio_impact_building_2);
+		aPlayer->setAudioToPlay(index);
+		aPlayer->play();
 	}
 }
 
@@ -90,20 +123,11 @@ void Arrow::afterMove()
 
 void Arrow::onUpdate()
 {
-
-	if (dmg_label->isActive)
-	{
-		if (isPinned)
-		{
-			Uint8 alpha = dmg_tRenderer->texture.getAlpha();
-			if (!alpha)
-			{
-				dmg_label->isActive = false;
-			}
-			else
-				dmg_tRenderer->texture.setAlpha(alpha - 1);
-		}
-	}
 }
 
+void Arrow::onVanish()
+{
+	// Set to destroy
+	destroy();
+}
 // TODO - Los colliders de la flecha no aparecen ir acordes al movimiento. HACK: Poner el navigator antes del collider

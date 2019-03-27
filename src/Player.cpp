@@ -141,6 +141,7 @@ void Player::onUpdate()
 		strafe(dir);
 	}
 	else
+		// AI hook
 		onPlayerUpdate();
 
 	// Check sprite orientation
@@ -162,6 +163,12 @@ void Player::onUpdate()
 	rHand->transform.zRotation = orientation;
 }
 
+	// Texture Renderer
+void Player::onBlinkFinish()
+{
+	isInmunne = false;
+}
+
 	// Navigator
 
 void Player::afterMove() 
@@ -173,9 +180,9 @@ void Player::afterMove()
 void Player::onColliderEnter(Collider *collider) 
 {
 	GameObject* owner = collider->gameObject;
-	Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject);
+	Tower* tower = dynamic_cast<Tower*>(collider->gameObject);
 
-	if (!arrow)
+	if (tower)
 	{
 		float height = owner->transform.position.y + collider->offset.y - 19 + 1;
 
