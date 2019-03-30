@@ -3,9 +3,10 @@
 #include "GameObject.h"
 #include "TextLabel.h"
 #include "AudioPlayer.h"
+#include "TimerHandler.h"
 
 class Bow;
-class Arrow : public GameObject
+class Arrow : public GameObject, TimerHandler
 {
 public:
 	Arrow();
@@ -34,4 +35,5 @@ public:
     void afterMove() override;
     void onUpdate() override;
 	void onVanish() override;
+	void onTimerFinish(void* param) override;
 };

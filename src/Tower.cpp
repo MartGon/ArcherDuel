@@ -57,7 +57,6 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	// HealthBar Text
 	std::string text = roofColor ? "blue tower" : "red tower";
 	healthBar->tLabel->setText(text);
-
 }
 
 // Overrided Methods

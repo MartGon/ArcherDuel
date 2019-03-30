@@ -47,6 +47,8 @@ public:
 	bool isPlayerPosValid(Player* player);
 	void resetPlayerPosition(Player* player);
 
+	static bool isObjectPositionValid(GameObject* go);
+
 	// GUI
 	void exitGame();
 

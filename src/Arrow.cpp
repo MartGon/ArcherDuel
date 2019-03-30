@@ -3,6 +3,7 @@
 #include "LevelOne.h"
 #include "Tower.h"
 #include "Random.h"
+#include "Timer.h"
 
 Arrow::Arrow()
 {
@@ -55,42 +56,38 @@ void Arrow::onColliderEnter(Collider* collider)
 {
 	printf("Arrow Collision\n");
 
+	// Disable nav and collisions
+	nav->isEnabled = false;
+	rotCollider->isEnabled = false;
+
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
+		// Set player to new parent
+		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
+		transform.parent = &player->transform;
+	
+		// Set to vanish
+		tRenderer->isVanishing = true;
+
 		// Check inmunnity
 		if (player->isInmunne)
 			return;
 
-		// Disable nav and collisions
-		nav->isEnabled = false;
-		rotCollider->isEnabled = false;
-
-		// Set player to new parent
-		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
-		transform.parent = &player->transform;
-		
 		// Stun player hit
 		player->stun(120);
 
 		// Knock player back
 		player->knockback(nav->getDirection(), nav->speed * 0.65);
 
-		// Disable arrow
-		isActive = true;
-
 		// Play sound effect
 		aPlayer->setAudioToPlay(audio_impact_player);
 		aPlayer->play();
 
-		// Set to vanish
-		tRenderer->isVanishing = true;
+		// We don't wait for timer
+		return;
 	}
 	else if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
 	{
-		// Disable nav and collisions
-		nav->isEnabled = false;
-		rotCollider->isEnabled = false;
-
 		// Deal dmg to the tower
 		tower->takeDamage(nav->speed);
 
@@ -114,11 +111,18 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->setAudioToPlay(index);
 		aPlayer->play();
 	}
+
+	// Set timer to vanish arrow
+	Timer* timer = new Timer(15 * 1000, this, nullptr);
 }
 
 void Arrow::afterMove()
 {
 	transform.zRotation = nav->getDirection().getAngle();
+
+	// Check for valid position
+	if (!LevelOne::isObjectPositionValid(this))
+		onVanish();
 }
 
 void Arrow::onUpdate()
@@ -129,5 +133,11 @@ void Arrow::onVanish()
 {
 	// Set to destroy
 	destroy();
+	dmg_label->destroy();
+}
+
+void Arrow::onTimerFinish(void* param)
+{
+	tRenderer->isVanishing = true;
 }
 // TODO - Los colliders de la flecha no aparecen ir acordes al movimiento. HACK: Poner el navigator antes del collider
