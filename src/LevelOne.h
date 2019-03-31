@@ -4,6 +4,7 @@
 #include "PlayerAI.h"
 #include "TimerHandler.h"
 
+
 class Player;
 class LevelOne : public Scene, public TimerHandler
 {
@@ -35,7 +36,7 @@ public:
 	static const int LEVEL_HEIGHT;
 
 	// Object level Placement
-	void placeFloorBlocks();
+	static void placeFloorBlocks();
 
     // GameState
     PlayerTurn turn = PLAYER_ONE_TURN;
@@ -44,12 +45,14 @@ public:
 	void onClickBow();
 
 	// Game
+	void setWinnerTeam(Player::PlayerTeam winner_team);
 	bool isPlayerPosValid(Player* player);
 	void resetPlayerPosition(Player* player);
 
 	static bool isObjectPositionValid(GameObject* go);
 
 	// GUI
+	TextLabel* winner_banner = nullptr;
 	void exitGame();
 
 	// Test
@@ -57,4 +60,7 @@ public:
 	void printMousePos();
     int cam_speed = 5;
     bool free_camera = true;
+
+private:
+	bool isGameOver = false;
 };

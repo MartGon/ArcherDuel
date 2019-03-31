@@ -246,6 +246,9 @@ void Bow::handleEvent(const SDL_Event &event)
 			if (state != BOW_STATE_IDLE)
 				return;
 
+			if (owner->isStopped)
+				return;
+
 			// Pull Bow
 			animator->setCurrentAnimation(pull);
 			animator->isEnabled = true;

@@ -1,5 +1,6 @@
 #include "GameObject.h"
 
+class LevelOne;
 class HealthBar;
 
 class Tower : public GameObject
@@ -12,6 +13,10 @@ public:
 	};
 
 	Tower(RoofColor roofColor = ROOF_COLOR_RED);
+	Tower(LevelOne* level, RoofColor roofColor = ROOF_COLOR_RED);
+
+	// Game
+	LevelOne* level_one = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer;
@@ -27,6 +32,7 @@ public:
 
 private:
 	// Attributes
+	RoofColor team = ROOF_COLOR_RED;
 	float max_health = 100.0f;
 	float health = 100.0f;
 };

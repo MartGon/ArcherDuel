@@ -1,8 +1,10 @@
 #include "Tower.h"
 #include "HealthBar.h"
 #include "Arrow.h"
+#include "LevelOne.h"
 
 // TODO - Hacer que la torre se destruya por partes, al destruir una se baja un nivel
+
 
 Tower::Tower(RoofColor roofColor) : GameObject()
 {
@@ -12,6 +14,8 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	colorKey->green = 96;
 	colorKey->blue = 130;
 	
+	team = roofColor;
+
 	if(roofColor)
 		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2Bluew.png", colorKey, 2));
 	else
@@ -59,6 +63,11 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	healthBar->tLabel->setText(text);
 }
 
+Tower::Tower(LevelOne* level_one, RoofColor roofColor) : Tower(roofColor)
+{
+	this->level_one = level_one;
+}
+
 // Overrided Methods
 void Tower::onColliderEnter(Collider * collider)
 {
@@ -68,16 +77,16 @@ void Tower::onColliderEnter(Collider * collider)
 // Own Methods
 void Tower::takeDamage(float dmg)
 {
-	health = health - dmg;
+	health = (health - dmg > 0) ? health - dmg : 0;
 
-	// Do something when hp is below 0
-	if (health <= 0)
+	// Set winner
+	if (!health)
 	{
-
+		Player::PlayerTeam winner = team == ROOF_COLOR_RED ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
+		level_one->setWinnerTeam(winner);
 	}
 
 	// Update healthbar
 	float health_percent = health / max_health * 100;
 	healthBar->setHealthPercentage(health_percent, true);
-	//healthBar->reduceHealthByPercent(health_percent);
 }

@@ -92,6 +92,9 @@ void Player::handleEvent(const SDL_Event & event)
 	if (isAI)
 		return;
 
+	if (isStopped)
+		return;
+
 	if (isStunned)
 		return;
 
@@ -126,23 +129,30 @@ void Player::onUpdate()
 		return;
 	}
 
+	// Allow recover and return
+	if (isStopped)
+		return;
+
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
 	// Check if is AI before move
-	if (!isAI)
+	if (mov_enabled)
 	{
-		MovDirection dir = MOV_NONE;
-		// Check movement
-		if (currentKeyStates[SDL_SCANCODE_A])
-			dir = MOV_DIR_LEFT;
-		else if (currentKeyStates[SDL_SCANCODE_D])
-			dir = MOV_DIR_RIGHT;
+		if (!isAI)
+		{
+			MovDirection dir = MOV_NONE;
+			// Check movement
+			if (currentKeyStates[SDL_SCANCODE_A])
+				dir = MOV_DIR_LEFT;
+			else if (currentKeyStates[SDL_SCANCODE_D])
+				dir = MOV_DIR_RIGHT;
 
-		strafe(dir);
+			strafe(dir);
+		}
+		else
+			// AI hook
+			onPlayerUpdate();
 	}
-	else
-		// AI hook
-		onPlayerUpdate();
 
 	// Check sprite orientation
 	double orientation = bow->transform.zRotation;
@@ -275,7 +285,8 @@ void Player::knockback(Vector2<float> dir, float strength)
 	knock_nav->isEnabled = true;
 
 	// Knockback data
-	knock_nav->setDirection(dir);
+	Vector2<float> knock_dir(dir.x, 0.0f);
+	knock_nav->setDirection(knock_dir);
 	knock_nav->speed = strength;
 
 	// Knockback Resistance

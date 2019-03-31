@@ -11,9 +11,6 @@ class Arrow : public GameObject, TimerHandler
 public:
 	Arrow();
 
-    // Attributes
-    bool isPinned = false;
-
     // GameObjects
     Bow* bow = nullptr;
 	TextLabel* dmg_label = nullptr;

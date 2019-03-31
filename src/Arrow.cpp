@@ -4,6 +4,7 @@
 #include "Tower.h"
 #include "Random.h"
 #include "Timer.h"
+#include "Button.h"
 
 Arrow::Arrow()
 {
@@ -60,6 +61,9 @@ void Arrow::onColliderEnter(Collider* collider)
 	nav->isEnabled = false;
 	rotCollider->isEnabled = false;
 
+	// Create timer flag
+	bool wait_timer = true;
+
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
 		// Set player to new parent
@@ -84,7 +88,7 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->play();
 
 		// We don't wait for timer
-		return;
+		wait_timer = false;
 	}
 	else if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
 	{
@@ -100,9 +104,6 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Set label to vanish
 		dmg_tRenderer->isVanishing = true;
 
-		// Set flag
-		isPinned = true;
-
 		// Notify
 		//std::cout << "This arrow did " << nav->speed << "dmg \n";
 
@@ -111,6 +112,25 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->setAudioToPlay(index);
 		aPlayer->play();
 	}
+	else if (Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject))
+	{
+		// Set both arrows to vanish
+		tRenderer->isVanishing = true;
+		arrow->tRenderer->isVanishing = true;
+
+		// We don't wait for timer
+		wait_timer = false;
+	}
+	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
+	{
+		button->click();
+
+		// We don't wait for timer
+		wait_timer = false;
+	}
+
+	if (!wait_timer)
+		return;
 
 	// Set timer to vanish arrow
 	Timer* timer = new Timer(15 * 1000, this, nullptr);

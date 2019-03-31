@@ -6,8 +6,10 @@
 #include "HealthBar.h"
 #include "Button.h"
 #include "AudioManager.h"
+#include "SceneManager.h"
 #include "Random.h"
 #include "Timer.h"
+#include "MainMenu.h"
 
 // Original 720 * 480
 
@@ -37,7 +39,7 @@ void LevelOne::loadMedia()
 	players.push_back(player);
 
 	// Tower
-	Tower* tower = new Tower();
+	Tower* tower = new Tower(this);
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
 	tower->transform.position = tower_pos;
 
@@ -49,11 +51,12 @@ void LevelOne::loadMedia()
 	player2->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
 	player2->enemy = player;
 	player2->player_number = Player::PlayerNumber::PLAYER_TWO;
+	player2->player_team = Player::PlayerTeam::BLUE_TEAM;
 	players.push_back(player2);
 	//player2->isActive = false;
 
 	// Tower
-	Tower* tower2= new Tower(Tower::ROOF_COLOR_BLUE);
+	Tower* tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
 	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 32);
 	tower2->transform.position = tower2_pos;
 
@@ -68,6 +71,15 @@ void LevelOne::loadMedia()
 	button->setScale(Vector2<float>(0.25f, 0.25f));
 	button->transform.position = Vector2<float>(5, 5);
 	button->setOnClickListener(std::bind(&LevelOne::exitGame, this));
+	button->tLabel->isActive = false;
+
+	// Winner banner
+	winner_banner = new TextLabel();
+	winner_banner->setTextScale(Vector2<float>(3, 3));
+	winner_banner->setText("red team wins");
+	winner_banner->transform.position = Vector2<float>(LEVEL_WIDTH / 2 - 2.5f * 3 * winner_banner->getText().size()
+		, LEVEL_HEIGHT / 10 - 2.5f * winner_banner->transform.scale.y);
+	winner_banner->isActive = false;
 
 	// Music Player
 	GameObject* music = new GameObject();
@@ -171,11 +183,17 @@ void LevelOne::handleEvent(const SDL_Event& event)
 void LevelOne::onTimerFinish(void* param)
 {
 	std::cout << "On timer finish called\n";
-	Player* player = static_cast<Player*>(param);
-	
-	player->isActive = true;
-	player->isInmunne = true;
-	player->tRenderer->setBlink(6, 60 * 3);
+	if (Player* player = static_cast<Player*>(param)) 
+	{
+
+		player->isActive = true;
+		player->isInmunne = true;
+		player->tRenderer->setBlink(6, 60 * 3);
+	}
+	else
+	{
+		exitGame();
+	}
 }
 
 void LevelOne::moveCamera(int xOffset, int yOffset)
@@ -246,6 +264,27 @@ void LevelOne::finishTurn()
 
 // Game
 
+void LevelOne::setWinnerTeam(Player::PlayerTeam winner_team)
+{
+	// Check flag
+	if (isGameOver)
+		return;
+
+	// Set flag
+	isGameOver = true;
+
+	// Update winner banner
+	std::string winner_str = winner_team == Player::PlayerTeam::RED_TEAM ? "red" : "blu";
+	winner_banner->setText(winner_str + " team wins");
+	winner_banner->isActive = true;
+
+	// Stop players
+	//for (auto player : players) player->isStopped = true;
+
+	// Set timer for finishing
+	Timer* timer = new Timer(10 * 1000, this, nullptr);
+}
+
 bool LevelOne::isPlayerPosValid(Player* player)
 {
 	if (!player)
@@ -301,5 +340,5 @@ bool LevelOne::isObjectPositionValid(GameObject* go)
 
 void LevelOne::exitGame()
 {
-	std::cout << "Exit game" << std::endl;
+	SceneManager::loadNextScene(new MainMenu());
 }

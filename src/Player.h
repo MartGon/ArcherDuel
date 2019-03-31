@@ -15,12 +15,20 @@ public:
 		PLAYER_TWO
 	};
 
+	enum class PlayerTeam
+	{
+		RED_TEAM,
+		BLUE_TEAM
+	};
+
     // Attributes
     float health_points = 100;
+	bool isStopped = false;
 	bool isStunned = false;
 	bool isInmunne = false;
 	int stun_duration = 0;	// Duration in frames
 	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
+	PlayerTeam player_team = PlayerTeam::RED_TEAM;
 
     // Movement
 	bool airborne = false;
