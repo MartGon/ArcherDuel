@@ -19,6 +19,10 @@ public:
 	// UI
 		// Buttons
 	Button* play_button = nullptr;
+	Button* online_button = nullptr;
+	Button* server_button = nullptr;
+	Button* client_button = nullptr;
+	Button* back_button = nullptr;
 	Button* exit_button = nullptr;
 
 		// Game title
@@ -34,7 +38,12 @@ public:
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;
 
-	// Own methods
+	// Button methods
 	void exitGame();
-	void loadLevelOne();
+	void loadLevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
+	void playButtonHandler();
+	void onlineButtonHandler();
+	void serverButtonHandler();
+	void clientButtonHandler();
+	void backButtonHandler();
 };

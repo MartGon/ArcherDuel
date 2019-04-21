@@ -87,19 +87,31 @@ Player::Player()
 // Hooks
 
 	// General
-void Player::handleEvent(const SDL_Event & event)
+bool Player::handleEvent(const SDL_Event & event)
 {
 	if (isAI)
-		return;
+		return false;
 
 	if (isStopped)
-		return;
+		return false;
 
 	if (isStunned)
-		return;
+		return false;
 
     if (event.type != SDL_KEYDOWN)
-        return;
+        return false;
+
+	// In client mode we don't move player ONE
+	if(level)
+		if (level->mode == Scene::ONLINE_CLIENT)
+			if (player_number == PlayerNumber::PLAYER_ONE)
+				return false;
+
+	// In server mode we don't move player TWO
+	if (level)
+		if (level->mode == Scene::ONLINE_SERVER)
+			if (player_number == PlayerNumber::PLAYER_TWO)
+				return false;
 
     if (mov_enabled)
     {
@@ -113,6 +125,8 @@ void Player::handleEvent(const SDL_Event & event)
             break;
         }
     }
+
+	return true;
 }
 
 void Player::onStart() 
@@ -134,6 +148,18 @@ void Player::onUpdate()
 		return;
 
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+
+	// In client mode we don't move player ONE
+	if(level)
+		if (level->mode == Scene::ONLINE_CLIENT)
+			if (player_number == PlayerNumber::PLAYER_ONE)
+				return;
+
+	// In server mode we don't move player TWO
+	if(level)
+		if (level->mode == Scene::ONLINE_SERVER)
+			if (player_number == PlayerNumber::PLAYER_TWO)
+				return;
 
 	// Check if is AI before move
 	if (mov_enabled)

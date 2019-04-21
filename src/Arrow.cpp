@@ -55,7 +55,7 @@ Arrow::Arrow()
 
 void Arrow::onColliderEnter(Collider* collider)
 {
-	printf("Arrow Collision\n");
+	//printf("Arrow Collision\n");
 
 	// Disable nav and collisions
 	nav->isEnabled = false;

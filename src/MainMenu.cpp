@@ -36,12 +36,6 @@ void MainMenu::loadMedia()
 	tower->transform.position = tower_pos;
 	tower->healthBar->isActive = false;
 
-	// Player
-	player = new Player();
-	player->mov_enabled = false;
-	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
-	player->transform.position = player_pos;
-
 	// Grass Blocks
 	LevelOne::placeFloorBlocks();
 
@@ -75,7 +69,47 @@ void MainMenu::loadMedia()
 	play_button->tLabel->setText("Play");
 	play_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
 	play_button->tLabel->transform.position = (play_button->collider->getDimensions() / 2 ) - Vector2<float>(20, 5);
-	play_button->setOnClickListener(std::bind(&MainMenu::loadLevelOne, this));
+	play_button->setOnClickListener(std::bind(&MainMenu::playButtonHandler, this));
+
+	// Online button
+	online_button = new Button(Texture("button_background4.png"));
+	online_button->setScale(Vector2<float>(2, 2));
+	online_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 3.75f));
+	online_button->tLabel->setText("Online");
+	online_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	online_button->tLabel->transform.position = (online_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	online_button->setOnClickListener(std::bind(&MainMenu::onlineButtonHandler, this));
+
+	// Online Sub-menu
+		// Server button
+	server_button = new Button(Texture("button_background4.png"));
+	server_button->setScale(Vector2<float>(2, 2));
+	server_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 2.5f));
+	server_button->tLabel->setText("Server");
+	server_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	server_button->tLabel->transform.position = (server_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	server_button->setOnClickListener(std::bind(&MainMenu::serverButtonHandler, this));
+	server_button->isActive = false;
+
+		// Client button
+	client_button = new Button(Texture("button_background4.png"));
+	client_button->setScale(Vector2<float>(2, 2));
+	client_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 3.75f));
+	client_button->tLabel->setText("Client");
+	client_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	client_button->tLabel->transform.position = (client_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	client_button->setOnClickListener(std::bind(&MainMenu::clientButtonHandler, this));
+	client_button->isActive = false;
+
+	// Client button
+	back_button = new Button(Texture("button_background4.png"));
+	back_button->setScale(Vector2<float>(2, 2));
+	back_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 5.f));
+	back_button->tLabel->setText("Back");
+	back_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	back_button->tLabel->transform.position = (back_button->collider->getDimensions() / 2) - Vector2<float>(20, 5);
+	back_button->setOnClickListener(std::bind(&MainMenu::backButtonHandler, this));
+	back_button->isActive = false;
 
 	// Exit button
 	exit_button = new Button(Texture("ExitButton.png"));
@@ -83,6 +117,12 @@ void MainMenu::loadMedia()
 	exit_button->transform.position = Vector2<float>(5, 5);
 	exit_button->setOnClickListener(std::bind(&MainMenu::exitGame, this));
 	exit_button->tLabel->isActive = false;
+
+	// Player
+	player = new Player();
+	player->mov_enabled = false;
+	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
+	player->transform.position = player_pos;
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
@@ -96,7 +136,9 @@ void MainMenu::onUpdate()
 void MainMenu::handleEvent(const SDL_Event& event)
 {
 	for (auto go : gameObjectMap)
-		go.second->handleEvent(event);
+		if (go.second->isActive)
+			if (go.second->handleEvent(event))
+				return;
 }
 
 // Own methods
@@ -106,7 +148,48 @@ void MainMenu::exitGame()
 	SceneManager::quitGame();
 }
 
-void MainMenu::loadLevelOne()
+void MainMenu::loadLevelOne(SceneMode mode)
 {
-	SceneManager::loadNextScene(new LevelOne());
+	Scene* level_one = new LevelOne();
+	level_one->setSceneMode(mode);
+	SceneManager::loadNextScene(level_one);
+}
+
+void MainMenu::playButtonHandler()
+{
+	loadLevelOne();
+}
+
+void MainMenu::onlineButtonHandler()
+{
+	// Deactivate old buttons
+	play_button->isActive = false;
+	online_button->isActive = false;
+
+	// Activate new buttons
+	server_button->isActive = true;
+	client_button->isActive = true;
+	back_button->isActive = true;
+}
+
+void MainMenu::serverButtonHandler()
+{
+	loadLevelOne(ONLINE_SERVER);
+}
+
+void MainMenu::clientButtonHandler() 
+{
+	loadLevelOne(ONLINE_CLIENT);
+}
+
+void MainMenu::backButtonHandler()
+{
+	// Activate old buttons
+	play_button->isActive = true;
+	online_button->isActive = true;
+
+	// Deactivate new buttons
+	server_button->isActive = false;
+	client_button->isActive = false;
+	back_button->isActive = false;
 }

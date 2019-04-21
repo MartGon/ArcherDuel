@@ -17,6 +17,11 @@
 const int LevelOne::LEVEL_WIDTH = 480;
 const int LevelOne::LEVEL_HEIGHT = 320;
 
+LevelOne::LevelOne(SceneMode mode)
+{
+	this->mode = mode;
+}
+
 void LevelOne::loadMedia()
 {
 	// Setting managers
@@ -44,15 +49,24 @@ void LevelOne::loadMedia()
 	tower->transform.position = tower_pos;
 
 	// Player2
-	player2 = new PlayerAI();
+	if (isOnline())
+		player2 = new Player();
+	else
+		player2 = new PlayerAI();
+
 	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 	player2->transform.position = player2_pos;
 	player2->level = this;
-	player2->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
-	player2->enemy = player;
 	player2->player_number = Player::PlayerNumber::PLAYER_TWO;
 	player2->player_team = Player::PlayerTeam::BLUE_TEAM;
+	player2->updateFromClient = true;
 	players.push_back(player2);
+
+	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player2))
+	{
+		playerAI->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
+		playerAI->enemy = player;
+	}
 	//player2->isActive = false;
 
 	// Tower
@@ -87,6 +101,16 @@ void LevelOne::loadMedia()
 	aPlayer->volume = SDL_MIX_MAXVOLUME / 4;
 	aPlayer->loop = true;
 	aPlayer->play();
+
+	// Text Label
+	TextLabel* label = new TextLabel();
+	label->transform.position = Vector2<float>(LEVEL_WIDTH / 2, 10);
+	if (mode == ONLINE_SERVER)
+		label->setText("Server");
+	else if (mode == ONLINE_CLIENT)
+		label->setText("Client");
+	else
+		label->setText("Offline");
 }
 
 void LevelOne::placeFloorBlocks()

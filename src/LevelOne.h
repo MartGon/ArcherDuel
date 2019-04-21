@@ -15,6 +15,9 @@ public:
         PLAYER_TWO_TURN
     };
 
+	// Constructor
+	LevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
+
 	// Overrided methods
 		// Scene
 	void loadMedia() override;
@@ -27,7 +30,7 @@ public:
 	Bow* bow = nullptr;
 	Player* player = nullptr;
     Bow* p2_bow = nullptr;
-    PlayerAI* player2 = nullptr;
+    Player* player2 = nullptr;
 
 	std::vector<Player*> players;
 

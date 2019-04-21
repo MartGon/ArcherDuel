@@ -159,7 +159,21 @@ void Bow::onStart()
 void Bow::onUpdate()
 {
 	// Always point to mouse
-	pointBowToMouse();
+	if (owner->level && owner->level->isOnline())
+	{
+		if (owner->level->mode == Scene::ONLINE_SERVER)
+		{
+			if (owner->player_number == Player::PlayerNumber::PLAYER_ONE)
+				pointBowToMouse();
+		}
+		else if (owner->level->mode == Scene::ONLINE_CLIENT)
+		{
+			if (owner->player_number == Player::PlayerNumber::PLAYER_TWO)
+				pointBowToMouse();
+		}
+	}
+	else
+		pointBowToMouse();
 
     switch (state)
     {
@@ -195,12 +209,12 @@ void Bow::onUpdate()
     }
 }
 
-void Bow::handleEvent(const SDL_Event &event)
+bool Bow::handleEvent(const SDL_Event &event)
 {
 	// Check if the player is an AI
 	if (Player* player = this->owner)
 		if (player->isAI)
-			return;
+			return false;
 
 	if (event.type == SDL_KEYDOWN)
 	{
@@ -214,21 +228,21 @@ void Bow::handleEvent(const SDL_Event &event)
 			break;
 		case SDLK_l:
 			if (state != BOW_STATE_ARROW_LAUNCHED)
-				return;
+				return false;
 
 			loadArrow();
 			state = BOW_STATE_IDLE;
 			break;
 		case SDLK_u:
 			if (state != BOW_STATE_IDLE)
-				return;
+				return false;
 
 			//if (angle < 90)
 			angle += angle_inc;
 			break;
 		case SDLK_j:
 			if (state != BOW_STATE_IDLE)
-				return;
+				return false;
 
 			if (angle >= angle_inc)
 				angle -= angle_inc;
@@ -244,10 +258,10 @@ void Bow::handleEvent(const SDL_Event &event)
 		{
 		case SDL_BUTTON_LEFT:
 			if (state != BOW_STATE_IDLE)
-				return;
+				return false;
 
 			if (owner->isStopped)
-				return;
+				return false;
 
 			// Pull Bow
 			animator->setCurrentAnimation(pull);
@@ -272,7 +286,10 @@ void Bow::handleEvent(const SDL_Event &event)
 			}
 		}
 	}
+	else
+		return false;
 
+	return true;
 }
 
 // Own methods
