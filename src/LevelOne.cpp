@@ -198,8 +198,28 @@ void LevelOne::handleEvent(const SDL_Event& event)
 	}
 
 	// TODO - Set this code to Scene
-	for (auto go : gameObjectMap)
-		go.second->handleEvent(event);
+	for (auto gameObjectPair : gameObjectMap)
+	{
+		GameObject* go = gameObjectPair.second;
+		if (isOnline() && shouldSendGameObjectUpdate(go))
+			go->handleEvent(event);
+	}
+}
+
+GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
+{
+	GameObject* go = nullptr;
+	switch (template_id)
+	{
+	case 1:
+		go = new Arrow();
+		break;
+	case -1:
+	default:
+		break;
+	}
+
+	return go;
 }
 
 // Timer handler
@@ -364,5 +384,6 @@ bool LevelOne::isObjectPositionValid(GameObject* go)
 
 void LevelOne::exitGame()
 {
+	std::cout << "Se pulso el botonsito\n";
 	SceneManager::loadNextScene(new MainMenu());
 }

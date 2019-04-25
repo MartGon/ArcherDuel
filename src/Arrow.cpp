@@ -10,6 +10,7 @@ Arrow::Arrow()
 {
 	// Setting components
 	name = "arrow";
+	template_id = 1;
 
 	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();

@@ -131,6 +131,10 @@ void Bow::onAnimationFinished(Animation *anim)
 		// Set bow state
 		state = BOW_STATE_ARROW_LAUNCHED;
 
+		// Online tweaks
+		if (shouldBeUpdatedFromClient())
+			arrow->updateFromClient = true;
+
         // Change arrow position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
         arrow->transform.rotationCenter = nullptr;
@@ -158,22 +162,7 @@ void Bow::onStart()
 
 void Bow::onUpdate()
 {
-	// Always point to mouse
-	if (owner->level && owner->level->isOnline())
-	{
-		if (owner->level->mode == Scene::ONLINE_SERVER)
-		{
-			if (owner->player_number == Player::PlayerNumber::PLAYER_ONE)
-				pointBowToMouse();
-		}
-		else if (owner->level->mode == Scene::ONLINE_CLIENT)
-		{
-			if (owner->player_number == Player::PlayerNumber::PLAYER_TWO)
-				pointBowToMouse();
-		}
-	}
-	else
-		pointBowToMouse();
+	pointBowToMouse();
 
     switch (state)
     {
@@ -335,6 +324,10 @@ void Bow::loadArrow()
 	Vector2<int> absCenter = this->getAbsoluteRotationCenter();
     arrow->transform.position = getArrowInitialPosition();
 	arrow->setAbsoluteRotationCenter(absCenter);
+
+	// Online tweaks
+	if (shouldBeUpdatedFromClient())
+		arrow->updateFromClient = true;
 }
 
 void Bow::aimBow(Vector2<float> target) 
