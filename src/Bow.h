@@ -70,7 +70,7 @@ public:
 
 	// Arrow
     void rotateArrow();
-	void loadArrow();
+	Arrow* loadArrow();
 
 	// Shooting
 	void draw();

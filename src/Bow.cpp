@@ -131,10 +131,6 @@ void Bow::onAnimationFinished(Animation *anim)
 		// Set bow state
 		state = BOW_STATE_ARROW_LAUNCHED;
 
-		// Online tweaks
-		if (shouldBeUpdatedFromClient())
-			arrow->updateFromClient = true;
-
         // Change arrow position
         arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
         arrow->transform.rotationCenter = nullptr;
@@ -296,8 +292,11 @@ Vector2<float> Bow::getArrowInitialPosition(bool reversed)
 void Bow::reset()
 {
 	// Arrow position
-	arrow->transform.position = getArrowInitialPosition();
-	arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+	if (arrow)
+	{
+		arrow->transform.position = getArrowInitialPosition();
+		arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+	}
 
 	// Animation
 	animator->setCurrentAnimation(pull);
@@ -311,7 +310,7 @@ void Bow::reset()
 	owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 }
 
-void Bow::loadArrow()
+Arrow* Bow::loadArrow()
 {
 	// Create new arrow
     arrow = new Arrow();
@@ -325,9 +324,11 @@ void Bow::loadArrow()
     arrow->transform.position = getArrowInitialPosition();
 	arrow->setAbsoluteRotationCenter(absCenter);
 
-	// Online tweaks
-	if (shouldBeUpdatedFromClient())
+	// The arrow must be update from client if it's online, client and the player that it is been 
+	if (SceneManager::scene->isOnline() && owner->shouldBeUpdatedFromClient())
 		arrow->updateFromClient = true;
+
+	return arrow;
 }
 
 void Bow::aimBow(Vector2<float> target) 

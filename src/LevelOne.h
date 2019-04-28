@@ -35,6 +35,10 @@ public:
 
 	std::vector<Player*> players;
 
+	// Debug
+	TextLabel* framerate_display = nullptr;
+	Uint32 previous_ticks = 0;
+
 	// Level Dimensions
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;

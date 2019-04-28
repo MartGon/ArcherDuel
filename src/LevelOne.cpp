@@ -111,6 +111,10 @@ void LevelOne::loadMedia()
 		label->setText("Client");
 	else
 		label->setText("Offline");
+
+	// Framerate Display
+	framerate_display = new TextLabel();
+	label->transform.position = Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10, 10);
 }
 
 void LevelOne::placeFloorBlocks()
@@ -147,6 +151,13 @@ void LevelOne::onUpdate()
 			}
 		}
 	}
+
+	// Update framerate
+	Uint32 frame_ticks = SDL_GetTicks();
+	Uint32 diff = frame_ticks - previous_ticks;
+	previous_ticks = frame_ticks;
+	Uint32 frame_rate = (Uint32)(1.0f / (float)((float)diff / 1000.0f));
+	framerate_display->setText(std::to_string(frame_rate));
 }
 
 void LevelOne::handleEvent(const SDL_Event& event)
@@ -212,7 +223,10 @@ GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
 	switch (template_id)
 	{
 	case 1:
-		go = new Arrow();
+		if (mode == ONLINE_SERVER)
+			go = player2->bow->loadArrow();
+		else
+			go = player->bow->loadArrow();
 		break;
 	case -1:
 	default:

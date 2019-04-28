@@ -4,6 +4,7 @@
 #include "TextLabel.h"
 #include "AudioPlayer.h"
 #include "TimerHandler.h"
+#include "Timer.h"
 
 class Bow;
 class Arrow : public GameObject, TimerHandler
@@ -22,6 +23,9 @@ public:
 	Navigator *nav = nullptr;
 	AudioPlayer* aPlayer = nullptr;
 
+	// Timer
+	Timer* timer = nullptr;
+
 	// Audio files
 	int audio_impact_building_1 = 0;
 	int audio_impact_building_2 = 0;
@@ -33,4 +37,6 @@ public:
     void onUpdate() override;
 	void onVanish() override;
 	void onTimerFinish(void* param) override;
+private:
+	bool bHasCollided = false;
 };

@@ -5,6 +5,7 @@
 #include "Random.h"
 #include "Timer.h"
 #include "Button.h"
+#include "SceneManager.h"
 
 Arrow::Arrow()
 {
@@ -30,8 +31,8 @@ Arrow::Arrow()
 	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
 		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
 	rotCollider->isEnabled = false;
-    //rotCollider->debug = true;
-
+    rotCollider->debug = true;
+	
 	// Damage text label
 	dmg_label = new TextLabel();
 	dmg_label->transform.parent = &transform;
@@ -57,7 +58,8 @@ Arrow::Arrow()
 void Arrow::onColliderEnter(Collider* collider)
 {
 	//printf("Arrow Collision\n");
-
+	if (bHasCollided)
+		return;
 	// Disable nav and collisions
 	nav->isEnabled = false;
 	rotCollider->isEnabled = false;
@@ -124,22 +126,27 @@ void Arrow::onColliderEnter(Collider* collider)
 	}
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
 	{
-		button->click();
+		// Only during Menu
+		if(!SceneManager::scene->isOnline())
+			button->click();
 
 		// We don't wait for timer
 		wait_timer = false;
 	}
-
+	bHasCollided = true;
+	// Return if we dont have to create a timer
 	if (!wait_timer)
 		return;
 
 	// Set timer to vanish arrow
-	Timer* timer = new Timer(15 * 1000, this, nullptr);
+	if(!timer)
+		timer = new Timer(15 * 1000, this, nullptr);
+
 }
 
 void Arrow::afterMove()
 {
-	transform.zRotation = nav->getDirection().getAngle();
+ 	transform.zRotation = nav->getDirection().getAngle();
 
 	// Check for valid position
 	if (!LevelOne::isObjectPositionValid(this))
@@ -148,6 +155,9 @@ void Arrow::afterMove()
 
 void Arrow::onUpdate()
 {
+		if (nav)
+			if (nav->isEnabled)
+				std::cout << "Arrow position is" << transform.position << "in frame " << SceneManager::scene->frame_count++ << "\n";
 }
 
 void Arrow::onVanish()
