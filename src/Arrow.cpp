@@ -57,9 +57,6 @@ Arrow::Arrow()
 
 void Arrow::onColliderEnter(Collider* collider)
 {
-	//printf("Arrow Collision\n");
-	if (bHasCollided)
-		return;
 	// Disable nav and collisions
 	nav->isEnabled = false;
 	rotCollider->isEnabled = false;
@@ -133,7 +130,7 @@ void Arrow::onColliderEnter(Collider* collider)
 		// We don't wait for timer
 		wait_timer = false;
 	}
-	bHasCollided = true;
+
 	// Return if we dont have to create a timer
 	if (!wait_timer)
 		return;

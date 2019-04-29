@@ -37,6 +37,4 @@ public:
     void onUpdate() override;
 	void onVanish() override;
 	void onTimerFinish(void* param) override;
-private:
-	bool bHasCollided = false;
 };
