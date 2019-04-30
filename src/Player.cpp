@@ -118,11 +118,8 @@ bool Player::shouldUpdate()
 // Hooks
 
 	// General
-bool Player::handleEvent(const SDL_Event & event)
+bool Player::OnHandleEvent(const SDL_Event & event)
 {
-	if (!shouldUpdate())
-		return false;
-
 	if (isAI)
 		return false;
 
@@ -132,23 +129,43 @@ bool Player::handleEvent(const SDL_Event & event)
 	if (isStunned)
 		return false;
 
-    if (event.type != SDL_KEYDOWN)
-        return false;
+	if (event.type == SDL_KEYDOWN)
+	{
+		if (mov_enabled)
+		{
+			switch (event.key.keysym.sym)
+			{
+			case SDLK_w:
+				jump();
+				break;
+			case SDLK_s:
+				fast_fall();
+				break;
+			case SDLK_d:
+				strafe(MOV_DIR_RIGHT);
+				break;
+			case SDLK_a:
+				strafe(MOV_DIR_LEFT);
+				break;
+			}
 
-    if (mov_enabled)
-    {
-        switch (event.key.keysym.sym)
-        {
-        case SDLK_w:
-			jump();
-            break;
-        case SDLK_s:
-			fast_fall();
-            break;
-        }
-    }
+			return true;
+		}
+	}
+	else if (event.type == SDL_KEYUP)
+	{
+		switch (event.key.keysym.sym)
+		{
+		case SDLK_d:
+		case SDLK_a:
+			stop();
+			break;
+		}
 
-	return true;
+		return true;
+	}
+
+	return false;
 }
 
 void Player::onStart() 
@@ -158,9 +175,6 @@ void Player::onStart()
 
 void Player::onUpdate()
 {
-	if (!shouldUpdate())
-		return;
-
 	// Update stun and return
 	if (isStunned)
 	{ 
@@ -191,6 +205,7 @@ void Player::onUpdate()
 	rHand->transform.zRotation = orientation;
 
 	// Get Current KeyBoard State
+	/*
 	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
 
 	// Check if is AI before move
@@ -211,8 +226,10 @@ void Player::onUpdate()
 		}
 		else
 			// AI hook
-			onPlayerUpdate();
 	}
+	*/
+
+	onPlayerUpdate();
 }
 
 	// Texture Renderer

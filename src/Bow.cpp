@@ -197,7 +197,7 @@ void Bow::onUpdate()
     }
 }
 
-bool Bow::handleEvent(const SDL_Event &event)
+bool Bow::OnHandleEvent(const SDL_Event &event)
 {
 	// Check if the player is an AI
 	if (Player* player = this->owner)
@@ -359,8 +359,17 @@ void Bow::pointBowToMouse()
     Vector2<float> dest;
 
 	// Get Mouse position
-    int x, y;
-    SDL_GetMouseState(&x, &y);
+	int x, y;
+	if (!SceneManager::scene->isOnline() || SceneManager::scene->shouldSendGameObjectUpdate(this))
+	{
+		SDL_GetMouseState(&x, &y);
+	}
+	else
+	{
+		Vector2<int> pair_mouse_pos = SceneManager::scene->pair_mouse_state;
+		x = pair_mouse_pos.x;
+		y = pair_mouse_pos.y;
+	}
 
     dest.x = x;
     dest.y = y;

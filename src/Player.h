@@ -72,7 +72,7 @@ public:
 
     // Hooks
 		// General
-    bool handleEvent(const SDL_Event &event) override;
+    bool OnHandleEvent(const SDL_Event &event) override;
 	void onStart() override;
 	void onUpdate() override;
 

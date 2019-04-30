@@ -58,7 +58,7 @@ public:
 	void beforeAnimationFrame(Animation* anim, int frameNumber) override;
 	void onAnimationFinished(Animation* anim) override;
 		// Event
-	bool handleEvent(const SDL_Event &event) override;
+	bool OnHandleEvent(const SDL_Event &event) override;
 
 	// Own Methods
 	Vector2<float> getArrowInitialPosition(bool reversed = false);
