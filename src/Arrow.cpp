@@ -51,6 +51,9 @@ Arrow::Arrow()
 	audio_impact_building_2 = aPlayer->addAudioToList(aPlayer->loadAudioFile("arrow-impact-building2.wav"));
 	audio_impact_player = aPlayer->addAudioToList(aPlayer->loadAudioFile("arrow-impact-player.wav"));
 	aPlayer->pause();
+
+	// Network
+	isNetworkStatic = false;
 }
 
 // Hooks
@@ -76,6 +79,9 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Check inmunnity
 		if (player->isInmunne)
 			return;
+
+		// Stop mov nav
+		player->mov_nav->setDirection(Vector2<float>(0, 0));
 
 		// Stun player hit
 		player->stun(120);
@@ -152,9 +158,11 @@ void Arrow::afterMove()
 
 void Arrow::onUpdate()
 {
-		if (nav)
-			if (nav->isEnabled)
-				std::cout << "Arrow position is" << transform.position << "in frame " << SceneManager::scene->frame_count++ << "\n";
+	/*
+	if (nav)
+		if (nav->isEnabled)
+			std::cout << "Arrow position is" << transform.position << "in frame " << SceneManager::scene->frame_count++ << "\n";
+	*/
 }
 
 void Arrow::onVanish()

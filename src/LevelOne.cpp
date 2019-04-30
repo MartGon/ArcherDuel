@@ -160,7 +160,7 @@ void LevelOne::onUpdate()
 	framerate_display->setText(std::to_string(frame_rate));
 }
 
-void LevelOne::handleEvent(const SDL_Event& event)
+void LevelOne::OnHandleEvent(const SDL_Event& event)
 {
 	TextureRenderer *aRenderer = nullptr;
 	if (event.type == SDL_KEYDOWN)
@@ -206,15 +206,7 @@ void LevelOne::handleEvent(const SDL_Event& event)
 		default:
 			break;
 		}
-	}
-
-	// TODO - Set this code to Scene
-	for (auto gameObjectPair : gameObjectMap)
-	{
-		GameObject* go = gameObjectPair.second;
-		if (isOnline() && shouldSendGameObjectUpdate(go))
-			go->handleEvent(event);
-	}
+	}	
 }
 
 GameObject* LevelOne::createGameObjectByTemplateId(int template_id)

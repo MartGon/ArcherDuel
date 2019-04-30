@@ -52,6 +52,7 @@ public:
 	TextureRenderer* tRenderer = nullptr;
 	BoxCollider* bCollider = nullptr;
 	Animator* animator = nullptr;
+	Navigator* mov_nav = nullptr;
 	Navigator* knock_nav = nullptr;
 	Navigator* nav = nullptr;
 
@@ -65,6 +66,9 @@ public:
 
 	Animation* move = nullptr;
 	Animation* dizzy = nullptr;
+
+	// Network
+	bool shouldUpdate();
 
     // Hooks
 		// General
@@ -96,6 +100,7 @@ public:
 	void jump();
 	void fast_fall();
 	void strafe(MovDirection dir);
+	void stop();
 
 		// Status effects
 	void stun(int duration);

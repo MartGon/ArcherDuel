@@ -22,7 +22,7 @@ public:
 		// Scene
 	void loadMedia() override;
 	void onUpdate() override;
-	void handleEvent(const SDL_Event& event) override;
+	void OnHandleEvent(const SDL_Event& event) override;
 	GameObject* createGameObjectByTemplateId(int template_id) override;
 		// Timer
 	void onTimerFinish(void* param) override;

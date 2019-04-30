@@ -9,10 +9,14 @@ Player::Player()
 	colorKey->green = 255;
 	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 254));
 
-	// Move Navigator
+	// Jump Navigator
 	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
 	nav->isEnabled = true;
 	//nav->isEnabled = false;
+
+	// Move Navigator
+	mov_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1));
+	nav->isEnabled = true;
 
 	// Knockback Navigator
 	knock_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, 0)));
@@ -82,6 +86,33 @@ Player::Player()
 
 	// Animation - Dizzy
 	dizzy = animator->addAnimation("Archer_Dizzy_", colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
+
+	// Network
+	isNetworkStatic = false;
+}
+
+// Network
+
+bool Player::shouldUpdate()
+{
+	if (level)
+	{
+		if (level->isOnline())
+		{
+			if (level->mode == Scene::ONLINE_CLIENT)
+				if (player_number == PlayerNumber::PLAYER_TWO)
+					return true;
+
+			// In server mode we don't move player TWO
+			if (level->mode == Scene::ONLINE_SERVER)
+				if (player_number == PlayerNumber::PLAYER_ONE)
+					return true;
+		}
+		else
+			return true;
+	}
+
+	return false;
 }
 
 // Hooks
@@ -89,6 +120,9 @@ Player::Player()
 	// General
 bool Player::handleEvent(const SDL_Event & event)
 {
+	if (!shouldUpdate())
+		return false;
+
 	if (isAI)
 		return false;
 
@@ -100,18 +134,6 @@ bool Player::handleEvent(const SDL_Event & event)
 
     if (event.type != SDL_KEYDOWN)
         return false;
-
-	// In client mode we don't move player ONE
-	if(level)
-		if (level->mode == Scene::ONLINE_CLIENT)
-			if (player_number == PlayerNumber::PLAYER_ONE)
-				return false;
-
-	// In server mode we don't move player TWO
-	if (level)
-		if (level->mode == Scene::ONLINE_SERVER)
-			if (player_number == PlayerNumber::PLAYER_TWO)
-				return false;
 
     if (mov_enabled)
     {
@@ -136,6 +158,9 @@ void Player::onStart()
 
 void Player::onUpdate()
 {
+	if (!shouldUpdate())
+		return;
+
 	// Update stun and return
 	if (isStunned)
 	{ 
@@ -146,39 +171,6 @@ void Player::onUpdate()
 	// Allow recover and return
 	if (isStopped)
 		return;
-
-	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-
-	// In client mode we don't move player ONE
-	if(level)
-		if (level->mode == Scene::ONLINE_CLIENT)
-			if (player_number == PlayerNumber::PLAYER_ONE)
-				return;
-
-	// In server mode we don't move player TWO
-	if(level)
-		if (level->mode == Scene::ONLINE_SERVER)
-			if (player_number == PlayerNumber::PLAYER_TWO)
-				return;
-
-	// Check if is AI before move
-	if (mov_enabled)
-	{
-		if (!isAI)
-		{
-			MovDirection dir = MOV_NONE;
-			// Check movement
-			if (currentKeyStates[SDL_SCANCODE_A])
-				dir = MOV_DIR_LEFT;
-			else if (currentKeyStates[SDL_SCANCODE_D])
-				dir = MOV_DIR_RIGHT;
-
-			strafe(dir);
-		}
-		else
-			// AI hook
-			onPlayerUpdate();
-	}
 
 	// Check sprite orientation
 	double orientation = bow->transform.zRotation;
@@ -197,6 +189,30 @@ void Player::onUpdate()
 	// Update hands rotation
 	pHand->transform.zRotation = orientation;
 	rHand->transform.zRotation = orientation;
+
+	// Get Current KeyBoard State
+	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
+
+	// Check if is AI before move
+	if (mov_enabled)
+	{
+		if (!isAI)
+		{
+			MovDirection dir = MOV_NONE;
+			// Check movement
+			if (currentKeyStates[SDL_SCANCODE_A])
+				dir = MOV_DIR_LEFT;
+			else if (currentKeyStates[SDL_SCANCODE_D])
+				dir = MOV_DIR_RIGHT;
+			else
+				stop();
+
+			strafe(dir);
+		}
+		else
+			// AI hook
+			onPlayerUpdate();
+	}
 }
 
 	// Texture Renderer
@@ -270,8 +286,14 @@ void Player::strafe(MovDirection dir)
 	// Enable mov animation
 	animator->isEnabled = true;
 
-	// Mov distance
-	transform.position = transform.position + Vector2<float>(mov_dist, 0);
+	// Tweak navigator
+	mov_nav->setDirection(Vector2<float>(mov_dist, 0));
+	//transform.position = transform.position + Vector2<float>(mov_dist, 0);
+}
+
+void Player::stop()
+{
+	mov_nav->setDirection(Vector2<float>(0.0f, 0.0f));
 }
 
 // Status effects

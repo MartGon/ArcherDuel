@@ -42,6 +42,9 @@ Bow::Bow() : GameObject()
 	aPlayer = setComponent(new AudioPlayer());
 	rel_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-release-16.wav"));
 	pull_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-pull.wav"));
+
+	// Network
+	isNetworkStatic = false;
 }
 
 void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)

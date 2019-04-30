@@ -112,6 +112,9 @@ void PlayerAI::onMoveToWayPoint()
 	// Check if we reached the waypoint
 	if (dir == MOV_NONE)
 	{
+		// Stop
+		stop();
+
 		// Check for doing a jump
 		bool doJump = Random::getRandomUniformInteger(0, 1);
 

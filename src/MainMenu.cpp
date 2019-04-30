@@ -133,12 +133,8 @@ void MainMenu::onUpdate()
 
 }
 
-void MainMenu::handleEvent(const SDL_Event& event)
+void MainMenu::OnHandleEvent(const SDL_Event& event)
 {
-	for (auto go : gameObjectMap)
-		if (go.second->isActive)
-			if (go.second->handleEvent(event))
-				return;
 }
 
 // Own methods
