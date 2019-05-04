@@ -115,8 +115,8 @@ void Arrow::onColliderEnter(Collider* collider)
 
 		// Play random building sound
 		int index = Random::getRandomUniformInteger(audio_impact_building_1, audio_impact_building_2);
-		aPlayer->setAudioToPlay(index);
-		aPlayer->play();
+		//aPlayer->setAudioToPlay(index);
+		//aPlayer->play();
 	}
 	else if (Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject))
 	{

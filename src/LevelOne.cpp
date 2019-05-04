@@ -26,7 +26,7 @@ void LevelOne::loadMedia()
 {
 	// Setting managers
 	setManager(new CollisionManager());
-	setManager(new RendererManager());
+	//setManager(new RendererManager());
 	AudioManager* aManager = new AudioManager();
 	aManager->enable();
 	setManager(aManager);

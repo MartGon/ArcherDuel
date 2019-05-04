@@ -71,7 +71,7 @@ Tower::Tower(LevelOne* level_one, RoofColor roofColor) : Tower(roofColor)
 // Overrided Methods
 void Tower::onColliderEnter(Collider * collider)
 {
-	GameObject* owner = collider->gameObject;
+	//GameObject* owner = collider->gameObject;
 }
 
 // Own Methods
