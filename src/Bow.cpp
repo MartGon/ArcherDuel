@@ -163,6 +163,34 @@ void Bow::onUpdate()
 {
 	pointBowToMouse();
 
+	if (Player* player = this->owner)
+	{
+		if (!player->isAI)
+		{
+			if (SceneManager::scene->inputManager->isMouseEvent(SDL_BUTTON_LEFT, player->network_owner, KeyEvent::DOWN))
+			{
+				if (state == BOW_STATE_IDLE)
+				{
+					// Pull Bow
+					animator->setCurrentAnimation(pull);
+					animator->isEnabled = true;
+					state = BOW_STATE_PULLING;
+				}
+			}
+			if (SceneManager::scene->inputManager->isMouseEvent(SDL_BUTTON_LEFT, player->network_owner, KeyEvent::UP))
+			{
+				// If released during pull animation, it will be an instant cast
+				if (state == BOW_STATE_PULLING)
+					instant_cast = true;
+				if (state == BOW_STATE_PULLED)
+				{
+					// Release bow
+					shoot();
+				}
+			}
+		}
+	}
+
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
@@ -199,85 +227,7 @@ void Bow::onUpdate()
 
 bool Bow::OnHandleEvent(const SDL_Event &event)
 {
-	// Check if the player is an AI
-	if (Player* player = this->owner)
-		if (player->isAI)
-			return false;
-
-	if (event.type == SDL_KEYDOWN)
-	{
-		switch (event.key.keysym.sym)
-		{
-		case SDLK_p:
-			draw();
-			break;
-		case SDLK_r:
-			shoot();
-			break;
-		case SDLK_l:
-			if (state != BOW_STATE_ARROW_LAUNCHED)
-				return false;
-
-			loadArrow();
-			state = BOW_STATE_IDLE;
-			break;
-		case SDLK_u:
-			if (state != BOW_STATE_IDLE)
-				return false;
-
-			//if (angle < 90)
-			angle += angle_inc;
-			break;
-		case SDLK_j:
-			if (state != BOW_STATE_IDLE)
-				return false;
-
-			if (angle >= angle_inc)
-				angle -= angle_inc;
-
-			break;
-		default:
-			break;
-		}
-	}
-	else if (event.type == SDL_MOUSEBUTTONDOWN)
-	{
-		switch (event.button.button)
-		{
-		case SDL_BUTTON_LEFT:
-			if (state != BOW_STATE_IDLE)
-				return false;
-
-			if (owner->isStopped)
-				return false;
-
-			// Pull Bow
-			animator->setCurrentAnimation(pull);
-			animator->isEnabled = true;
-			state = BOW_STATE_PULLING;
-			break;
-		}
-	}
-	else if (event.type == SDL_MOUSEBUTTONUP)
-	{
-		switch (event.button.button)
-		{
-		case SDL_BUTTON_LEFT:
-			// If released during pull animation, it will be an instant cast
-			if (state == BOW_STATE_PULLING)
-				instant_cast = true;
-			if (state == BOW_STATE_PULLED)
-			{
-				// Release bow
-				shoot();
-				break;
-			}
-		}
-	}
-	else
-		return false;
-
-	return true;
+	return false;
 }
 
 // Own methods
@@ -327,10 +277,6 @@ Arrow* Bow::loadArrow()
     arrow->transform.position = getArrowInitialPosition();
 	arrow->setAbsoluteRotationCenter(absCenter);
 
-	// The arrow must be update from client if it's online, client and the player that it is been 
-	if (SceneManager::scene->isOnline() && owner->shouldBeUpdatedFromClient())
-		arrow->updateFromClient = true;
-
 	return arrow;
 }
 
@@ -359,20 +305,10 @@ void Bow::pointBowToMouse()
     Vector2<float> dest;
 
 	// Get Mouse position
-	int x, y;
-	if (!SceneManager::scene->isOnline() || SceneManager::scene->shouldSendGameObjectUpdate(this))
-	{
-		SDL_GetMouseState(&x, &y);
-	}
-	else
-	{
-		Vector2<int> pair_mouse_pos = SceneManager::scene->pair_mouse_state;
-		x = pair_mouse_pos.x;
-		y = pair_mouse_pos.y;
-	}
+	Vector2<Uint16> mouse_pos = SceneManager::scene->inputManager->getInputStatus(owner->network_owner).mouse_pos;
 
-    dest.x = x;
-    dest.y = y;
+    dest.x = mouse_pos.x;
+    dest.y = mouse_pos.y;
 
     // Destination point
     dest = dest / RendererManager::getScaler();

@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "LevelOne.h"
 #include "Tower.h"
+#include "SceneManager.h"
 
 Player::Player()
 {
@@ -16,7 +17,7 @@ Player::Player()
 
 	// Move Navigator
 	mov_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1));
-	nav->isEnabled = true;
+	mov_nav->isEnabled = true;
 
 	// Knockback Navigator
 	knock_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, 0)));
@@ -120,51 +121,6 @@ bool Player::shouldUpdate()
 	// General
 bool Player::OnHandleEvent(const SDL_Event & event)
 {
-	if (isAI)
-		return false;
-
-	if (isStopped)
-		return false;
-
-	if (isStunned)
-		return false;
-
-	if (event.type == SDL_KEYDOWN)
-	{
-		if (mov_enabled)
-		{
-			switch (event.key.keysym.sym)
-			{
-			case SDLK_w:
-				jump();
-				break;
-			case SDLK_s:
-				fast_fall();
-				break;
-			case SDLK_d:
-				strafe(MOV_DIR_RIGHT);
-				break;
-			case SDLK_a:
-				strafe(MOV_DIR_LEFT);
-				break;
-			}
-
-			return true;
-		}
-	}
-	else if (event.type == SDL_KEYUP)
-	{
-		switch (event.key.keysym.sym)
-		{
-		case SDLK_d:
-		case SDLK_a:
-			stop();
-			break;
-		}
-
-		return true;
-	}
-
 	return false;
 }
 
@@ -181,10 +137,6 @@ void Player::onUpdate()
 		recover();
 		return;
 	}
-
-	// Allow recover and return
-	if (isStopped)
-		return;
 
 	// Check sprite orientation
 	double orientation = bow->transform.zRotation;
@@ -204,32 +156,34 @@ void Player::onUpdate()
 	pHand->transform.zRotation = orientation;
 	rHand->transform.zRotation = orientation;
 
-	// Get Current KeyBoard State
-	/*
-	const Uint8* currentKeyStates = SDL_GetKeyboardState(NULL);
-
 	// Check if is AI before move
 	if (mov_enabled)
 	{
 		if (!isAI)
 		{
-			MovDirection dir = MOV_NONE;
 			// Check movement
-			if (currentKeyStates[SDL_SCANCODE_A])
+			MovDirection dir = MOV_NONE;
+			if (SceneManager::scene->inputManager->isKeyPressed(SDL_SCANCODE_A, network_owner))
 				dir = MOV_DIR_LEFT;
-			else if (currentKeyStates[SDL_SCANCODE_D])
+			else if (SceneManager::scene->inputManager->isKeyPressed(SDL_SCANCODE_D, network_owner))
 				dir = MOV_DIR_RIGHT;
 			else
 				stop();
 
 			strafe(dir);
+			
+			// Check Jump and fastfall
+			if (SceneManager::scene->inputManager->isKeyEvent(SDL_SCANCODE_W, network_owner, KeyEvent::DOWN))
+			{
+				jump();
+			}
+			if (SceneManager::scene->inputManager->isKeyEvent(SDL_SCANCODE_S, network_owner, KeyEvent::DOWN))
+				fast_fall();
 		}
 		else
+			onPlayerUpdate();
 			// AI hook
 	}
-	*/
-
-	onPlayerUpdate();
 }
 
 	// Texture Renderer
@@ -250,18 +204,28 @@ void Player::onColliderEnter(Collider *collider)
 {
 	GameObject* owner = collider->gameObject;
 	Tower* tower = dynamic_cast<Tower*>(collider->gameObject);
-
+	
 	if (tower)
 	{
-		float height = owner->transform.position.y + collider->offset.y - 19 + 1;
+		BoxCollider* boxCollider = static_cast<BoxCollider*>(collider);
+		/*float height = 195 - bCollider->cHeight - 2;
 
 		// Hack to allow the AI to jump
-		if (height == transform.position.y)
-			return;
-
-		transform.position = Vector2<float>(transform.position.x, height);
-
-		nav->setDirection(Vector2<float>(0, 0));
+		//if (isAI)
+		{
+			//if (height >= transform.position.y - 4 && height <= transform.position.y + 0)
+			if (height == transform.position.y)
+				return;
+		}
+		
+		//if (airborne)
+		{
+			transform.position = Vector2<float>(transform.position.x, height);
+			nav->setDirection({ 0,0 });
+			airborne = false;
+		}*/
+		transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
+		nav->setDirection({ 0,0 });
 		airborne = false;
 	}
 }
@@ -272,11 +236,14 @@ void Player::jump()
 {
 	if (!airborne)
 	{
-		nav->setDirection(Vector2<float>(0, -1));
+		std::cout << "Jump done \n";
+		nav->setDirection({ 0,-1 });
 		nav->speed = 3;
 		animator->isEnabled = false;
 		airborne = true;
 	}
+	else
+		std::cout << "Jump failed \n";
 }
 
 void Player::fast_fall() 

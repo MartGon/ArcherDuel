@@ -10,6 +10,7 @@
 #include "Random.h"
 #include "Timer.h"
 #include "MainMenu.h"
+#include "InputManager.h"
 
 // Original 720 * 480
 
@@ -26,7 +27,7 @@ void LevelOne::loadMedia()
 {
 	// Setting managers
 	setManager(new CollisionManager());
-	//setManager(new RendererManager());
+	setManager(new RendererManager());
 	AudioManager* aManager = new AudioManager();
 	aManager->enable();
 	setManager(aManager);
@@ -59,7 +60,7 @@ void LevelOne::loadMedia()
 	player2->level = this;
 	player2->player_number = Player::PlayerNumber::PLAYER_TWO;
 	player2->player_team = Player::PlayerTeam::BLUE_TEAM;
-	player2->updateFromClient = true;
+	player2->network_owner = NetworkOwner::OWNER_CLIENT_1;
 	players.push_back(player2);
 
 	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player2))

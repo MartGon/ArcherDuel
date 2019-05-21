@@ -23,7 +23,6 @@ public:
 
     // Attributes
     float health_points = 100;
-	bool isStopped = false;
 	bool isStunned = false;
 	bool isInmunne = false;
 	int stun_duration = 0;	// Duration in frames
@@ -31,7 +30,7 @@ public:
 	PlayerTeam player_team = PlayerTeam::RED_TEAM;
 
     // Movement
-	bool airborne = false;
+	bool airborne = true;
     float movement_speed = 1.f;
     bool mov_enabled = true;
 

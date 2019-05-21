@@ -27,7 +27,7 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	// Floor Collider 
 	collider = setComponent(new BoxCollider(112 - 16 + 1, 9));
 	collider->offset = Vector2<float>(16, 68);
-	//collider->debug = true;
+	collider->debug = true;
 
 	// Upper block Collider
 	collider = setComponent(new BoxCollider(95 - 33 + 1, 99 - 77));

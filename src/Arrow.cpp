@@ -31,7 +31,7 @@ Arrow::Arrow()
 	rotCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y), 
 		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
 	rotCollider->isEnabled = false;
-    rotCollider->debug = true;
+    //rotCollider->debug = true;
 	
 	// Damage text label
 	dmg_label = new TextLabel();
