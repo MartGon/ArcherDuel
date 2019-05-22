@@ -27,10 +27,16 @@ void LevelOne::loadMedia()
 {
 	// Setting managers
 	setManager(new CollisionManager());
-	setManager(new RendererManager());
 	AudioManager* aManager = new AudioManager();
 	aManager->enable();
 	setManager(aManager);
+	
+	// Renderer Manager
+	if (isOnline())
+		setManager(new RendererManager(10));
+	else
+		setManager(new RendererManager(0));
+	
 
 	// Background
 	GameObject *background = new GameObject();
@@ -158,7 +164,7 @@ void LevelOne::onUpdate()
 	Uint32 diff = frame_ticks - previous_ticks;
 	previous_ticks = frame_ticks;
 	Uint32 frame_rate = (Uint32)(1.0f / (float)((float)diff / 1000.0f));
-	framerate_display->setText(std::to_string(frame_rate));
+	framerate_display->setText(std::to_string(frame_count));
 }
 
 void LevelOne::OnHandleEvent(const SDL_Event& event)

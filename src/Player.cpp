@@ -27,7 +27,7 @@ Player::Player()
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(5, 15));
 	bCollider->offset = Vector2<float>(3, 4);
-    bCollider->debug = true;
+    //bCollider->debug = true;
 
 	// Animator
 	animator = setComponent(new Animator());
