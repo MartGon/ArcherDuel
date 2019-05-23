@@ -178,7 +178,9 @@ void Player::onUpdate()
 				jump();
 			}
 			if (SceneManager::scene->inputManager->isKeyEvent(SDL_SCANCODE_S, network_owner, KeyEvent::DOWN))
+			{
 				fast_fall();
+			}
 		}
 		else
 			onPlayerUpdate();
@@ -208,22 +210,6 @@ void Player::onColliderEnter(Collider *collider)
 	if (tower)
 	{
 		BoxCollider* boxCollider = static_cast<BoxCollider*>(collider);
-		/*float height = 195 - bCollider->cHeight - 2;
-
-		// Hack to allow the AI to jump
-		//if (isAI)
-		{
-			//if (height >= transform.position.y - 4 && height <= transform.position.y + 0)
-			if (height == transform.position.y)
-				return;
-		}
-		
-		//if (airborne)
-		{
-			transform.position = Vector2<float>(transform.position.x, height);
-			nav->setDirection({ 0,0 });
-			airborne = false;
-		}*/
 		transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
 		nav->setDirection({ 0,0 });
 		airborne = false;
@@ -236,14 +222,11 @@ void Player::jump()
 {
 	if (!airborne)
 	{
-		std::cout << "Jump done \n";
 		nav->setDirection({ 0,-1 });
 		nav->speed = 3;
 		animator->isEnabled = false;
 		airborne = true;
 	}
-	else
-		std::cout << "Jump failed \n";
 }
 
 void Player::fast_fall() 
