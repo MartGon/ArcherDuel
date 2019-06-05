@@ -108,15 +108,16 @@ void Arrow::onColliderEnter(Collider* collider)
 		dmg_label->isActive = true;
 
 		// Set label to vanish
-		dmg_tRenderer->isVanishing = true;
+		for(auto dmg_tRenderer : dmg_label->getComponents<TextureRenderer>())
+			dmg_tRenderer->isVanishing = true;
 
 		// Notify
 		//std::cout << "This arrow did " << nav->speed << "dmg \n";
 
 		// Play random building sound
 		int index = Random::getRandomUniformInteger(audio_impact_building_1, audio_impact_building_2);
-		//aPlayer->setAudioToPlay(index);
-		//aPlayer->play();
+		aPlayer->setAudioToPlay(index);
+		aPlayer->play();
 	}
 	else if (Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject))
 	{

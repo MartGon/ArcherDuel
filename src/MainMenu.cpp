@@ -7,6 +7,7 @@
 
 #include "Tower.h"
 #include "HealthBar.h"
+#include "Cannon.h"
 
 // Const values
 const int MainMenu::LEVEL_WIDTH = 480;
@@ -126,6 +127,11 @@ void MainMenu::loadMedia()
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
+
+	// Cannon
+	Cannon* cannon = new Cannon();
+	int h = cannon->tRenderer->texture.mHeight;
+	cannon->transform.position = Vector2<float>(74, LEVEL_HEIGHT - 143 - 4);
 }
 
 void MainMenu::onUpdate()

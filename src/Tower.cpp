@@ -3,6 +3,9 @@
 #include "Arrow.h"
 #include "LevelOne.h"
 
+#include "SceneManager.h"
+#include "MainMenu.h"
+
 // TODO - Hacer que la torre se destruya por partes, al destruir una se baja un nivel
 
 
@@ -77,16 +80,19 @@ void Tower::onColliderEnter(Collider * collider)
 // Own Methods
 void Tower::takeDamage(float dmg)
 {
-	health = (health - dmg > 0) ? health - dmg : 0;
-
-	// Set winner
-	if (!health)
+	if (dynamic_cast<LevelOne*>(SceneManager::scene))
 	{
-		Player::PlayerTeam winner = team == ROOF_COLOR_RED ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
-		level_one->setWinnerTeam(winner);
-	}
+		health = (health - dmg > 0) ? health - dmg : 0;
 
-	// Update healthbar
-	float health_percent = health / max_health * 100;
-	healthBar->setHealthPercentage(health_percent, true);
+		// Set winner
+		if (!health)
+		{
+			Player::PlayerTeam winner = team == ROOF_COLOR_RED ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
+			level_one->setWinnerTeam(winner);
+		}
+
+		// Update healthbar
+		float health_percent = health / max_health * 100;
+		healthBar->setHealthPercentage(health_percent, true);
+	}
 }

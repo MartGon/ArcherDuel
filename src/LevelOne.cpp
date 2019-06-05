@@ -12,6 +12,7 @@
 #include "MainMenu.h"
 #include "InputManager.h"
 
+
 // Original 720 * 480
 
 // TODO - Escalar todo a x2 para evitar problemas con arco, arquero
@@ -122,6 +123,7 @@ void LevelOne::loadMedia()
 	// Framerate Display
 	framerate_display = new TextLabel();
 	label->transform.position = Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10, 10);
+	label->isActive = false;
 }
 
 void LevelOne::placeFloorBlocks()
