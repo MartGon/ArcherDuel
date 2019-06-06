@@ -53,7 +53,7 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	//collider->debug = true;
 
 	// HealthBar
-	healthBar = new HealthBar();
+	healthBar = new StatusBar();
 	healthBar->setScale(Vector2<float>(110, 1));
 	healthBar->transform.parent = &this->transform;
 

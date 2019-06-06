@@ -2,6 +2,8 @@
 #include "LevelOne.h"
 #include "Tower.h"
 #include "SceneManager.h"
+#include "Cannon.h"
+#include "HealthBar.h"
 
 Player::Player()
 {
@@ -90,6 +92,13 @@ Player::Player()
 
 	// Network
 	isNetworkStatic = false;
+
+	// Create cannon
+	cannon = new Cannon();
+	cannon->isActive = false;
+
+	// skill
+	skill_points = 100;
 }
 
 // Network
@@ -156,6 +165,125 @@ void Player::onUpdate()
 	pHand->transform.zRotation = orientation;
 	rHand->transform.zRotation = orientation;
 
+	// Get InputManager
+	InputManager* input_mgr = InputManager::get();
+
+	// Check cannon skill
+	if (isSkillReady)
+	{
+		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::DOWN))
+		{
+			if (bow->state == Bow::BowState::BOW_STATE_IDLE)
+			{
+				// Create cannon and set this player to parent
+				cannon->isActive = true;
+				cannon->owner = this;
+				cannon->transform.parent = &this->transform;
+				cannon->transform.position = { 10, -4 };
+				cannon->isBeingCarried = true;
+
+				// Disable bow and hands
+				bow->isActive = false;
+				bow->arrow->isActive = false;
+				rHand->isActive = false;
+				pHand->isActive = false;
+
+				// Set flag
+				isPlacingCannon = true;
+				isSkillReady = false;
+
+				// Reset skill points and skill bar
+				skill_points = 0;
+				skill_bar->setHealthPercentage(0);
+			}
+		}		
+	}
+	else if (isPlacingCannon)
+	{
+		// Flip cannon and player by mouse pos
+		Vector2<float> mouse_pos = (Vector2<float>)input_mgr->getInputStatus(network_owner).mouse_pos / RendererManager::getScaler();
+		Vector2<float> pos = getAbsolutePosition();
+
+		if (mouse_pos.x > pos.x)
+		{
+			// Reset sprite
+			tRenderer->flip = SDL_FLIP_NONE;
+			cannon->tRenderer->flip = SDL_FLIP_NONE;
+			cannon->support->getComponent<TextureRenderer>()->flip = SDL_FLIP_NONE;
+			cannon->transform.position = { 10, -4 };
+
+			// Reset rotation center
+			delete cannon->transform.rotationCenter;
+			cannon->transform.rotationCenter = new Vector2<int>(8, 15);
+		}
+		else
+		{
+			// Flip sprite
+			tRenderer->flip = SDL_FLIP_HORIZONTAL;
+			cannon->tRenderer->flip = SDL_FLIP_HORIZONTAL;
+			cannon->support->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
+			cannon->transform.position = Vector2<float>(-cannon->tRenderer->texture.mWidth, -4);
+
+			// Flip rotation center
+			delete cannon->transform.rotationCenter;
+			cannon->transform.rotationCenter = new Vector2<int>(22, 15);
+		}
+
+		// Check cannon placement
+		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::DOWN))
+		{
+			// Check position
+			if (cannon->isCurrentPosValid())
+			{
+				// Place cannon and lock angle
+				Vector2<float> cannon_pos = cannon->getAbsolutePosition();
+				cannon->transform.parent = nullptr;
+				cannon->transform.position = cannon_pos;
+				cannon->isBeingCarried = false;
+				
+				// Set flags
+				isPlacingCannon = false;
+				isChargingCannon = true;
+
+				// Start charge bar
+				chargeBar->enable();
+
+				// Disable movement
+				mov_enabled = false;
+			}
+		}
+	}
+	else if (isChargingCannon)
+	{
+		// Update charge bar value
+		chargeBar->updateChargeValue();
+
+		// Check for cannon shot
+		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::UP))
+		{
+			// Set flags
+			isChargingCannon = false;
+
+			// Set CannonBall dmg
+			cannon->next_shot_dmg = chargeBar->getChargeValue() * 20;
+
+			// Start shot
+			cannon->animator->setCurrentAnimation(cannon->shot_animation);
+
+			// Recover bow and hands
+			bow->isActive = true;
+			bow->arrow->isActive = true;
+			rHand->isActive = true;
+			pHand->isActive = true;
+
+			// Disable ChargeBar
+			chargeBar->disable();
+
+			// Re-enable movement
+			mov_enabled = true;
+		}
+	}
+
 	// Check if is AI before move
 	if (mov_enabled)
 	{
@@ -163,9 +291,9 @@ void Player::onUpdate()
 		{
 			// Check movement
 			MovDirection dir = MOV_NONE;
-			if (SceneManager::scene->inputManager->isKeyPressed(SDL_SCANCODE_A, network_owner))
+			if (input_mgr->isKeyPressed(SDL_SCANCODE_A, network_owner))
 				dir = MOV_DIR_LEFT;
-			else if (SceneManager::scene->inputManager->isKeyPressed(SDL_SCANCODE_D, network_owner))
+			else if (input_mgr->isKeyPressed(SDL_SCANCODE_D, network_owner))
 				dir = MOV_DIR_RIGHT;
 			else
 				stop();
@@ -173,11 +301,11 @@ void Player::onUpdate()
 			strafe(dir);
 			
 			// Check Jump and fastfall
-			if (SceneManager::scene->inputManager->isKeyEvent(SDL_SCANCODE_W, network_owner, KeyEvent::DOWN))
+			if (input_mgr->isKeyEvent(SDL_SCANCODE_W, network_owner, KeyEvent::DOWN))
 			{
 				jump();
 			}
-			if (SceneManager::scene->inputManager->isKeyEvent(SDL_SCANCODE_S, network_owner, KeyEvent::DOWN))
+			if (input_mgr->isKeyEvent(SDL_SCANCODE_S, network_owner, KeyEvent::DOWN))
 			{
 				fast_fall();
 			}
@@ -209,10 +337,13 @@ void Player::onColliderEnter(Collider *collider)
 	
 	if (tower)
 	{
-		BoxCollider* boxCollider = static_cast<BoxCollider*>(collider);
-		transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
-		nav->setDirection({ 0,0 });
-		airborne = false;
+		if (collider->id == 1)
+		{
+			BoxCollider* boxCollider = static_cast<BoxCollider*>(collider);
+			transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
+			nav->setDirection({ 0,0 });
+			airborne = false;
+		}
 	}
 }
 
@@ -282,6 +413,24 @@ void Player::stun(int duration)
 	pHand->isActive = false;
 	chargeBar->disable();
 
+	// Disable some cannon flags and cannon
+	if (isPlacingCannon)
+	{
+		cannon->isActive = false;
+	}
+	// Lose cannon if hit while charging
+	else if (isChargingCannon)
+	{
+		// Deactivate cannon
+		cannon->isActive = false;
+
+		// Reset state
+		isChargingCannon = false;
+
+		// Re-enable movement
+		mov_enabled = true;
+	}
+
 	// Reset bow state if pulled
 	if (bow->state = bow->BOW_STATE_PULLED)
 		bow->reset();
@@ -320,11 +469,20 @@ void Player::recover()
 		// Disable flag
 		isStunned = false;
 
-		// Enable bow and arrow
-		bow->isActive = true;
-		bow->arrow->isActive = true;
-		rHand->isActive = true;
-		pHand->isActive = true;
+		// Don't re-enable bow if was placing cannon
+		if (!isPlacingCannon)
+		{
+			// Enable bow and arrow
+			bow->isActive = true;
+			bow->arrow->isActive = true;
+			rHand->isActive = true;
+			pHand->isActive = true;
+		}
+		// Re-enable cannon 
+		else
+		{
+			cannon->isActive = true;
+		}
 
 		// Disable visual effect
 		dizzy_effect->isActive = false;
@@ -332,6 +490,27 @@ void Player::recover()
 		// Disable animation
 		animator->setCurrentAnimation(move);
 	}
+}
+
+void Player::increase_skill_points(float skill_points)
+{
+	if (isPlacingCannon | isChargingCannon)
+		return;
+
+	this->skill_points += skill_points;
+
+	if (this->skill_points >= 100.0f)
+	{
+		// Set to max
+		this->skill_points = 100.0f;
+
+		// Activate skill if not yet ready
+		if(!isSkillReady)
+			isSkillReady = true;
+	}
+
+	// Modify bar
+	skill_bar->setHealthPercentage(this->skill_points, true);
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

@@ -5,7 +5,7 @@
 
 #include "TextLabel.h"
 
-class CannonBall : public GameObject, TimerHandler
+class CannonBall : public GameObject
 {
 public:
 	CannonBall();
@@ -16,14 +16,17 @@ public:
 	BoxCollider* bCollider = nullptr;
 
 	// Timer
-	Timer* timer = nullptr;
+	TimerComponent* timer = nullptr;
 
 	// Member
 	TextLabel* dmg_label = nullptr;
 
+	// Attributes
+	Uint32 dmg = 20;
+
 	// Overrided Methods
 	void onColliderEnter(Collider* collider);
-	void onTimerFinish(void *param);
+	void onTimerEnd(Uint8 flag);
 	void onVanish();
 
 };

@@ -1,7 +1,7 @@
 #include "GameObject.h"
 
 class LevelOne;
-class HealthBar;
+class StatusBar;
 
 class Tower : public GameObject
 {
@@ -22,7 +22,7 @@ public:
 	TextureRenderer* tRenderer;
 
 	// Inner GameObjects
-	HealthBar* healthBar = nullptr;
+	StatusBar* healthBar = nullptr;
 
 	// Overrided methods
 	void onColliderEnter(Collider* collider) override;
@@ -33,6 +33,6 @@ public:
 private:
 	// Attributes
 	RoofColor team = ROOF_COLOR_RED;
-	float max_health = 100.0f;
-	float health = 100.0f;
+	float max_health = 500.0f;
+	float health = 500.0f;
 };

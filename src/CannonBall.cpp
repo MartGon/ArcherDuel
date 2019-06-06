@@ -70,10 +70,10 @@ void CannonBall::onColliderEnter(Collider* collider)
 	else if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
 	{
 		// Deal dmg to the tower
-		tower->takeDamage(nav->speed);
+		tower->takeDamage(dmg);
 
 		// Set dmg label
-		dmg_label->setText(std::to_string((int)nav->speed));
+		dmg_label->setText(std::to_string((int)dmg));
 
 		// Enable dmg label
 		dmg_label->isActive = true;
@@ -101,10 +101,10 @@ void CannonBall::onColliderEnter(Collider* collider)
 
 	// Set timer to vanish arrow
 	if (!timer)
-		timer = new Timer(15 * 1000, this, nullptr);
+		timer = setComponent(new TimerComponent(15 * 1000));
 }
 
-void CannonBall::onTimerFinish(void* param)
+void CannonBall::onTimerEnd(Uint8 flag)
 {
 	tRenderer->isVanishing = true;
 }

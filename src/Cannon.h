@@ -2,10 +2,19 @@
 #include "GameObject.h"
 #include "AudioPlayer.h"
 
+#include "Player.h"
+
 class Cannon : public GameObject
 {
 public:
 	Cannon();
+
+	// Attributes
+	bool isBeingCarried = false;
+	Uint32 next_shot_dmg = 20;
+
+	// References
+	Player* owner = nullptr;
 
 	// Components
 	TextureRenderer* tRenderer = nullptr;
@@ -24,6 +33,7 @@ public:
 	GameObject* support = nullptr;
 
 	// Methods
+	bool isCurrentPosValid();
 	void aim(Vector2<float> target);
 	void shoot();
 
@@ -35,4 +45,7 @@ public:
 		// Animation
 	void beforeAnimationFrame(Animation* anim, int frame_index) override;
 	void onAnimationFinished(Animation* anim) override;
+
+		// TextureRenderer
+	void onVanish() override;
 };

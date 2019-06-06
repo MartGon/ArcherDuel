@@ -1,10 +1,10 @@
 #include "GameObject.h"
 #include "TextLabel.h"
 
-class HealthBar : public GameObject
+class StatusBar : public GameObject
 {
 public:
-	HealthBar();
+	StatusBar();
 
 	// Own GameObjects
 	TextLabel* tLabel = nullptr;
@@ -36,7 +36,6 @@ public:
 	Vector2<float> getScale();
 
 	void setHealthPercentage(float percent, bool blink_animation = false);
-	void reduceHealthByPercent(float percent);
 
 private:
 

@@ -121,6 +121,7 @@ void MainMenu::loadMedia()
 
 	// Player
 	player = new Player();
+	player->tower = tower;
 	player->mov_enabled = false;
 	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
 	player->transform.position = player_pos;
@@ -129,9 +130,9 @@ void MainMenu::loadMedia()
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
 	// Cannon
-	Cannon* cannon = new Cannon();
-	int h = cannon->tRenderer->texture.mHeight;
-	cannon->transform.position = Vector2<float>(74, LEVEL_HEIGHT - 143 - 4);
+	//Cannon* cannon = new Cannon();
+	//int h = cannon->tRenderer->texture.mHeight;
+	//cannon->transform.position = Vector2<float>(74, LEVEL_HEIGHT - 143 - 4);
 }
 
 void MainMenu::onUpdate()

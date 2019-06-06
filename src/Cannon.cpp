@@ -6,6 +6,7 @@
 #include "Navigator.h"
 
 #include "CannonBall.h"
+#include "Tower.h"
 
 Cannon::Cannon()
 {
@@ -74,16 +75,28 @@ void Cannon::onUpdate()
 {
 	InputManager* input_mgr = InputManager::get();
 
-	// Shoot
-	if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::DOWN))
+	if (isBeingCarried)
 	{
-		animator->setCurrentAnimation(shot_animation);
-	}
+		// Aim to mouse
+		Vector2<float> mouse_pos = input_mgr->getInputStatus(network_owner).mouse_pos;
+		Vector2<float> dest = mouse_pos / RendererManager::getScaler();
+		aim(dest);
 
-	// Aim to mouse
-	Vector2<float> mouse_pos = input_mgr->getInputStatus(network_owner).mouse_pos;
-	Vector2<float> dest = mouse_pos / RendererManager::getScaler();
-	aim(dest);
+		// Set normal color when is valid
+		if (isCurrentPosValid())
+		{
+			MapRGB normal = { 255, 255, 255 };
+			tRenderer->texture.color_mod = normal;
+			support->getComponent<TextureRenderer>()->texture.color_mod = normal;
+		}
+		// Set red color otherwise
+		else
+		{
+			MapRGB red = { 255, 0, 0 };
+			tRenderer->texture.color_mod = red;
+			support->getComponent<TextureRenderer>()->texture.color_mod = red;
+		}
+	}
 }
 
 void Cannon::aim(Vector2<float> target)
@@ -95,8 +108,19 @@ void Cannon::aim(Vector2<float> target)
 
 	double angle = dir.getAngle();
 
-	if (angle < -45 || angle > 45)
-		return;
+	if (tRenderer->flip == SDL_FLIP_NONE)
+	{
+		if (angle < -45 || angle > 45)
+			return;
+	}
+	else
+	{
+		if (angle < 135 || angle > 225)
+			return;
+
+		// Get Complementary
+		angle -= 180;
+	}
 
 	// Rotate Bow
 	transform.zRotation = angle;
@@ -107,17 +131,45 @@ void Cannon::shoot()
 	CannonBall* ball = new CannonBall();
 
 	// Spawn ball
-	Vector2<float> offset = { 26, 11 };
+	Vector2<float> offset = tRenderer->flip == SDL_FLIP_NONE ? Vector2<float>{ 26, 11 } : Vector2<float>{4, 11};
 	Vector2<float> ball_pos = getAbsolutePosition() + offset;
 	ball->transform.position = Utilities::rotatePointFromCenter(getAbsoluteRotationCenter(), transform.zRotation, ball_pos);
 
 	// Start ball movement
-	Vector2<float> dir = Vector2<float>(transform.zRotation);
+	Vector2<float> dir = tRenderer->flip == SDL_FLIP_NONE ? Vector2<float>(transform.zRotation) : -Vector2<float>(transform.zRotation);
 	ball->nav->setDirection(dir);
-	ball->nav->speed = 12;
+	ball->nav->speed = 20;
+
+	// Set cannon ball dmg
+	ball->dmg = next_shot_dmg;
 
 	// Update collider
 	ball->bCollider->update();
+}
+
+bool Cannon::isCurrentPosValid()
+{
+	if (!owner)
+		return false;
+
+	Vector2<float> pos = getAbsolutePosition();
+	pos.x = tRenderer->flip == SDL_FLIP_NONE ? pos.x + 9 : pos.x + 21;
+	pos.y = pos.y + tRenderer->texture.mHeight - 1;
+
+	if (Tower* player_tower = owner->tower)
+	{
+		if (BoxCollider* floor = player_tower->getComponent<BoxCollider>())
+		{
+			if (pos.x > floor->cRight)
+				return false;
+			if (pos.x < floor->cLeft)
+				return false;
+			if (pos.y != floor->cTop)
+				return false;
+
+			return true;
+		}
+	}
 }
 
 void Cannon::beforeAnimationFrame(Animation* anim, int frame_index)
@@ -148,7 +200,25 @@ void Cannon::onAnimationFinished(Animation* anim)
 {
 	if (anim->id == shot_animation->id)
 	{
+		// Return to idle animation
 		animator->setCurrentAnimation(idle_animation);
+
+		// Star to vanish
+		tRenderer->isVanishing = true;
+		support->getComponent<TextureRenderer>()->isVanishing = true;
 	}
 }
 
+void Cannon::onVanish()
+{
+	// Deactivate
+	isActive = false;
+
+	// Reset flag
+	tRenderer->isVanishing = false;
+	support->getComponent<TextureRenderer>()->isVanishing = false;
+
+	// Reset alpha values
+	tRenderer->texture.setAlpha(255);
+	support->getComponent<TextureRenderer>()->texture.setAlpha(255);
+}

@@ -6,13 +6,15 @@
 #include "TimerHandler.h"
 #include "Timer.h"
 
+class Player;
 class Bow;
-class Arrow : public GameObject, TimerHandler
+class Arrow : public GameObject
 {
 public:
 	Arrow();
 
     // GameObjects
+	Player* owner = nullptr;
     Bow* bow = nullptr;
 	TextLabel* dmg_label = nullptr;
 	TextureRenderer* dmg_tRenderer = nullptr;
@@ -22,9 +24,7 @@ public:
 	RotatableBoxCollider* rotCollider = nullptr;
 	Navigator *nav = nullptr;
 	AudioPlayer* aPlayer = nullptr;
-
-	// Timer
-	Timer* timer = nullptr;
+	TimerComponent* timer = nullptr;
 
 	// Audio files
 	int audio_impact_building_1 = 0;
@@ -36,5 +36,5 @@ public:
     void afterMove() override;
     void onUpdate() override;
 	void onVanish() override;
-	void onTimerFinish(void* param) override;
+	void onTimerEnd(Uint8 flag) override;
 };

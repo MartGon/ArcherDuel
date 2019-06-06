@@ -1,6 +1,6 @@
 #include "HealthBar.h"
 
-HealthBar::HealthBar()
+StatusBar::StatusBar()
 {
 	// Create RGB Map
 	MapRGB *colorKey = new MapRGB();
@@ -61,7 +61,7 @@ HealthBar::HealthBar()
 }
 
 // Overrided Methods
-void HealthBar::beforeAnimationFrame(Animation *anim, int frameNumber)
+void StatusBar::beforeAnimationFrame(Animation *anim, int frameNumber)
 {
 	// Change scale during blink animation
 	if (anim->id == ANIMATION_HEALTH_BAR_BLINK)
@@ -118,7 +118,7 @@ void HealthBar::beforeAnimationFrame(Animation *anim, int frameNumber)
 
 // Own methods
 
-void HealthBar::setScale(Vector2<float> scale)
+void StatusBar::setScale(Vector2<float> scale)
 {
 	// Change scales
 	leftEndingTRenderer->scale = Vector2<float>(scale.y, scale.y);
@@ -136,7 +136,7 @@ void HealthBar::setScale(Vector2<float> scale)
 	blinkFilledBarScaleAfter = blinkFilledBarScaleBefore;
 }
 
-void HealthBar::setHealthPercentage(float percent, bool blink)
+void StatusBar::setHealthPercentage(float percent, bool blink)
 {
 	// Store old value
 	blinkFilledBarScaleBefore = blinkFilledBarScaleAfter;
@@ -159,9 +159,4 @@ void HealthBar::setHealthPercentage(float percent, bool blink)
 	}
 
 	filledBarTRenderer->scale.x = blinkFilledBarScaleAfter;
-}
-
-void HealthBar::reduceHealthByPercent(float percent)
-{
-
 }

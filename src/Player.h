@@ -3,6 +3,9 @@
 #include "ChargeBar.h"
 #include "Bow.h"
 
+class StatusBar;
+class Cannon;
+class Tower;
 class LevelOne;
 class Player : public GameObject
 {
@@ -22,9 +25,13 @@ public:
 	};
 
     // Attributes
+	float skill_points = 0;
     float health_points = 100;
 	bool isStunned = false;
 	bool isInmunne = false;
+	bool isSkillReady = false;
+	bool isPlacingCannon = false;
+	bool isChargingCannon = false;
 	int stun_duration = 0;	// Duration in frames
 	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
 	PlayerTeam player_team = PlayerTeam::RED_TEAM;
@@ -41,8 +48,11 @@ public:
     LevelOne* level = nullptr;
 
     // Gameobjects
+	Tower* tower = nullptr;
     Bow* bow = nullptr;
+	Cannon* cannon = nullptr;
 	ChargeBar* chargeBar = nullptr;
+	StatusBar* skill_bar = nullptr;
 	GameObject* pHand = nullptr;
 	GameObject* rHand = nullptr;
 	GameObject* dizzy_effect = nullptr;
@@ -100,6 +110,7 @@ public:
 	void fast_fall();
 	void strafe(MovDirection dir);
 	void stop();
+	void increase_skill_points(float skill_points);
 
 		// Status effects
 	void stun(int duration);

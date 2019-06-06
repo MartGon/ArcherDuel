@@ -56,6 +56,9 @@ void LevelOne::loadMedia()
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
 	tower->transform.position = tower_pos;
 
+	// Set player tower
+	player->tower = tower;
+
 	// Player2
 	if (isOnline())
 		player2 = new Player();
@@ -81,6 +84,9 @@ void LevelOne::loadMedia()
 	Tower* tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
 	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 32);
 	tower2->transform.position = tower2_pos;
+
+	// Set player2 tower
+	player2->tower = tower2;
 
 	// Grass blocks
 	placeFloorBlocks();
@@ -124,6 +130,22 @@ void LevelOne::loadMedia()
 	framerate_display = new TextLabel();
 	label->transform.position = Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10, 10);
 	label->isActive = false;
+
+	// Create player one skill bar
+	StatusBar* skill_bar = new StatusBar();
+	skill_bar->setScale({ 55, 1 });
+	skill_bar->setHealthPercentage(0);
+	skill_bar->tLabel->setText("Cannon");
+	skill_bar->transform.position = tower->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+	player->skill_bar = skill_bar;
+
+	// Create player two skill bar
+	StatusBar* skill_bar2 = new StatusBar();
+	skill_bar2->setScale({ 55, 1 });
+	skill_bar2->setHealthPercentage(0);
+	skill_bar2->tLabel->setText("Cannon");
+	skill_bar2->transform.position = tower2->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+	player2->skill_bar = skill_bar2;
 }
 
 void LevelOne::placeFloorBlocks()
@@ -243,7 +265,6 @@ GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
 
 void LevelOne::onTimerFinish(void* param)
 {
-	std::cout << "On timer finish called\n";
 	if (Player* player = static_cast<Player*>(param)) 
 	{
 

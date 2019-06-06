@@ -93,6 +93,9 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->setAudioToPlay(audio_impact_player);
 		aPlayer->play();
 
+		// Increase owner skill points
+		owner->increase_skill_points(25);
+
 		// We don't wait for timer
 		wait_timer = false;
 	}
@@ -114,6 +117,9 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Notify
 		//std::cout << "This arrow did " << nav->speed << "dmg \n";
 
+		// Increase owner skill points
+		owner->increase_skill_points(nav->speed / 2);
+
 		// Play random building sound
 		int index = Random::getRandomUniformInteger(audio_impact_building_1, audio_impact_building_2);
 		aPlayer->setAudioToPlay(index);
@@ -127,6 +133,9 @@ void Arrow::onColliderEnter(Collider* collider)
 
 		// We don't wait for timer
 		wait_timer = false;
+
+		// Increase owner skill points
+		owner->increase_skill_points(30);
 	}
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
 	{
@@ -143,8 +152,10 @@ void Arrow::onColliderEnter(Collider* collider)
 		return;
 
 	// Set timer to vanish arrow
-	if(!timer)
-		timer = new Timer(15 * 1000, this, nullptr);
+	if (!timer)
+	{
+		timer = setComponent(new TimerComponent(15 * 1000));
+	}
 
 }
 
@@ -173,7 +184,7 @@ void Arrow::onVanish()
 	dmg_label->destroy();
 }
 
-void Arrow::onTimerFinish(void* param)
+void Arrow::onTimerEnd(Uint8 flag)
 {
 	tRenderer->isVanishing = true;
 }

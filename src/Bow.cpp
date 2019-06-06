@@ -268,6 +268,9 @@ Arrow* Bow::loadArrow()
 	// Create new arrow
     arrow = new Arrow();
 
+	// Set owner
+	arrow->owner = owner;
+
 	// Set references
 	arrow->bow = this;
 	arrow->transform.parent = &this->transform;
