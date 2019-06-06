@@ -13,8 +13,8 @@ Player::Player()
 	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 254));
 
 	// Jump Navigator
-	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
-	nav->isEnabled = true;
+	jump_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
+	jump_nav->isEnabled = true;
 	//nav->isEnabled = false;
 
 	// Move Navigator
@@ -175,26 +175,29 @@ void Player::onUpdate()
 		{
 			if (bow->state == Bow::BowState::BOW_STATE_IDLE)
 			{
-				// Create cannon and set this player to parent
-				cannon->isActive = true;
-				cannon->owner = this;
-				cannon->transform.parent = &this->transform;
-				cannon->transform.position = { 10, -4 };
-				cannon->isBeingCarried = true;
+				if (!isInmunne)
+				{
+					// Create cannon and set this player to parent
+					cannon->isActive = true;
+					cannon->owner = this;
+					cannon->transform.parent = &this->transform;
+					cannon->transform.position = { 10, -4 };
+					cannon->isBeingCarried = true;
 
-				// Disable bow and hands
-				bow->isActive = false;
-				bow->arrow->isActive = false;
-				rHand->isActive = false;
-				pHand->isActive = false;
+					// Disable bow and hands
+					bow->isActive = false;
+					bow->arrow->isActive = false;
+					rHand->isActive = false;
+					pHand->isActive = false;
 
-				// Set flag
-				isPlacingCannon = true;
-				isSkillReady = false;
+					// Set flag
+					isPlacingCannon = true;
+					isSkillReady = false;
 
-				// Reset skill points and skill bar
-				skill_points = 0;
-				skill_bar->setHealthPercentage(0);
+					// Reset skill points and skill bar
+					skill_points = 0;
+					skill_bar->setHealthPercentage(0);
+				}
 			}
 		}		
 	}
@@ -235,21 +238,25 @@ void Player::onUpdate()
 			// Check position
 			if (cannon->isCurrentPosValid())
 			{
-				// Place cannon and lock angle
-				Vector2<float> cannon_pos = cannon->getAbsolutePosition();
-				cannon->transform.parent = nullptr;
-				cannon->transform.position = cannon_pos;
-				cannon->isBeingCarried = false;
-				
-				// Set flags
-				isPlacingCannon = false;
-				isChargingCannon = true;
+				if (!isInmunne)
+				{
+					// Place cannon and lock angle
+					Vector2<float> cannon_pos = cannon->getAbsolutePosition();
+					cannon->transform.parent = nullptr;
+					cannon->transform.position = cannon_pos;
+					cannon->isBeingCarried = false;
 
-				// Start charge bar
-				chargeBar->enable();
+					// Set flags
+					isPlacingCannon = false;
+					isChargingCannon = true;
 
-				// Disable movement
-				mov_enabled = false;
+					// Start charge bar
+					chargeBar->enable();
+
+					// Disable movement
+					mov_enabled = false;
+					stop();
+				}
 			}
 		}
 	}
@@ -337,12 +344,20 @@ void Player::onColliderEnter(Collider *collider)
 	
 	if (tower)
 	{
+
 		if (collider->id == 1)
 		{
 			BoxCollider* boxCollider = static_cast<BoxCollider*>(collider);
-			transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
-			nav->setDirection({ 0,0 });
-			airborne = false;
+
+			// Get diffs
+			int over_diff = bCollider->cBottom - boxCollider->cTop;
+
+			if (over_diff >= 0 && over_diff <= 6)
+			{
+				transform.position = Vector2<float>(transform.position.x, owner->transform.position.y + boxCollider->offset.y - this->tRenderer->texture.mHeight + 1);
+				jump_nav->setDirection({ 0,0 });
+				airborne = false;
+			}
 		}
 	}
 }
@@ -353,8 +368,8 @@ void Player::jump()
 {
 	if (!airborne)
 	{
-		nav->setDirection({ 0,-1 });
-		nav->speed = 3;
+		jump_nav->setDirection({ 0,-1 });
+		jump_nav->speed = 3;
 		animator->isEnabled = false;
 		airborne = true;
 	}
@@ -364,8 +379,8 @@ void Player::fast_fall()
 {
 	if (airborne)
 	{
-		nav->setDirection(Vector2<float>(0, 1));
-		nav->speed = 3;
+		jump_nav->setDirection(Vector2<float>(0, 1));
+		jump_nav->speed = 3;
 		animator->isEnabled = false;
 	}
 }

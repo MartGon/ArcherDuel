@@ -177,6 +177,7 @@ void LevelOne::onUpdate()
 			if (!isPlayerPosValid(player))
 			{
 				resetPlayerPosition(player);
+				player->jump_nav->speed = 1;
 				player->isActive = false;
 				Timer* timer = new Timer(3 * 1000, this, player);
 			}

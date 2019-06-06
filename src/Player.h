@@ -63,7 +63,7 @@ public:
 	Animator* animator = nullptr;
 	Navigator* mov_nav = nullptr;
 	Navigator* knock_nav = nullptr;
-	Navigator* nav = nullptr;
+	Navigator* jump_nav = nullptr;
 
 	// Animation
 	enum PlayerAnimation

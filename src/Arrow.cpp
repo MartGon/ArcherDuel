@@ -94,7 +94,8 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->play();
 
 		// Increase owner skill points
-		owner->increase_skill_points(25);
+		if(owner != player)
+			owner->increase_skill_points(25);
 
 		// We don't wait for timer
 		wait_timer = false;
@@ -135,7 +136,8 @@ void Arrow::onColliderEnter(Collider* collider)
 		wait_timer = false;
 
 		// Increase owner skill points
-		owner->increase_skill_points(30);
+		if(arrow->owner != owner)
+			owner->increase_skill_points(30);
 	}
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
 	{
