@@ -5,6 +5,7 @@
 #include "Random.h"
 #include "Timer.h"
 #include "Button.h"
+#include "PowerUp.h"
 #include "SceneManager.h"
 
 Arrow::Arrow()
@@ -150,6 +151,21 @@ void Arrow::onColliderEnter(Collider* collider)
 		
 		// Start vanishing
 		tRenderer->isVanishing = true;
+	}
+	else if (PowerUpObject* power_up_object = dynamic_cast<PowerUpObject*>(collider->gameObject))
+	{
+		// Disable this arrow
+		this->isActive = false;
+		this->onVanish();
+
+		// Disable power up and destroy
+		power_up_object->isActive = false;
+		power_up_object->onVanish();
+
+		// Play sound effect
+
+		// Give effect to owner
+		owner->addPowerUp(power_up_object->getPowerUp(owner));
 	}
 
 	// Return if we dont have to create a timer

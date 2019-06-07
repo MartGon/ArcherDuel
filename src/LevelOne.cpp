@@ -9,6 +9,7 @@
 #include "SceneManager.h"
 #include "Random.h"
 #include "Timer.h"
+#include "PowerUp.h"
 #include "MainMenu.h"
 #include "InputManager.h"
 
@@ -146,6 +147,10 @@ void LevelOne::loadMedia()
 	skill_bar2->tLabel->setText("Cannon");
 	skill_bar2->transform.position = tower2->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
 	player2->skill_bar = skill_bar2;
+
+	// PowerUp
+	PowerUpObject* power_up = new PowerUpObject(POWER_UP_SHIELD);
+	power_up->transform.position = { LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2 };
 }
 
 void LevelOne::placeFloorBlocks()

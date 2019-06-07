@@ -4,6 +4,7 @@
 #include "SceneManager.h"
 #include "Cannon.h"
 #include "HealthBar.h"
+#include "PowerUp.h"
 
 Player::Player()
 {
@@ -96,6 +97,9 @@ Player::Player()
 	// Create cannon
 	cannon = new Cannon();
 	cannon->isActive = false;
+
+	// Add powerup
+	addPowerUp(new PowerUpShield(this));
 }
 
 // Network
@@ -151,11 +155,19 @@ void Player::onUpdate()
 	{
 		tRenderer->flip = SDL_FLIP_HORIZONTAL;
 		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_VERTICAL;
+
+		// Change power_up position
+		if(power_up)
+			power_up->time_display->transform.position = { 18, 0 };
 	}
 	else
 	{
 		tRenderer->flip = SDL_FLIP_NONE;
 		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_NONE;
+
+		// Change power_up position
+		if (power_up)
+			power_up->time_display->transform.position = { -9, 0 };
 	}
 
 	// Update hands rotation
@@ -414,13 +426,23 @@ void Player::stun(int duration)
 	if (duration <= 0)
 		return;
 
+	// Power Up hook
+	if (power_up)
+	{
+		power_up->onStun();
+
+		if (power_up->interruptDefaultAction())
+			return;
+	}
+
 	// Update status effect data
 	isStunned = true;
 	stun_duration = duration;
 
 	// Disable bow, arrow, hands and chargebar
 	bow->isActive = false;
-	bow->arrow->isActive = false;
+	if(bow->arrow)
+		bow->arrow->isActive = false;
 	rHand->isActive = false;
 	pHand->isActive = false;
 	chargeBar->disable();
@@ -457,6 +479,14 @@ void Player::stun(int duration)
 
 void Player::knockback(Vector2<float> dir, float strength)
 {
+	if (power_up)
+	{
+		power_up->onKnockback();
+
+		if (power_up->interruptDefaultAction())
+			return;
+	}
+
 	// Enable nav
 	knock_nav->isEnabled = true;
 
@@ -524,6 +554,16 @@ void Player::increase_skill_points(float skill_points)
 	// Modify bar
 	if(skill_bar)
 		skill_bar->setHealthPercentage(this->skill_points, true);
+}
+
+void Player::addPowerUp(PowerUp* power_up)
+{
+	// Set this power_up
+	this->power_up = power_up;
+
+	// Set powerUpTimeDisplay parent and position
+	power_up->time_display->transform.parent = &this->transform;
+
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

@@ -3,6 +3,7 @@
 #include "ChargeBar.h"
 #include "Bow.h"
 
+class PowerUp;
 class StatusBar;
 class Cannon;
 class Tower;
@@ -35,6 +36,7 @@ public:
 	int stun_duration = 0;	// Duration in frames
 	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
 	PlayerTeam player_team = PlayerTeam::RED_TEAM;
+	PowerUp* power_up = nullptr;
 
     // Movement
 	bool airborne = true;
@@ -111,6 +113,7 @@ public:
 	void strafe(MovDirection dir);
 	void stop();
 	void increase_skill_points(float skill_points);
+	void addPowerUp(PowerUp* power_up);
 
 		// Status effects
 	void stun(int duration);
