@@ -147,6 +147,9 @@ void Arrow::onColliderEnter(Collider* collider)
 
 		// We don't wait for timer
 		wait_timer = false;
+		
+		// Start vanishing
+		tRenderer->isVanishing = true;
 	}
 
 	// Return if we dont have to create a timer

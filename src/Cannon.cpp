@@ -78,7 +78,7 @@ void Cannon::onUpdate()
 	if (isBeingCarried)
 	{
 		// Aim to mouse
-		Vector2<float> mouse_pos = input_mgr->getInputStatus(network_owner).mouse_pos;
+		Vector2<float> mouse_pos = input_mgr->getInputStatus(owner->network_owner).mouse_pos;
 		Vector2<float> dest = mouse_pos / RendererManager::getScaler();
 		aim(dest);
 

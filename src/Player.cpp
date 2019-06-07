@@ -96,9 +96,6 @@ Player::Player()
 	// Create cannon
 	cannon = new Cannon();
 	cannon->isActive = false;
-
-	// skill
-	skill_points = 100;
 }
 
 // Network
@@ -525,7 +522,8 @@ void Player::increase_skill_points(float skill_points)
 	}
 
 	// Modify bar
-	skill_bar->setHealthPercentage(this->skill_points, true);
+	if(skill_bar)
+		skill_bar->setHealthPercentage(this->skill_points, true);
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.
