@@ -99,11 +99,13 @@ Player::Player()
 	cannon->isActive = false;
 
 	// Add powerup
+	/*
 	addPowerUp(new PowerUpShield(this));
 	addPowerUp(new PowerUpHaste(this));
 	addPowerUp(new PowerUpFire(this));
 	addPowerUp(new PowerUpTriple(this));
 	addPowerUp(new PowerUpMirror(this));
+	*/
 }
 
 // Network
@@ -606,6 +608,9 @@ void Player::increase_skill_points(float skill_points)
 
 void Player::addPowerUp(PowerUp* power_up)
 {
+	if (!power_up)
+		return;
+
 	// Get power-up if already exists
 	if (power_ups.find(power_up->type) != power_ups.end())
 	{

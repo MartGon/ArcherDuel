@@ -148,9 +148,21 @@ void LevelOne::loadMedia()
 	skill_bar2->transform.position = tower2->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
 	player2->skill_bar = skill_bar2;
 
-	// PowerUp
-	PowerUpObject* power_up = new PowerUpObject(POWER_UP_SHIELD);
-	power_up->transform.position = { LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2 };
+	// Create player timers
+	TimerObject* player_timer = new TimerObject(3 * 1000, player->id);
+	player_timer->timer->isOver = true;
+	player_timer->callback = std::bind(&LevelOne::onPlayerTimerFinish, this, std::placeholders::_1);
+
+	TimerObject* player_timer2 = new TimerObject(3 * 1000, player2->id);
+	player_timer2->timer->isOver = true;
+	player_timer2->callback = std::bind(&LevelOne::onPlayerTimerFinish, this, std::placeholders::_1);
+
+	player_timers.insert({ player->id,  player_timer });
+	player_timers.insert({ player2->id, player_timer2 });
+
+	// Create PowerUpObject timers
+	spawn_pu_timer = new TimerObject(5 * 1000, 0);
+	spawn_pu_timer->callback = std::bind(&LevelOne::onSpawnPowerUpTimerFinish, this, std::placeholders::_1);
 }
 
 void LevelOne::placeFloorBlocks()
@@ -184,7 +196,9 @@ void LevelOne::onUpdate()
 				resetPlayerPosition(player);
 				player->jump_nav->speed = 1;
 				player->isActive = false;
-				Timer* timer = new Timer(3 * 1000, this, player);
+				
+				// Activate timer
+				player_timers.at(player->id)->timer->reset();
 			}
 		}
 	}
@@ -269,19 +283,40 @@ GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
 
 // Timer handler
 
-void LevelOne::onTimerFinish(void* param)
+void LevelOne::onPlayerTimerFinish(Uint8 flag)
 {
-	if (Player* player = static_cast<Player*>(param)) 
+	if (Player* player = dynamic_cast<Player*>(getGameObjectById(flag))) 
 	{
 
 		player->isActive = true;
 		player->isInmunne = true;
 		player->tRenderer->setBlink(6, 60 * 3);
 	}
-	else
-	{
-		exitGame();
-	}
+	
+}
+
+void LevelOne::onEndGameTimerFininsh(Uint8 flag)
+{
+	exitGame();
+}
+
+void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
+{
+	// Spawn power up Object
+	PowerUpType type = (PowerUpType)Random::getRandomUniformInteger(1, 6);
+	PowerUpObject* power_up_object = new PowerUpObject(type);
+
+	// Choose a random location
+	Vector2<float> spawn_pos;
+	spawn_pos.y = Random::getRandomUniformInteger(20, 100);
+	spawn_pos.x = Random::getRandomUniformInteger(20, LEVEL_WIDTH - 20 - 22);
+
+	// Set position
+	power_up_object->transform.position = spawn_pos;
+
+	// Reset Timer
+	spawn_pu_timer->timer->delay = Random::getRandomUniformInteger(5, 10) * 1000;
+	spawn_pu_timer->timer->reset();
 }
 
 void LevelOne::moveCamera(int xOffset, int yOffset)
@@ -370,7 +405,8 @@ void LevelOne::setWinnerTeam(Player::PlayerTeam winner_team)
 	//for (auto player : players) player->isStopped = true;
 
 	// Set timer for finishing
-	Timer* timer = new Timer(10 * 1000, this, nullptr);
+	TimerObject* timer = new TimerObject(10 * 1000, 0);
+	timer->callback = std::bind(&LevelOne::onEndGameTimerFininsh, this, 0);
 }
 
 bool LevelOne::isPlayerPosValid(Player* player)

@@ -6,7 +6,7 @@
 
 
 class Player;
-class LevelOne : public Scene, public TimerHandler
+class LevelOne : public Scene
 {
 public:
     enum PlayerTurn
@@ -25,7 +25,11 @@ public:
 	void OnHandleEvent(const SDL_Event& event) override;
 	GameObject* createGameObjectByTemplateId(int template_id) override;
 		// Timer
-	void onTimerFinish(void* param) override;
+	std::unordered_map<Uint32, TimerObject*> player_timers;
+	TimerObject* spawn_pu_timer = nullptr;
+	void onPlayerTimerFinish(Uint8 flag);
+	void onEndGameTimerFininsh(Uint8 flag);
+	void onSpawnPowerUpTimerFinish(Uint8 flag);
 
     // GameObjects
 	Bow* bow = nullptr;

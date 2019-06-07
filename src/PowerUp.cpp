@@ -90,6 +90,21 @@ PowerUp* PowerUpObject::getPowerUp(Player* target)
 	case POWER_UP_SHIELD:
 		power_up = new PowerUpShield(target);
 		break;
+	case POWER_UP_HASTE:
+		power_up = new PowerUpHaste(target);
+		break;
+	case POWER_UP_FIRE:
+		power_up = new PowerUpFire(target);
+		break;
+	case POWER_UP_TRIPLE:
+		power_up = new PowerUpTriple(target);
+		break;
+	case POWER_UP_MIRROR:
+		power_up = new PowerUpMirror(target);
+		break;
+	case POWER_UP_THUNDERSTRIKE:
+		power_up = new PowerUpThunderStrike(target);
+		break;
 	case POWER_UP_DUMMY:
 	default:
 		break;
