@@ -2,8 +2,10 @@
 #include "GameObject.h"
 #include "ChargeBar.h"
 #include "Bow.h"
+#include "PowerUp.h"
 
-class PowerUp;
+#include <unordered_map>
+
 class StatusBar;
 class Cannon;
 class Tower;
@@ -36,7 +38,7 @@ public:
 	int stun_duration = 0;	// Duration in frames
 	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
 	PlayerTeam player_team = PlayerTeam::RED_TEAM;
-	PowerUp* power_up = nullptr;
+	std::unordered_map<PowerUpType, PowerUp*> power_ups;
 
     // Movement
 	bool airborne = true;
@@ -114,6 +116,7 @@ public:
 	void stop();
 	void increase_skill_points(float skill_points);
 	void addPowerUp(PowerUp* power_up);
+	void removePowerUp(PowerUp* power_up);
 
 		// Status effects
 	void stun(int duration);

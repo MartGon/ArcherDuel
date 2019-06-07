@@ -11,7 +11,12 @@ class TextLabel;
 enum PowerUpType
 {
 	POWER_UP_DUMMY,
-	POWER_UP_SHIELD
+	POWER_UP_SHIELD,
+	POWER_UP_HASTE,
+	POWER_UP_FIRE,
+	POWER_UP_TRIPLE,
+	POWER_UP_MIRROR,
+	POWER_UP_THUNDERSTRIKE
 };
 
 namespace PowerUpUtil
@@ -94,6 +99,7 @@ public:
 
 	// Methods 
 	bool interruptDefaultAction();
+	void remove();
 
 	// Hooks
 	virtual void onApply() {};
@@ -122,4 +128,35 @@ public:
 	// Overrided methods
 	void onStun() override;
 	void onKnockback() override;
+};
+
+class PowerUpHaste : public PowerUp
+{
+public:
+	// Constructor
+	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 15 * 1000){};
+};
+
+class PowerUpFire : public PowerUp
+{
+public:
+	PowerUpFire(Player* owner) : PowerUp(owner, POWER_UP_FIRE, 20 * 1000) {};
+};
+
+class PowerUpTriple : public PowerUp
+{
+public:
+	PowerUpTriple(Player* owner) : PowerUp(owner, POWER_UP_TRIPLE, 10 * 1000) {};
+};
+
+class PowerUpThunderStrike : public PowerUp
+{
+public:
+	PowerUpThunderStrike(Player* owner) : PowerUp(owner, POWER_UP_THUNDERSTRIKE, 0) {};
+};
+
+class PowerUpMirror : public PowerUp
+{
+public:
+	PowerUpMirror(Player* owner) : PowerUp(owner, POWER_UP_MIRROR, 30 * 1000) {};
 };

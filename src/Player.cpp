@@ -100,6 +100,10 @@ Player::Player()
 
 	// Add powerup
 	addPowerUp(new PowerUpShield(this));
+	addPowerUp(new PowerUpHaste(this));
+	addPowerUp(new PowerUpFire(this));
+	addPowerUp(new PowerUpTriple(this));
+	addPowerUp(new PowerUpMirror(this));
 }
 
 // Network
@@ -157,8 +161,28 @@ void Player::onUpdate()
 		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_VERTICAL;
 
 		// Change power_up position
-		if(power_up)
-			power_up->time_display->transform.position = { 18, 0 };
+		int pu_index = 0;
+		for (auto power_up_pair : power_ups)
+		{
+			// Get power up display
+			PowerUp* power_up = power_up_pair.second;
+
+			// Find its position
+			Vector2<float> pos = Vector2<float>( pu_index * 9 + 16, 0 );
+
+			// It's odd, the second row
+			if (pu_index & 1)
+			{
+				pos.y = 12;
+				pos.x = (pu_index - 1) * 9 + 16;
+			}
+
+			// Set position
+			power_up->time_display->transform.position = pos;
+
+			// Increase index
+			++pu_index;
+		}
 	}
 	else
 	{
@@ -166,8 +190,28 @@ void Player::onUpdate()
 		pHand->getComponent<TextureRenderer>()->flip = SDL_FLIP_NONE;
 
 		// Change power_up position
-		if (power_up)
-			power_up->time_display->transform.position = { -9, 0 };
+		int pu_index = 0;
+		for (auto power_up_pair : power_ups)
+		{
+			// Get power up display
+			PowerUp* power_up = power_up_pair.second;
+
+			// Find its position
+			Vector2<float> pos = Vector2<float>( pu_index * (-9) - 9, 0 );
+
+			// It's odd, then it goes in the second row
+			if (pu_index & 1)
+			{
+				pos.y = 12;
+				pos.x = (pu_index - 1) * (-9) - 9;
+			}
+
+			// Set position
+			power_up->time_display->transform.position = pos;
+
+			// Increase index
+			++pu_index;
+		}
 	}
 
 	// Update hands rotation
@@ -426,9 +470,10 @@ void Player::stun(int duration)
 	if (duration <= 0)
 		return;
 
-	// Power Up hook
-	if (power_up)
+	// OnStun Callback
+	for (auto power_up_pair : power_ups)
 	{
+		PowerUp* power_up = power_up_pair.second;
 		power_up->onStun();
 
 		if (power_up->interruptDefaultAction())
@@ -479,8 +524,11 @@ void Player::stun(int duration)
 
 void Player::knockback(Vector2<float> dir, float strength)
 {
-	if (power_up)
+	// onKnockBack callback
+	for(auto power_up_pair : power_ups)
 	{
+		PowerUp* power_up = power_up_pair.second;
+
 		power_up->onKnockback();
 
 		if (power_up->interruptDefaultAction())
@@ -558,12 +606,35 @@ void Player::increase_skill_points(float skill_points)
 
 void Player::addPowerUp(PowerUp* power_up)
 {
+	// Get power-up if already exists
+	if (power_ups.find(power_up->type) != power_ups.end())
+	{
+		// Get previous and reset duration
+		PowerUp* prev_power_up = power_ups[power_up->type];
+		prev_power_up->timer->extend(power_up->duration);
+
+		// Delete the recv one
+		power_up->remove();
+
+		// Return, nothing else to do
+		return;
+	}
+
 	// Set this power_up
-	this->power_up = power_up;
+	auto pair = std::pair<PowerUpType, PowerUp*>(power_up->type, power_up);
+	power_ups.insert(pair);
 
 	// Set powerUpTimeDisplay parent and position
 	power_up->time_display->transform.parent = &this->transform;
 
+}
+
+void Player::removePowerUp(PowerUp* power_up)
+{
+	if (power_ups.find(power_up->type) != power_ups.end())
+	{
+		power_ups.erase(power_up->type);
+	}
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

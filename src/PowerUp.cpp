@@ -17,6 +17,21 @@ std::string PowerUpUtil::getIconTexturePathByPowerUpType(PowerUpType type)
 	case POWER_UP_SHIELD:
 		path = "PowerUp_Shield.png";
 		break;
+	case POWER_UP_HASTE:
+		path = "PowerUp_Haste.png";
+		break;
+	case POWER_UP_FIRE:
+		path = "PowerUp_Fire.png";
+		break;
+	case POWER_UP_TRIPLE:
+		path = "PowerUp_DoubleArrow.png";
+		break;
+	case POWER_UP_THUNDERSTRIKE:
+		path = "PowerUp_AirStrike.png";
+		break;
+	case POWER_UP_MIRROR:
+		path = "PowerUp_Mirror.png";
+		break;
 	case POWER_UP_DUMMY:
 	default:
 		path = "UndefinedPowerUp";
@@ -187,6 +202,14 @@ PowerUp::PowerUp(Player* owner, PowerUpType type, Uint32 duration)
 	time_display = new PowerUpTimeDisplay(this);
 }
 
+void PowerUp::remove()
+{
+	// Destroy and display
+	this->destroy();
+	time_display->destroy();
+	time_display->time_label->destroy();
+}
+
 void PowerUp::preventDefaultAction()
 {
 	prevent_default_action = true;
@@ -204,12 +227,10 @@ bool PowerUp::interruptDefaultAction()
 void PowerUp::onTimerEnd(Uint8 flag)
 {
 	// Remove from owner
-	owner->power_up = nullptr;
+	owner->removePowerUp(this);
 
-	// Destroy and display
-	this->destroy();
-	time_display->destroy();
-	time_display->time_label->destroy();
+	// Destroy
+	remove();
 }
 
 // PowerUpShield class
