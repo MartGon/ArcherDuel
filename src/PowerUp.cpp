@@ -1,5 +1,7 @@
 #include "PowerUp.h"
 #include "Player.h"
+#include "Bow.h"
+#include "Arrow.h"
 #include "TextLabel.h"
 
 #include <sstream>
@@ -302,6 +304,7 @@ void PowerUpHaste::onRemove()
 
 void PowerUpHaste::onBowPull()
 {
+	// Prevent Pull sound effect
 	preventDefaultAction();
 }
 
@@ -323,5 +326,125 @@ void PowerUpHaste::onBowRelease()
 			// Prevent original audio to play
 			preventDefaultAction();
 		}
+	}
+}
+
+// PowerUp Triple Class
+
+// Methods
+Arrow* PowerUpTriple::createExtraArrow(Arrow* arrow, Bow* bow)
+{
+	// Create extra arrow
+	Arrow* extra_arrow = new Arrow();
+
+	// Copy refs
+	extra_arrow->bow = bow;
+	extra_arrow->owner = bow->owner;
+
+	// Copy transform
+	extra_arrow->transform.position = arrow->transform.position;
+	extra_arrow->transform.rotationCenter = new Vector2<int>();
+	extra_arrow->transform.parent = &bow->transform;
+
+	return extra_arrow;
+}
+
+void PowerUpTriple::loadTwoExtraArrows(Bow* bow, Arrow* main_arrow)
+{
+	// AbsCenter
+	Vector2<int> absCenter;
+
+	// Create upper arrow and set position
+	uArrow = createExtraArrow(main_arrow, bow);
+	uArrow->transform.position.y += 3;
+
+	// Set rotation Center
+	absCenter = bow->getAbsoluteRotationCenter();
+	uArrow->setAbsoluteRotationCenter(absCenter);
+
+	// Create downer arrow and set position
+	dArrow = createExtraArrow(main_arrow, bow);
+	dArrow->transform.position.y -= 3;
+	
+	// Set rotation Center
+	absCenter = bow->getAbsoluteRotationCenter();
+	dArrow->setAbsoluteRotationCenter(absCenter);
+}
+
+// Overrided Methods
+void PowerUpTriple::onApply()
+{
+	if (Bow* bow = owner->bow)
+		if (bow->state == Bow::BOW_STATE_IDLE)
+			if(Arrow* arrow = bow->arrow)
+				loadTwoExtraArrows(bow, arrow);
+}
+
+void PowerUpTriple::onLoadArrow(Arrow* arrow)
+{
+	if (Bow* bow = owner->bow)
+	{
+		loadTwoExtraArrows(bow, arrow);
+	}
+}
+
+void PowerUpTriple::afterShoot(float charge)
+{
+	if (Bow* bow = owner->bow)
+	{
+		// Launch both arrows
+		bow->launchArrow(uArrow, charge);
+		bow->launchArrow(dArrow, charge);
+		
+		// Set to nullptr
+		uArrow = nullptr;
+		dArrow = nullptr;
+	}
+}
+
+void PowerUpTriple::onRemove()
+{
+	if (Bow* bow = owner->bow)
+	{
+		// Remove loaded arrows
+		if (uArrow) 
+		{
+			//uArrow->isActive = false;
+			uArrow->onVanish();
+		}
+
+		if (dArrow)
+		{
+			//dArrow->isActive = false;
+			dArrow->onVanish();
+		}
+	}
+}
+
+void PowerUpTriple::afterAimBow()
+{
+	if (Bow* bow = owner->bow)
+	{
+		if (uArrow)
+		{
+			uArrow->transform.zRotation = bow->transform.zRotation;
+
+			if (bow->arrow)
+			{
+				uArrow->transform.position.x = bow->arrow->transform.position.x;
+				uArrow->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
+			}
+		}
+		if (dArrow)
+		{
+			dArrow->transform.zRotation = bow->transform.zRotation;
+
+			if (bow->arrow)
+			{
+				dArrow->transform.position.x = bow->arrow->transform.position.x;
+				dArrow->setAbsoluteRotationCenter(bow->getAbsoluteRotationCenter());
+			}
+		}
+
 	}
 }

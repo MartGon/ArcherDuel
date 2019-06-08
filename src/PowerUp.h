@@ -7,6 +7,8 @@
 class Player;
 class PowerUp;
 class TextLabel;
+class Bow;
+class Arrow;
 
 enum PowerUpType
 {
@@ -102,22 +104,29 @@ public:
 	void remove();
 
 	// Hooks
+
+	// Before Hooks
 	virtual void beforeShoot() {};
 	virtual void beforePull() {};
 
+	// On Hooks
 	virtual void onApply() {};
 
-	virtual void onLoadArrow() {};
+	// Bow
+	virtual void onLoadArrow(Arrow* arrow) {};
 	virtual void onShoot(float& charge) {};
 	virtual void onBowPull() {};
 	virtual void onBowRelease() {};
 
+	// Status effect
 	virtual void onStun() {};
 	virtual void onKnockback() {};
 
 	virtual void onRemove() {};
 
-	virtual void afterShoot() {};
+	// After Hooks
+	virtual void afterAimBow() {};
+	virtual void afterShoot(float charge) {};
 
 	// Overrided methods
 	void onTimerEnd(Uint8 flag) override;
@@ -145,7 +154,7 @@ class PowerUpHaste : public PowerUp
 {
 public:
 	// Constructor
-	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 1000){};
+	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 100000){};
 
 	// Overrided methods
 	void beforePull() override;
@@ -166,7 +175,23 @@ public:
 class PowerUpTriple : public PowerUp
 {
 public:
-	PowerUpTriple(Player* owner) : PowerUp(owner, POWER_UP_TRIPLE, 10 * 1000) {};
+	PowerUpTriple(Player* owner) : PowerUp(owner, POWER_UP_TRIPLE, 10 * 100000) {};
+
+	// Members
+	Arrow* uArrow = nullptr;
+	Arrow* dArrow = nullptr;
+
+	// Methods
+	Arrow* createExtraArrow(Arrow* main_arrow, Bow* bow);
+	void loadTwoExtraArrows(Bow* bow, Arrow* main_arrow);
+
+	// Overrided methods
+	void onApply() override;
+	void onLoadArrow(Arrow* arrow) override;
+	void afterShoot(float charge);
+	void onRemove();
+
+	void afterAimBow() override;
 };
 
 class PowerUpThunderStrike : public PowerUp

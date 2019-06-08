@@ -137,8 +137,14 @@ void Arrow::onColliderEnter(Collider* collider)
 		wait_timer = false;
 
 		// Increase owner skill points
-		if(arrow->owner != owner)
+		if (arrow->owner != owner)
 			owner->increase_skill_points(30);
+		else
+		{
+			// Re-enable components
+			nav->isEnabled = true;
+			rotCollider->isEnabled = true;
+		}
 	}
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
 	{
@@ -159,7 +165,6 @@ void Arrow::onColliderEnter(Collider* collider)
 		this->onVanish();
 
 		// Disable power up and destroy
-		power_up_object->isActive = false;
 		power_up_object->onVanish();
 
 		// Play sound effect

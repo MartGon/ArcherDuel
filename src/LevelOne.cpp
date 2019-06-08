@@ -211,6 +211,11 @@ void LevelOne::onUpdate()
 
 	if(last_packet)
 		framerate_display->setText(std::to_string(last_packet->frame_count));
+	else
+	{
+		framerate_display->setText(std::to_string(frame_rate));
+		std::cout << "FPS: " << frame_rate << "\n";
+	}
 }
 
 void LevelOne::OnHandleEvent(const SDL_Event& event)

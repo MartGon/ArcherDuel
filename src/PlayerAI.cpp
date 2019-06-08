@@ -139,6 +139,8 @@ void PlayerAI::onAttack()
 	// Get some offset for height
 	height_offset = Random::getRandomUniformInteger(2, 7) * -10;
 
+	if (!bow->arrow)
+		std::cout << "Crash\n";
 	// Pull Bow
 	bow->draw();
 	state = PLAYERAI_STATE_ATTACKING;

@@ -70,6 +70,7 @@ public:
     void pointBowToMouse();
 
 	// Arrow
+	void launchArrow(Arrow* arrow, float charge);
     void rotateArrow();
 	Arrow* loadArrow();
 

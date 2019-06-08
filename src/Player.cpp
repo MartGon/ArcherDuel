@@ -54,7 +54,7 @@ Player::Player()
 	bow->transform.parent = &this->transform;
 	
 	// Set Center
-	bow->transform.rotationCenter = new Vector2<int>(-5, 7);
+	bow->transform.rotationCenter = new Vector2<int>(-6, 7);
 	
 	// Offset is 11, 4
 	Vector2<float> offset(11, 4);
@@ -102,11 +102,13 @@ Player::Player()
 
 	// Add powerup
 	
+	addPowerUp(new PowerUpTriple(this));
+
+	
 	addPowerUp(new PowerUpShield(this));
 	addPowerUp(new PowerUpHaste(this));
 	/*
 	addPowerUp(new PowerUpFire(this));
-	addPowerUp(new PowerUpTriple(this));
 	addPowerUp(new PowerUpMirror(this));
 	*/
 }
@@ -145,7 +147,6 @@ bool Player::OnHandleEvent(const SDL_Event & event)
 
 void Player::onStart() 
 {
-	
 }
 
 void Player::onUpdate()
@@ -516,7 +517,7 @@ void Player::stun(int duration)
 	}
 
 	// Reset bow state if pulled
-	if (bow->state = bow->BOW_STATE_PULLED)
+	if (bow->state != Bow::BowState::BOW_STATE_IDLE)
 		bow->reset();
 
 	// Enable dizzy animation
@@ -569,7 +570,8 @@ void Player::recover()
 		{
 			// Enable bow and arrow
 			bow->isActive = true;
-			bow->arrow->isActive = true;
+			if(bow->arrow)
+				bow->arrow->isActive = true;
 			rHand->isActive = true;
 			pHand->isActive = true;
 		}

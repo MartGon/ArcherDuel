@@ -132,49 +132,26 @@ void Bow::onAnimationFinished(Animation *anim)
 		// OnShoot hook
 		owner->powerUpHookTemplate<void(PowerUp::*)(float &), float&>(&PowerUp::onShoot, charge);
 
-		// Setting up arrow navigator
-		Navigator* nav = arrow->nav;
-		nav->setDirection(dir);
-		nav->speed = 1.75f * charge;
-		nav->isEnabled = true;
-
-		// Disable acceleration if max charge
-		if(charge == 6.0)
-			nav->isKinematic = false;
-
-		// Set bow state
-		state = BOW_STATE_ARROW_LAUNCHED;
-
-        // Change arrow position
-        arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
-        arrow->transform.rotationCenter = nullptr;
-
-		arrow->transform.position = arrow->getAbsolutePosition();
-		arrow->transform.parent = nullptr;
-
-		// Enabling arrow collider
-		arrow->rotCollider->isEnabled = true;
+		// Launch Arrow
+		launchArrow(arrow, charge);
 
 		// Remove arrow
 		arrow = nullptr;
+
+		// Change Bow state
+		state = BOW_STATE_ARROW_LAUNCHED;
 
 		// Reset pHand position and center
 		owner->pHand->transform.position = Vector2<float>(13, 11);
 		owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 
 		// AfterShoot hook
-		for (auto power_up_pair : owner->power_ups)
-		{
-			PowerUp* power_up = power_up_pair.second;
-			power_up->afterShoot();
-		}
+		owner->powerUpHookTemplate(&PowerUp::afterShoot, charge);
 	}
 }
 
 void Bow::onStart()
 {
-	// Load an arrow
-	loadArrow();
 }
 
 void Bow::onUpdate()
@@ -212,7 +189,9 @@ void Bow::onUpdate()
     switch (state)
     {
     case Bow::BOW_STATE_IDLE:
-		// Nothing
+		// Load arrow if we don't have one
+		if (!arrow)
+			arrow = loadArrow();
         break;
     case Bow::BOW_STATE_PULLING:
 	{
@@ -252,7 +231,9 @@ void Bow::onUpdate()
         // Nothing
         break;
     case Bow::BOW_STATE_ARROW_LAUNCHED:
-		loadArrow();
+		// Load next arrow
+		if(!arrow)
+			arrow = loadArrow();
 		state = BOW_STATE_IDLE;
         break;
     default:
@@ -301,7 +282,7 @@ void Bow::reset()
 Arrow* Bow::loadArrow()
 {
 	// Create new arrow
-    arrow = new Arrow();
+    Arrow* arrow = new Arrow();
 
 	// Set owner
 	arrow->owner = owner;
@@ -314,6 +295,9 @@ Arrow* Bow::loadArrow()
 	Vector2<int> absCenter = this->getAbsoluteRotationCenter();
     arrow->transform.position = getArrowInitialPosition();
 	arrow->setAbsoluteRotationCenter(absCenter);
+
+	// On LoadArrowHook
+	owner->powerUpHookTemplate(&PowerUp::onLoadArrow, arrow);
 
 	return arrow;
 }
@@ -331,6 +315,10 @@ void Bow::aimBow(Vector2<float> target)
 	// Rotate arrow
 	if (arrow)
 		arrow->transform.zRotation = dir.getAngle();
+
+	// After Aim hook
+	if (owner->powerUpHookTemplate(&PowerUp::afterAimBow))
+		return;
 }
 
 void Bow::pointBowToMouse()
@@ -387,4 +375,27 @@ void Bow::shoot()
 
 	// Change state
 	state = BOW_STATE_RELEASING;
+}
+
+void Bow::launchArrow(Arrow* arrow, float charge)
+{
+	// Setting up arrow navigator
+	Navigator* nav = arrow->nav;
+	nav->setDirection(dir);
+	nav->speed = 1.75f * charge;
+	nav->isEnabled = true;
+
+	// Disable acceleration if max charge
+	if (charge == 6.0)
+		nav->isKinematic = false;
+
+	// Change arrow position
+	arrow->transform.position = Utilities::rotatePointFromCenter(arrow->transform.position + (Vector2<float>)*(arrow->transform.rotationCenter), arrow->transform.zRotation, arrow->transform.position);
+	arrow->transform.rotationCenter = nullptr;
+
+	arrow->transform.position = arrow->getAbsolutePosition();
+	arrow->transform.parent = nullptr;
+
+	// Enabling arrow collider
+	arrow->rotCollider->isEnabled = true;
 }
