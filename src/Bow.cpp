@@ -41,6 +41,7 @@ Bow::Bow() : GameObject()
 	// Audio Player
 	aPlayer = setComponent(new AudioPlayer());
 	rel_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-release-16.wav"));
+	rel_special_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-release-special-trim.wav"));
 	pull_index = aPlayer->addAudioToList(aPlayer->loadAudioFile("bow-pull.wav"));
 
 	// Network
@@ -58,9 +59,12 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		// Play Sound effect
 		if (frameNumber == 1)
 		{
-			aPlayer->setAudioToPlay(pull_index);
-			aPlayer->loop = true;
-			aPlayer->play();
+			if (!owner->powerUpHookTemplate(&PowerUp::onBowPull))
+			{
+				aPlayer->setAudioToPlay(pull_index);
+				aPlayer->loop = true;
+				aPlayer->play();
+			}
 		}
 		// V1: In order to bow and arrow rotate algon, abs rotation center has to be the same
 		// V2: Modifying the rotation center along the arrow position does the trick
@@ -83,8 +87,12 @@ void Bow::beforeAnimationFrame(Animation* anim, int frameNumber)
 		// Play Sound effect
 		if (frameNumber == 1)
 		{
-			aPlayer->setAudioToPlay(rel_index);
-			aPlayer->play();
+			// AfterShoot hook
+			if (!owner->powerUpHookTemplate(&PowerUp::onBowRelease))
+			{
+				aPlayer->setAudioToPlay(rel_index);
+				aPlayer->play();
+			}
 		}
 
         int lastFrame = (anim->frames.size() - 1);
@@ -121,10 +129,13 @@ void Bow::onAnimationFinished(Animation *anim)
 		float charge = owner->chargeBar->getChargeValue();
 		owner->chargeBar->disable();
 
+		// OnShoot hook
+		owner->powerUpHookTemplate<void(PowerUp::*)(float &), float&>(&PowerUp::onShoot, charge);
+
 		// Setting up arrow navigator
 		Navigator* nav = arrow->nav;
 		nav->setDirection(dir);
-		nav->speed = 2 * charge;
+		nav->speed = 1.75f * charge;
 		nav->isEnabled = true;
 
 		// Disable acceleration if max charge
@@ -150,6 +161,13 @@ void Bow::onAnimationFinished(Animation *anim)
 		// Reset pHand position and center
 		owner->pHand->transform.position = Vector2<float>(13, 11);
 		owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
+
+		// AfterShoot hook
+		for (auto power_up_pair : owner->power_ups)
+		{
+			PowerUp* power_up = power_up_pair.second;
+			power_up->afterShoot();
+		}
 	}
 }
 
@@ -197,9 +215,26 @@ void Bow::onUpdate()
 		// Nothing
         break;
     case Bow::BOW_STATE_PULLING:
+	{
 		// Nothing
-		owner->chargeBar->enable();
-        break;
+
+		// Call onPull hook
+		bool interrupt = false;
+		for (auto pu_pair : owner->power_ups)
+		{
+			PowerUp* power_up = pu_pair.second;
+			power_up->beforePull();
+
+			if (!interrupt)
+				interrupt = power_up->interruptDefaultAction();
+		}
+
+		// Don't charge if any buff interrupts
+		if (!interrupt)
+			owner->chargeBar->enable();
+
+		break;
+	}
     case Bow::BOW_STATE_PULLED:
         // Charge Bar
 		if (instant_cast)

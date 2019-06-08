@@ -38,6 +38,7 @@ public:
 	// Audio
 	int pull_index = 0;
 	int rel_index = 0;
+	int rel_special_index = 0;
 
 	// Shoot dir
     double angle = 0;

@@ -6,6 +6,8 @@
 #include "HealthBar.h"
 #include "PowerUp.h"
 
+#include <functional>
+
 Player::Player()
 {
 	// Texture Renderer
@@ -99,9 +101,10 @@ Player::Player()
 	cannon->isActive = false;
 
 	// Add powerup
-	/*
+	
 	addPowerUp(new PowerUpShield(this));
 	addPowerUp(new PowerUpHaste(this));
+	/*
 	addPowerUp(new PowerUpFire(this));
 	addPowerUp(new PowerUpTriple(this));
 	addPowerUp(new PowerUpMirror(this));
@@ -632,14 +635,37 @@ void Player::addPowerUp(PowerUp* power_up)
 	// Set powerUpTimeDisplay parent and position
 	power_up->time_display->transform.parent = &this->transform;
 
+	// OnApply Callback
+	power_up->onApply();
 }
 
 void Player::removePowerUp(PowerUp* power_up)
 {
 	if (power_ups.find(power_up->type) != power_ups.end())
 	{
+		// Remove from list
 		power_ups.erase(power_up->type);
+
+		// onRemove callback
+		power_up->onRemove();
 	}
+}
+
+bool Player::powerUpHook(Player::PowerUpHook hook)
+{
+	bool interrupt = false;
+	for (auto power_up_pair : power_ups)
+	{
+		PowerUp* power_up = power_up_pair.second;
+
+		std::invoke(hook, *power_up);
+
+		// Check interrupt
+		if (!interrupt)
+			interrupt = power_up->interruptDefaultAction();
+	}
+
+	return interrupt;
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

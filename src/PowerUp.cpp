@@ -266,3 +266,62 @@ void PowerUpShield::onKnockback()
 {
 	preventDefaultAction();
 }
+
+// PowerUpHaste class
+
+void PowerUpHaste::beforePull()
+{
+	if (Bow* bow = owner->bow)
+	{
+		// Set to instant_cast
+		bow->instant_cast = true;
+
+		// Prevent enable charge bar
+		preventDefaultAction();
+	}
+}
+
+void PowerUpHaste::onApply()
+{
+	// Increase shoot speed
+	if (Bow* bow = owner->bow)
+	{
+		// Increase animation speed
+		bow->animator->frame_speed = 2.5f;
+	}
+}
+
+void PowerUpHaste::onRemove()
+{
+	// Revert shoot speed
+	if (Bow* bow = owner->bow)
+	{
+		bow->animator->frame_speed = 1;
+	}
+}
+
+void PowerUpHaste::onBowPull()
+{
+	preventDefaultAction();
+}
+
+void PowerUpHaste::onShoot(float& charge)
+{
+	charge = 6;
+}
+
+void PowerUpHaste::onBowRelease()
+{
+	if (Bow* bow = owner->bow)
+	{
+		if (AudioPlayer* aPlayer = bow->aPlayer)
+		{
+			// Play special audio
+			aPlayer->setAudioToPlay(bow->rel_special_index);
+			aPlayer->play();
+
+			// Prevent original audio to play
+			preventDefaultAction();
+		}
+	}
+}

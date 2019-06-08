@@ -102,11 +102,22 @@ public:
 	void remove();
 
 	// Hooks
+	virtual void beforeShoot() {};
+	virtual void beforePull() {};
+
 	virtual void onApply() {};
+
 	virtual void onLoadArrow() {};
+	virtual void onShoot(float& charge) {};
+	virtual void onBowPull() {};
+	virtual void onBowRelease() {};
 
 	virtual void onStun() {};
 	virtual void onKnockback() {};
+
+	virtual void onRemove() {};
+
+	virtual void afterShoot() {};
 
 	// Overrided methods
 	void onTimerEnd(Uint8 flag) override;
@@ -134,7 +145,16 @@ class PowerUpHaste : public PowerUp
 {
 public:
 	// Constructor
-	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 15 * 1000){};
+	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 1000){};
+
+	// Overrided methods
+	void beforePull() override;
+
+	void onApply() override;
+	void onRemove() override;
+	void onBowPull() override;
+	void onShoot(float& charge) override;
+	void onBowRelease() override;
 };
 
 class PowerUpFire : public PowerUp

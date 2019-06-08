@@ -110,6 +110,8 @@ public:
 		MOV_DIR_RIGHT
 	};
 
+	typedef void (PowerUp::*PowerUpHook)();
+
 	void jump();
 	void fast_fall();
 	void strafe(MovDirection dir);
@@ -117,6 +119,25 @@ public:
 	void increase_skill_points(float skill_points);
 	void addPowerUp(PowerUp* power_up);
 	void removePowerUp(PowerUp* power_up);
+	bool powerUpHook(PowerUpHook hook);
+
+	template<typename MemFn, typename ... Params>
+	bool powerUpHookTemplate(MemFn hook, Params ... params)
+	{
+		bool interrupt = false;
+		for (auto power_up_pair : power_ups)
+		{
+			PowerUp* power_up = power_up_pair.second;
+
+			std::invoke(hook, *power_up, params...);
+
+			// Check interrupt
+			if (!interrupt)
+				interrupt = power_up->interruptDefaultAction();
+		}
+
+		return interrupt;
+	}
 
 		// Status effects
 	void stun(int duration);
