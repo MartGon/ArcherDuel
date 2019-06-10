@@ -95,19 +95,25 @@ void Arrow::onColliderEnter(Collider* collider)
 		aPlayer->play();
 
 		// Increase owner skill points
-		if(owner != player)
-			owner->increase_skill_points(25);
+		if (owner)
+		{
+			if (owner != player)
+				owner->increase_skill_points(25);
+		}
 
 		// We don't wait for timer
 		wait_timer = false;
 	}
 	else if (Tower* tower = dynamic_cast<Tower*>(collider->gameObject))
 	{
+		// OnImpact hook
+		onImpactGameObject(collider);
+
 		// Deal dmg to the tower
 		tower->takeDamage(nav->speed);
 
 		// Set dmg label
-		dmg_label->setText(std::to_string((int)nav->speed));
+		dmg_label->setText(std::to_string((int)std::round(nav->speed)));
 
 		// Enable dmg label
 		dmg_label->isActive = true;
@@ -120,7 +126,8 @@ void Arrow::onColliderEnter(Collider* collider)
 		//std::cout << "This arrow did " << nav->speed << "dmg \n";
 
 		// Increase owner skill points
-		owner->increase_skill_points(nav->speed / 2);
+		if(owner)
+			owner->increase_skill_points(nav->speed / 2);
 
 		// Play random building sound
 		int index = Random::getRandomUniformInteger(audio_impact_building_1, audio_impact_building_2);
@@ -129,18 +136,20 @@ void Arrow::onColliderEnter(Collider* collider)
 	}
 	else if (Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject))
 	{
-		// Set both arrows to vanish
-		tRenderer->isVanishing = true;
-		arrow->tRenderer->isVanishing = true;
-
-		// We don't wait for timer
-		wait_timer = false;
-
 		// Increase owner skill points
 		if (arrow->owner != owner)
+		{
+			// Set both arrows to vanish
+			tRenderer->isVanishing = true;
+			arrow->tRenderer->isVanishing = true;
+
 			owner->increase_skill_points(30);
+		}
 		else
 		{
+			// We don't wait for timer
+			wait_timer = false;
+
 			// Re-enable components
 			nav->isEnabled = true;
 			rotCollider->isEnabled = true;
@@ -170,7 +179,8 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Play sound effect
 
 		// Give effect to owner
-		owner->addPowerUp(power_up_object->getPowerUp(owner));
+		if(owner)
+			owner->addPowerUp(power_up_object->getPowerUp(owner));
 	}
 
 	// Return if we dont have to create a timer
@@ -191,7 +201,20 @@ void Arrow::afterMove()
 
 	// Check for valid position
 	if (!LevelOne::isObjectPositionValid(this))
+	{
+		if (owner)
+		{
+			if (LevelOne* level = owner->level)
+			{
+				bool interrupt = owner->powerUpHookTemplate(&PowerUp::onArrowOutofBounds, level, this);
+
+				if (interrupt)
+					return;
+			}
+		}
+
 		onVanish();
+	}
 }
 
 void Arrow::onUpdate()
@@ -215,3 +238,60 @@ void Arrow::onTimerEnd(Uint8 flag)
 	tRenderer->isVanishing = true;
 }
 // TODO - Los colliders de la flecha no aparecen ir acordes al movimiento. HACK: Poner el navigator antes del collider
+
+// Class FireArrow
+
+FireArrow::FireArrow() : Arrow()
+{
+	// Create animator
+	MapRGB mapRGB;
+	mapRGB.green = 255;
+	animator = setComponent(new Animator("FireArrowIdle", &mapRGB, tRenderer, 5));
+	
+	// Set animation
+	idle = animator->currentAnimation;
+	idle->loop = true;
+	for (auto frame : idle->frames)
+	{
+		frame->duration = 5;
+	}
+}
+
+// Overrided Methods
+
+void FireArrow::onImpactGameObject(Collider* col)
+{
+	// Increase arrow dmg by 50%
+	nav->speed = nav->speed * 1.5f;
+
+	// Tower case
+	if (GameObject* go = col->gameObject)
+	{
+		if (Tower* tower = dynamic_cast<Tower*>(go))
+		{
+			if (tower->fires.find(col->id) == tower->fires.end())
+				return;
+
+			// Enable fire
+			Fire* fire = tower->fires.at(col->id);
+			fire->isActive = true;
+
+			// Activate timer
+			fire->timer->reset();
+
+			// Check if it's last fire block
+			if (tower->isCompletelyOnFire())
+			{
+				// Now take bonus dmg
+				tower->takeDamage(100);
+
+				// Disable fires
+				tower->disableFires();
+
+				// Increase skill points
+				if (owner)
+					owner->increase_skill_points(25);
+			}
+		}
+	}
+}

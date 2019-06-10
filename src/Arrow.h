@@ -37,4 +37,22 @@ public:
     void onUpdate() override;
 	void onVanish() override;
 	void onTimerEnd(Uint8 flag) override;
+
+	// Own Hooks
+	virtual void onImpactGameObject(Collider* go) {};
+};
+
+class FireArrow : public Arrow
+{
+public:
+	FireArrow();
+
+	// Components
+	Animator* animator = nullptr;
+
+	// Animation
+	Animation* idle = nullptr;
+
+	// Overrided Methods
+	void onImpactGameObject(Collider* col) override;
 };

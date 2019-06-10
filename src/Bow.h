@@ -62,7 +62,7 @@ public:
 	bool OnHandleEvent(const SDL_Event &event) override;
 
 	// Own Methods
-	Vector2<float> getArrowInitialPosition(bool reversed = false);
+	Vector2<float> getArrowInitialPosition(Arrow* arrow);
 	void reset();
 
 	// Aiming
@@ -72,7 +72,8 @@ public:
 	// Arrow
 	void launchArrow(Arrow* arrow, float charge);
     void rotateArrow();
-	Arrow* loadArrow();
+	Arrow* loadArrow(Arrow* arrow = nullptr);
+	void prepareArrow(Arrow* arrow);
 
 	// Shooting
 	void draw();

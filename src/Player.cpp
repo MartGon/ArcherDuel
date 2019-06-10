@@ -102,14 +102,16 @@ Player::Player()
 
 	// Add powerup
 	
-	addPowerUp(new PowerUpTriple(this));
+	//addPowerUp(new PowerUpThunderStrike(this));
 
-	
-	addPowerUp(new PowerUpShield(this));
-	addPowerUp(new PowerUpHaste(this));
-	/*
 	addPowerUp(new PowerUpFire(this));
-	addPowerUp(new PowerUpMirror(this));
+	addPowerUp(new PowerUpTriple(this));
+	//addPowerUp(new PowerUpHaste(this));
+
+	//addPowerUp(new PowerUpMirror(this));
+
+	/*
+	addPowerUp(new PowerUpShield(this));
 	*/
 }
 

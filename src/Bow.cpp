@@ -248,14 +248,14 @@ bool Bow::OnHandleEvent(const SDL_Event &event)
 
 // Own methods
 
-Vector2<float> Bow::getArrowInitialPosition(bool reversed)
+Vector2<float> Bow::getArrowInitialPosition(Arrow* arrow)
 {
 	// With original scale is Vector2<float>(6, 13)
 
-    if(reversed)
-        return Vector2<float>(-3, 7.f);
-    else
-        return Vector2<float>(3, 7.f);
+	if (FireArrow* fire_arrow = dynamic_cast<FireArrow*>(arrow))
+		return Vector2<float>(3, 5.5f);
+
+	return Vector2<float>(3, 7.f);
 }
 
 void Bow::reset()
@@ -263,7 +263,7 @@ void Bow::reset()
 	// Arrow position
 	if (arrow)
 	{
-		arrow->transform.position = getArrowInitialPosition();
+		arrow->transform.position = getArrowInitialPosition(arrow);
 		arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 	}
 
@@ -279,11 +279,26 @@ void Bow::reset()
 	owner->pHand->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 }
 
-Arrow* Bow::loadArrow()
+Arrow* Bow::loadArrow(Arrow* arrow)
 {
-	// Create new arrow
-    Arrow* arrow = new Arrow();
+	// Before LoadArrowHook
+	owner->powerUpHookTemplate<void(PowerUp::*)(Arrow*&), Arrow*&>(&PowerUp::beforeLoadArrow,arrow);
 
+	// Create new arrow
+	if(!arrow)
+		arrow = new Arrow();
+
+	// Set arrow pos and refs
+	prepareArrow(arrow);
+
+	// On LoadArrowHook
+	owner->powerUpHookTemplate(&PowerUp::onLoadArrow, arrow);
+
+	return arrow;
+}
+
+void Bow::prepareArrow(Arrow* arrow)
+{
 	// Set owner
 	arrow->owner = owner;
 
@@ -293,13 +308,8 @@ Arrow* Bow::loadArrow()
 
 	// Adjust transform
 	Vector2<int> absCenter = this->getAbsoluteRotationCenter();
-    arrow->transform.position = getArrowInitialPosition();
+	arrow->transform.position = getArrowInitialPosition(arrow);
 	arrow->setAbsoluteRotationCenter(absCenter);
-
-	// On LoadArrowHook
-	owner->powerUpHookTemplate(&PowerUp::onLoadArrow, arrow);
-
-	return arrow;
 }
 
 void Bow::aimBow(Vector2<float> target) 

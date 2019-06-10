@@ -9,6 +9,8 @@ class PowerUp;
 class TextLabel;
 class Bow;
 class Arrow;
+class FireArrow;
+class LevelOne;
 
 enum PowerUpType
 {
@@ -106,6 +108,7 @@ public:
 	// Hooks
 
 	// Before Hooks
+	virtual void beforeLoadArrow(Arrow*& arrow_to_load) {};
 	virtual void beforeShoot() {};
 	virtual void beforePull() {};
 
@@ -117,6 +120,9 @@ public:
 	virtual void onShoot(float& charge) {};
 	virtual void onBowPull() {};
 	virtual void onBowRelease() {};
+
+	// Arrow
+	virtual void onArrowOutofBounds(LevelOne* level, Arrow* arrow) {};
 
 	// Status effect
 	virtual void onStun() {};
@@ -169,7 +175,13 @@ public:
 class PowerUpFire : public PowerUp
 {
 public:
-	PowerUpFire(Player* owner) : PowerUp(owner, POWER_UP_FIRE, 20 * 1000) {};
+	PowerUpFire(Player* owner) : PowerUp(owner, POWER_UP_FIRE, 5 * 1000) {};
+
+	// Overrided Methods
+	void beforeLoadArrow(Arrow*& arrow_to_load) override;
+
+	void onApply() override;
+	void onRemove() override;
 };
 
 class PowerUpTriple : public PowerUp
@@ -197,11 +209,21 @@ public:
 class PowerUpThunderStrike : public PowerUp
 {
 public:
-	PowerUpThunderStrike(Player* owner) : PowerUp(owner, POWER_UP_THUNDERSTRIKE, 0) {};
+	PowerUpThunderStrike(Player* owner) : PowerUp(owner, POWER_UP_THUNDERSTRIKE, 5* 1000) {};
+
+	// Overrided methods
+	void onRemove();
+
+	// Own methods
+	void launchArrowAgainstTarget(Player* target, Arrow* arrow, float offset);
+	Arrow* getArrow();
 };
 
 class PowerUpMirror : public PowerUp
 {
 public:
 	PowerUpMirror(Player* owner) : PowerUp(owner, POWER_UP_MIRROR, 30 * 1000) {};
+
+	// Overrided methods
+	void onArrowOutofBounds(LevelOne* level, Arrow* arrow) override;
 };

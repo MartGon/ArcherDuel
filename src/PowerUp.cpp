@@ -3,6 +3,7 @@
 #include "Bow.h"
 #include "Arrow.h"
 #include "TextLabel.h"
+#include "LevelOne.h"
 
 #include <sstream>
 #include <iomanip>
@@ -335,7 +336,13 @@ void PowerUpHaste::onBowRelease()
 Arrow* PowerUpTriple::createExtraArrow(Arrow* arrow, Bow* bow)
 {
 	// Create extra arrow
-	Arrow* extra_arrow = new Arrow();
+	Arrow* extra_arrow = nullptr;
+
+	// Check arrow type
+	if (dynamic_cast<FireArrow*>(arrow))
+		extra_arrow = new FireArrow();
+	else
+		extra_arrow = new Arrow();
 
 	// Copy refs
 	extra_arrow->bow = bow;
@@ -392,6 +399,12 @@ void PowerUpTriple::afterShoot(float charge)
 {
 	if (Bow* bow = owner->bow)
 	{
+		// Return if arrows don't exist
+		if (!uArrow)
+			return;
+		if (!dArrow)
+			return;
+
 		// Launch both arrows
 		bow->launchArrow(uArrow, charge);
 		bow->launchArrow(dArrow, charge);
@@ -447,4 +460,190 @@ void PowerUpTriple::afterAimBow()
 		}
 
 	}
+}
+
+// PowerUpFire Class
+
+// Overrided Methods
+
+void PowerUpFire::beforeLoadArrow(Arrow*& arrow_to_load)
+{
+	// Arrow_to_load should be nulltpr
+	if (!arrow_to_load)
+	{
+		// Create fire Arrow instead
+		arrow_to_load = new FireArrow();
+	}
+}
+
+void PowerUpFire::onApply()
+{
+	if (Bow* bow = owner->bow)
+	{
+		if (Arrow* arrow = bow->arrow)
+		{
+			// Do nothing if the arrow is already on fire
+			if (dynamic_cast<FireArrow*>(arrow))
+				return;
+
+			// Create FireArrow
+			FireArrow* fire_arrow = new FireArrow();
+
+			// Destroy previous arrow
+			bow->arrow->onVanish();
+
+			// Set bow's arrow pointing to new fire_arrow
+			bow->arrow = fire_arrow;
+
+			// Prepare arrow
+			bow->prepareArrow(fire_arrow);
+		}
+	}
+
+	// Check for triple bonus
+	if (owner->power_ups.find(POWER_UP_TRIPLE) != owner->power_ups.end())
+	{
+		if (PowerUpTriple* triple = dynamic_cast<PowerUpTriple*>(owner->power_ups[POWER_UP_TRIPLE]))
+		{
+			// Destroy previous arrows
+			if(triple->uArrow)
+				triple->uArrow->onVanish();
+			if(triple->dArrow)
+				triple->dArrow->onVanish();
+
+			// Create new arrows
+			if (Bow* bow = owner->bow)
+			{
+				if (Arrow* arrow = bow->arrow)
+					triple->loadTwoExtraArrows(bow, arrow);
+			}
+		}
+	}
+}
+
+void PowerUpFire::onRemove()
+{
+	if (Bow* bow = owner->bow)
+	{
+		if (Arrow* arrow = bow->arrow)
+		{
+			if (dynamic_cast<FireArrow*>(arrow))
+			{
+				// Destroy previous arrow
+				bow->arrow->onVanish();
+
+				// Set bow's arrow pointing to new fire_arrow
+				bow->arrow = new Arrow();
+
+				// Prepare arrow
+				bow->prepareArrow(bow->arrow);
+			}
+		}
+	}
+
+	// Check for triple buff
+	if (owner->power_ups.find(POWER_UP_TRIPLE) != owner->power_ups.end())
+	{
+		if (PowerUpTriple* triple = dynamic_cast<PowerUpTriple*>(owner->power_ups[POWER_UP_TRIPLE]))
+		{
+			// Destroy previous arrows
+			if (triple->uArrow)
+				triple->uArrow->onVanish();
+			if (triple->dArrow)
+				triple->dArrow->onVanish();
+
+			// Create new arrows
+			if (Bow* bow = owner->bow)
+			{
+				if (Arrow* arrow = bow->arrow)
+					triple->loadTwoExtraArrows(bow, arrow);
+			}
+		}
+	}
+}
+
+// Class PowerUpMirror
+
+// Overrided methods
+
+void PowerUpMirror::onArrowOutofBounds(LevelOne* level, Arrow* arrow)
+{
+	// Prevent arrow vanish
+	preventDefaultAction();
+
+	// Get arrow pos
+	auto pos = arrow->transform.position;
+
+	// Reposition
+	if (pos.x > level->LEVEL_WIDTH)
+		arrow->transform.position.x = -15;
+	else
+		arrow->transform.position.x = level->LEVEL_WIDTH;
+}
+
+// Class PowerUpThunderStrike
+
+void PowerUpThunderStrike::onRemove()
+{
+	if (LevelOne* level = owner->level)
+	{
+		// Find targets
+		for (auto player : level->players)
+		{
+			// Launch arrow against this target if different team
+			if (player->player_team != owner->player_team)
+			{
+				// Create arrow and launch
+				Arrow* arrow = getArrow();
+				launchArrowAgainstTarget(player, arrow, 0);
+
+				// Check for triple buff
+				if (owner->power_ups.find(POWER_UP_TRIPLE) != owner->power_ups.end())
+				{
+					// Left Arrow
+					Arrow* lArrow = getArrow();
+					launchArrowAgainstTarget(player, lArrow, -5);
+
+					// Right Arrow
+					Arrow* rArrow = getArrow();
+					launchArrowAgainstTarget(player, rArrow, 5);
+				}
+				
+			}
+		}
+	}
+}
+
+void PowerUpThunderStrike::launchArrowAgainstTarget(Player* target, Arrow* arrow, float offset)
+{
+	// Get target pos
+	auto target_pos = target->transform.position;
+
+	// Set postion
+	arrow->transform.position = Vector2<float>(target_pos.x + offset, -10);
+
+	// Get dir Vector
+	Vector2<float> dir = target_pos - arrow->transform.position;
+
+	// Setting up arrow navigator
+	Navigator* nav = arrow->nav;
+	nav->setDirection(dir);
+	nav->speed = 1.75f * 6;
+	nav->isEnabled = true;
+
+	// Enable collider
+	arrow->rotCollider->isEnabled = true;
+}
+
+Arrow* PowerUpThunderStrike::getArrow()
+{
+	Arrow* arrow = nullptr;
+
+	// Create fire arrow if playes has buff
+	if (owner->power_ups.find(POWER_UP_FIRE) != owner->power_ups.end())
+		arrow = new FireArrow();
+	else
+		arrow = new Arrow();
+
+	return arrow;
 }

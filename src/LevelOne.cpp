@@ -456,9 +456,9 @@ bool LevelOne::isObjectPositionValid(GameObject* go)
 	if (!go->isActive)
 		return true;
 
-	const int left_limit = -100;
-	const int right_limit = LEVEL_WIDTH + 100;
-	const int down_limit = LEVEL_HEIGHT + 100;
+	const int left_limit = -15;
+	const int right_limit = LEVEL_WIDTH + 15;
+	const int down_limit = LEVEL_HEIGHT + 15;
 	Vector2<float> pos = go->transform.position;
 	bool isInside = pos.x > left_limit && pos.x < right_limit && pos.y < down_limit;
 
