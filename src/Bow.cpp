@@ -166,10 +166,14 @@ void Bow::onUpdate()
 			{
 				if (state == BOW_STATE_IDLE)
 				{
-					// Pull Bow
-					animator->setCurrentAnimation(pull);
-					animator->isEnabled = true;
-					state = BOW_STATE_PULLING;
+					// Check for arrow availability
+					if (arrow)
+					{
+						// Pull Bow
+						animator->setCurrentAnimation(pull);
+						animator->isEnabled = true;
+						state = BOW_STATE_PULLING;
+					}
 				}
 			}
 			if (SceneManager::scene->inputManager->isMouseEvent(SDL_BUTTON_LEFT, player->network_owner, KeyEvent::UP))

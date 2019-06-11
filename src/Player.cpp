@@ -106,7 +106,7 @@ Player::Player()
 
 	addPowerUp(new PowerUpFire(this));
 	addPowerUp(new PowerUpTriple(this));
-	//addPowerUp(new PowerUpHaste(this));
+	addPowerUp(new PowerUpHaste(this));
 
 	//addPowerUp(new PowerUpMirror(this));
 

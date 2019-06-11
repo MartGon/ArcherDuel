@@ -7,6 +7,7 @@
 #include "Button.h"
 #include "PowerUp.h"
 #include "SceneManager.h"
+#include "MainMenu.h"
 
 Arrow::Arrow()
 {
@@ -15,9 +16,9 @@ Arrow::Arrow()
 	template_id = 1;
 
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->blue = 0xFF;
-	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", colorKey, 254));
+	MapRGB colorKey;
+	colorKey.blue = 0xFF;
+	tRenderer = setComponent(new TextureRenderer("ArrowTrim.png", &colorKey, 254));
 
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);
@@ -158,7 +159,7 @@ void Arrow::onColliderEnter(Collider* collider)
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))
 	{
 		// Only during Menu
-		if(!SceneManager::scene->isOnline())
+		if(dynamic_cast<MainMenu*>(SceneManager::scene))
 			button->click();
 
 		// We don't wait for timer

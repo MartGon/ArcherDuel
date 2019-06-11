@@ -219,6 +219,6 @@ void Cannon::onVanish()
 	support->getComponent<TextureRenderer>()->isVanishing = false;
 
 	// Reset alpha values
-	tRenderer->texture.setAlpha(255);
-	support->getComponent<TextureRenderer>()->texture.setAlpha(255);
+	tRenderer->alpha = SDL_ALPHA_OPAQUE;
+	support->getComponent<TextureRenderer>()->alpha = SDL_ALPHA_OPAQUE;
 }
