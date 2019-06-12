@@ -162,7 +162,7 @@ void Bow::onUpdate()
 	{
 		if (!player->isAI)
 		{
-			if (SceneManager::scene->inputManager->isMouseEvent(SDL_BUTTON_LEFT, player->network_owner, KeyEvent::DOWN))
+			if (shootInput())
 			{
 				if (state == BOW_STATE_IDLE)
 				{
@@ -251,6 +251,21 @@ bool Bow::OnHandleEvent(const SDL_Event &event)
 }
 
 // Own methods
+
+bool Bow::shootInput()
+{
+	bool result = false;
+	if (Player* player = owner)
+	{
+		// Check for normal input
+		result = SceneManager::scene->inputManager->isMouseEvent(SDL_BUTTON_LEFT, player->network_owner, KeyEvent::DOWN);
+
+		// Check for powerup input
+		player->powerUpHookTemplate(&PowerUp::onShootInputCheck, &result);
+	}
+
+	return result;
+}
 
 Vector2<float> Bow::getArrowInitialPosition(Arrow* arrow)
 {
@@ -412,4 +427,7 @@ void Bow::launchArrow(Arrow* arrow, float charge)
 
 	// Enabling arrow collider
 	arrow->rotCollider->isEnabled = true;
+
+	// Set to disappeart after 15 seconds of flight
+	arrow->timer = arrow->setComponent(new TimerComponent(15 * 1000));
 }

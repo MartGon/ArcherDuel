@@ -99,20 +99,6 @@ Player::Player()
 	// Create cannon
 	cannon = new Cannon();
 	cannon->isActive = false;
-
-	// Add powerup
-	
-	//addPowerUp(new PowerUpThunderStrike(this));
-
-	addPowerUp(new PowerUpFire(this));
-	addPowerUp(new PowerUpTriple(this));
-	addPowerUp(new PowerUpHaste(this));
-
-	//addPowerUp(new PowerUpMirror(this));
-
-	/*
-	addPowerUp(new PowerUpShield(this));
-	*/
 }
 
 // Network
@@ -312,7 +298,7 @@ void Player::onUpdate()
 					isChargingCannon = true;
 
 					// Start charge bar
-					chargeBar->enable();
+					chargeBar->enable(2);
 
 					// Disable movement
 					mov_enabled = false;
@@ -624,6 +610,9 @@ void Player::addPowerUp(PowerUp* power_up)
 		// Get previous and reset duration
 		PowerUp* prev_power_up = power_ups[power_up->type];
 		prev_power_up->timer->extend(power_up->duration);
+
+		// Onextend hook
+		prev_power_up->onExtend();
 
 		// Delete the recv one
 		power_up->remove();

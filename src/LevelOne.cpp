@@ -193,10 +193,19 @@ void LevelOne::onUpdate()
 		{
 			if (!isPlayerPosValid(player))
 			{
+				// Reset player pos and deactivate
 				resetPlayerPosition(player);
 				player->jump_nav->speed = 1;
 				player->isActive = false;
 				
+				// Remove player buffs
+				while(!player->power_ups.empty())
+				{
+					PowerUp* power_up = player->power_ups.begin()->second;
+					power_up->remove();
+					player->removePowerUp(power_up);
+				}
+
 				// Activate timer
 				player_timers.at(player->id)->timer->reset();
 			}
@@ -310,6 +319,7 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
 	// Spawn power up Object
 	PowerUpType type = (PowerUpType)Random::getRandomUniformInteger(1, 6);
 	PowerUpObject* power_up_object = new PowerUpObject(type);
+	power_up_object->setScale({ 1.5f, 1.5f });
 
 	// Choose a random location
 	Vector2<float> spawn_pos;
@@ -320,7 +330,7 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
 	power_up_object->transform.position = spawn_pos;
 
 	// Reset Timer
-	spawn_pu_timer->timer->delay = Random::getRandomUniformInteger(5, 10) * 1000;
+	spawn_pu_timer->timer->delay = Random::getRandomUniformInteger(6, 12) * 1000;
 	spawn_pu_timer->timer->reset();
 }
 

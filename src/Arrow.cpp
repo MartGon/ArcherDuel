@@ -284,7 +284,7 @@ void FireArrow::onImpactGameObject(Collider* col)
 			if (tower->isCompletelyOnFire())
 			{
 				// Now take bonus dmg
-				tower->takeDamage(100);
+				tower->takeDamage(50);
 
 				// Disable fires
 				tower->disableFires();

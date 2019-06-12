@@ -62,6 +62,7 @@ public:
 	bool OnHandleEvent(const SDL_Event &event) override;
 
 	// Own Methods
+	bool shootInput();
 	Vector2<float> getArrowInitialPosition(Arrow* arrow);
 	void reset();
 

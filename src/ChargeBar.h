@@ -16,7 +16,7 @@ public:
 	float getChargeValue();
 
 	// Hiding
-	void enable();
+	void enable(int framesToMove = 0);
 	void disable();
 
 private:

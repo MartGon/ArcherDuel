@@ -118,6 +118,7 @@ public:
 	// Bow
 	virtual void onLoadArrow(Arrow* arrow) {};
 	virtual void onShoot(float& charge) {};
+	virtual void onShootInputCheck(bool* result) {};
 	virtual void onBowPull() {};
 	virtual void onBowRelease() {};
 
@@ -129,6 +130,7 @@ public:
 	virtual void onKnockback() {};
 
 	virtual void onRemove() {};
+	virtual void onExtend() {};
 
 	// After Hooks
 	virtual void afterAimBow() {};
@@ -160,7 +162,7 @@ class PowerUpHaste : public PowerUp
 {
 public:
 	// Constructor
-	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 100000){};
+	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 1000){};
 
 	// Overrided methods
 	void beforePull() override;
@@ -169,13 +171,14 @@ public:
 	void onRemove() override;
 	void onBowPull() override;
 	void onShoot(float& charge) override;
+	void onShootInputCheck(bool* result);
 	void onBowRelease() override;
 };
 
 class PowerUpFire : public PowerUp
 {
 public:
-	PowerUpFire(Player* owner) : PowerUp(owner, POWER_UP_FIRE, 5 * 1000) {};
+	PowerUpFire(Player* owner) : PowerUp(owner, POWER_UP_FIRE, 15 * 1000) {};
 
 	// Overrided Methods
 	void beforeLoadArrow(Arrow*& arrow_to_load) override;
@@ -187,7 +190,7 @@ public:
 class PowerUpTriple : public PowerUp
 {
 public:
-	PowerUpTriple(Player* owner) : PowerUp(owner, POWER_UP_TRIPLE, 10 * 100000) {};
+	PowerUpTriple(Player* owner) : PowerUp(owner, POWER_UP_TRIPLE, 10 * 1000) {};
 
 	// Members
 	Arrow* uArrow = nullptr;
@@ -209,12 +212,14 @@ public:
 class PowerUpThunderStrike : public PowerUp
 {
 public:
-	PowerUpThunderStrike(Player* owner) : PowerUp(owner, POWER_UP_THUNDERSTRIKE, 5* 1000) {};
+	PowerUpThunderStrike(Player* owner) : PowerUp(owner, POWER_UP_THUNDERSTRIKE, 5 * 1000) {};
 
 	// Overrided methods
 	void onRemove();
+	void onExtend();
 
 	// Own methods
+	void cast();
 	void launchArrowAgainstTarget(Player* target, Arrow* arrow, float offset);
 	Arrow* getArrow();
 };

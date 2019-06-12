@@ -84,8 +84,9 @@ float ChargeBar::getChargeValue()
 
 // Hiding
 
-void ChargeBar::enable()
+void ChargeBar::enable(int framesToMove)
 {
+	this->framesToMove = framesToMove;
 	this->isActive = true;
 	indicator->isActive = true;
 }

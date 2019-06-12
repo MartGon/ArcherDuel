@@ -41,8 +41,8 @@ public:
 private:
 	// Attributes
 	RoofColor team = ROOF_COLOR_RED;
-	float max_health = 500.0f;
-	float health = 500.0f;
+	float max_health = 1000.0f;
+	float health = 1000.0f;
 };
 
 class Fire : public GameObject

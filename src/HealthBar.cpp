@@ -138,12 +138,14 @@ void StatusBar::setScale(Vector2<float> scale)
 
 void StatusBar::setHealthPercentage(float percent, bool blink)
 {
-	// Store old value
-	blinkFilledBarScaleBefore = blinkFilledBarScaleAfter;
+	// Store old value if not blinking
+	if(!animator->isEnabled)
+		blinkFilledBarScaleBefore = blinkFilledBarScaleAfter;
 	
 	// Calculate new value
 	blinkFilledBarScaleAfter = emptyBarTRenderer->scale.x * percent / 100.0f;
 
+	// Healthbar endings
 	if (percent == 100.0f)
 		rightEndingTRenderer->texture = healthBarEndingFilled;
 	else
@@ -155,6 +157,7 @@ void StatusBar::setHealthPercentage(float percent, bool blink)
 	if (blink)
 	{
 		// Enable animation
+		duration_counter = 0;
 		animator->isEnabled = true;
 	}
 

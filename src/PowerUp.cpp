@@ -63,6 +63,7 @@ PowerUpObject::PowerUpObject(PowerUpType type)
 	std::string icon_path = PowerUpUtil::getIconTexturePathByPowerUpType(type);
 	icon_renderer = icon->setComponent(new TextureRenderer(icon_path.c_str(), colorKey, 254));
 	icon->transform.parent = &this->transform;
+	icon->setScale({ 1.5f, 1.5f });
 
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(16, 16));
@@ -314,6 +315,12 @@ void PowerUpHaste::onShoot(float& charge)
 	charge = 6;
 }
 
+void PowerUpHaste::onShootInputCheck(bool* result)
+{
+	InputManager* iMgr = InputManager::get();
+	*result = iMgr->isMousePressed(SDL_BUTTON_LEFT, owner->network_owner);
+}
+
 void PowerUpHaste::onBowRelease()
 {
 	if (Bow* bow = owner->bow)
@@ -424,12 +431,14 @@ void PowerUpTriple::onRemove()
 		{
 			//uArrow->isActive = false;
 			uArrow->onVanish();
+			uArrow = nullptr;
 		}
 
 		if (dArrow)
 		{
 			//dArrow->isActive = false;
 			dArrow->onVanish();
+			dArrow = nullptr;
 		}
 	}
 }
@@ -506,10 +515,16 @@ void PowerUpFire::onApply()
 		if (PowerUpTriple* triple = dynamic_cast<PowerUpTriple*>(owner->power_ups[POWER_UP_TRIPLE]))
 		{
 			// Destroy previous arrows
-			if(triple->uArrow)
+			if (triple->uArrow)
+			{
 				triple->uArrow->onVanish();
-			if(triple->dArrow)
+				triple->uArrow = nullptr;
+			}
+			if (triple->dArrow)
+			{
 				triple->dArrow->onVanish();
+				triple->uArrow = nullptr;
+			}
 
 			// Create new arrows
 			if (Bow* bow = owner->bow)
@@ -548,9 +563,15 @@ void PowerUpFire::onRemove()
 		{
 			// Destroy previous arrows
 			if (triple->uArrow)
+			{
 				triple->uArrow->onVanish();
+				triple->uArrow = nullptr;
+			}
 			if (triple->dArrow)
+			{
 				triple->dArrow->onVanish();
+				triple->uArrow = nullptr;
+			}
 
 			// Create new arrows
 			if (Bow* bow = owner->bow)
@@ -585,6 +606,19 @@ void PowerUpMirror::onArrowOutofBounds(LevelOne* level, Arrow* arrow)
 
 void PowerUpThunderStrike::onRemove()
 {
+	cast();
+}
+
+void PowerUpThunderStrike::onExtend()
+{
+	cast();
+	timer->due_date = timer->getCurrentTime() + timer->delay;
+}
+
+// Own method
+
+void PowerUpThunderStrike::cast()
+{
 	if (LevelOne* level = owner->level)
 	{
 		// Find targets
@@ -608,7 +642,7 @@ void PowerUpThunderStrike::onRemove()
 					Arrow* rArrow = getArrow();
 					launchArrowAgainstTarget(player, rArrow, 5);
 				}
-				
+
 			}
 		}
 	}
@@ -633,6 +667,9 @@ void PowerUpThunderStrike::launchArrowAgainstTarget(Player* target, Arrow* arrow
 
 	// Enable collider
 	arrow->rotCollider->isEnabled = true;
+
+	// Set arrow owner
+	arrow->owner = owner;
 }
 
 Arrow* PowerUpThunderStrike::getArrow()
