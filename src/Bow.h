@@ -43,7 +43,6 @@ public:
 	// Shoot dir
     double angle = 0;
 	Vector2<float> dir;
-    double angle_inc = 5;
 
 	// GamePlay
 	bool instant_cast = false;

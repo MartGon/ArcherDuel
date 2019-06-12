@@ -29,7 +29,6 @@ public:
 
     // Attributes
 	float skill_points = 0;
-    float health_points = 100;
 	bool isStunned = false;
 	bool isInmunne = false;
 	bool isSkillReady = false;
@@ -79,9 +78,6 @@ public:
 
 	Animation* move = nullptr;
 	Animation* dizzy = nullptr;
-
-	// Network
-	bool shouldUpdate();
 
     // Hooks
 		// General

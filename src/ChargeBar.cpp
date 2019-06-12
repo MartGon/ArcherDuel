@@ -98,4 +98,7 @@ void ChargeBar::disable()
 
 	// Reset position
 	indicator->transform.position.x = lLimit;
+	
+	// Reset counter
+	frameCounter = 0;
 }

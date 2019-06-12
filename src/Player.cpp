@@ -99,30 +99,8 @@ Player::Player()
 	// Create cannon
 	cannon = new Cannon();
 	cannon->isActive = false;
-}
 
-// Network
-
-bool Player::shouldUpdate()
-{
-	if (level)
-	{
-		if (level->isOnline())
-		{
-			if (level->mode == Scene::ONLINE_CLIENT)
-				if (player_number == PlayerNumber::PLAYER_TWO)
-					return true;
-
-			// In server mode we don't move player TWO
-			if (level->mode == Scene::ONLINE_SERVER)
-				if (player_number == PlayerNumber::PLAYER_ONE)
-					return true;
-		}
-		else
-			return true;
-	}
-
-	return false;
+	isSkillReady = true;
 }
 
 // Hooks

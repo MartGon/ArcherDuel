@@ -389,7 +389,6 @@ void PowerUpTriple::loadTwoExtraArrows(Bow* bow, Arrow* main_arrow)
 void PowerUpTriple::onApply()
 {
 	if (Bow* bow = owner->bow)
-		if (bow->state == Bow::BOW_STATE_IDLE)
 			if(Arrow* arrow = bow->arrow)
 				loadTwoExtraArrows(bow, arrow);
 }

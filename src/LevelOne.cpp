@@ -179,11 +179,6 @@ void LevelOne::placeFloorBlocks()
 	}
 }
 
-void LevelOne::onClickBow()
-{
-
-}
-
 void LevelOne::onUpdate()
 {
 	// Check for players position
@@ -225,55 +220,6 @@ void LevelOne::onUpdate()
 		framerate_display->setText(std::to_string(frame_rate));
 		std::cout << "FPS: " << frame_rate << "\n";
 	}
-}
-
-void LevelOne::OnHandleEvent(const SDL_Event& event)
-{
-	TextureRenderer *aRenderer = nullptr;
-	if (event.type == SDL_KEYDOWN)
-	{
-		switch (event.key.keysym.sym)
-		{
-		case SDLK_UP:
-			moveCamera(0, -cam_speed);
-			break;
-		case SDLK_DOWN:
-			moveCamera(0, cam_speed);
-			break;
-		case SDLK_RIGHT:
-			moveCamera(cam_speed, 0);
-			break;
-		case SDLK_LEFT:
-			moveCamera(-cam_speed, 0);
-			break;
-		case SDLK_PLUS:
-			cam_speed++;
-			break;
-		case SDLK_MINUS:
-			cam_speed--;
-			break;
-		case SDLK_3:
-			free_camera = false;
-			isPaused = false;
-			break;
-		case SDLK_4:
-			free_camera = true;
-			isPaused = true;
-			break;
-		case SDLK_m:
-			printMousePos();
-			if (player)
-			{
-				player->stun(240);
-				player->knockback(Vector2<float>(1, 0), 4);
-			}
-			if (player2)
-				player2->stun(120);
-			break;
-		default:
-			break;
-		}
-	}	
 }
 
 GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
@@ -332,72 +278,6 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
 	// Reset Timer
 	spawn_pu_timer->timer->delay = Random::getRandomUniformInteger(6, 12) * 1000;
 	spawn_pu_timer->timer->reset();
-}
-
-void LevelOne::moveCamera(int xOffset, int yOffset)
-{
-	Vector2<int> cam_pos = RendererManager::getCameraPosition();
-
-	cam_pos.x += xOffset;
-	cam_pos.y += yOffset;
-
-	RendererManager::setCameraPosition(cam_pos, Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
-}
-
-void LevelOne::printMousePos()
-{
-	Vector2<int> mouse_pos;
-
-	SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
-
-	auto scaler = RendererManager::getScaler();
-	mouse_pos = (Vector2<float>)mouse_pos / scaler;
-
-	std::cout << "Mouse pos is (" << mouse_pos.x << ", " << mouse_pos.y << ") " << std::endl;
-}
-
-// Gamestate 
-
-bool LevelOne::canPlayerAct(Player* player)
-{
-    switch (turn)
-    {
-    case PLAYER_ONE_TURN:
-        if (player == this->player)
-            return true;
-        break;
-    case PLAYER_TWO_TURN:
-        if (player == this->player2)
-            return true;
-        break;
-    default:
-        break;
-    }
-
-    return false;
-}
-
-void LevelOne::finishTurn()
-{
-    turn = (PlayerTurn)((turn + 1) % 2);
-
-    switch (turn)
-    {
-    case PLAYER_ONE_TURN:
-        if (player->bow->arrow)
-            return;
-
-        player->bow->loadArrow();
-        break;
-    case PLAYER_TWO_TURN:
-        if (player2->bow->arrow)
-            return;
-
-        player2->bow->loadArrow();
-        break;
-    default:
-        break;
-    }
 }
 
 // Game
