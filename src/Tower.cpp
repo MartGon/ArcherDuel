@@ -69,6 +69,17 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 
 	// Create fires
 	createFires();
+
+	// Set fire combo audio player
+	aPlayer = setComponent(new AudioPlayer());
+	fire_combo = aPlayer->addAudioToList(aPlayer->loadAudioFile("fire_combo.wav"));
+	aPlayer->setAudioToPlay(fire_combo);
+	aPlayer->pause();
+
+	// Set fire audio player
+	fire_aPlayer = setComponent(new AudioPlayer("fire.wav"));
+	fire_aPlayer->loop = true;
+	fire_aPlayer->pause();
 }
 
 Tower::Tower(LevelOne* level_one, RoofColor roofColor) : Tower(roofColor)
@@ -77,6 +88,21 @@ Tower::Tower(LevelOne* level_one, RoofColor roofColor) : Tower(roofColor)
 }
 
 // Overrided Methods
+
+void Tower::onUpdate()
+{
+	for (auto fire_pair : fires)
+	{
+		Fire* fire = fire_pair.second;
+		if (fire->isActive)
+		{
+			fire_aPlayer->play();
+			return;
+		}
+	}
+	
+	fire_aPlayer->pause();
+}
 
 void Tower::onColliderEnter(Collider * collider)
 {

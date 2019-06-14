@@ -292,6 +292,9 @@ void FireArrow::onImpactGameObject(Collider* col)
 				// Increase skill points
 				if (owner)
 					owner->increase_skill_points(25);
+
+				// Play sound effect
+				tower->aPlayer->play();
 			}
 		}
 	}

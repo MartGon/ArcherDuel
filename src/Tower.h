@@ -1,5 +1,7 @@
 #include "GameObject.h"
 
+#include "AudioPlayer.h"
+
 #include <unordered_map>
 
 class TimerComponent;
@@ -23,13 +25,19 @@ public:
 	LevelOne* level_one = nullptr;
 
 	// Components
-	TextureRenderer* tRenderer;
+	AudioPlayer* aPlayer = nullptr;
+	AudioPlayer* fire_aPlayer = nullptr;
+	TextureRenderer* tRenderer = nullptr;
+
+	// Audios
+	int fire_combo = 0;
 
 	// Inner GameObjects
 	StatusBar* healthBar = nullptr;
 	std::unordered_map<unsigned int, Fire*> fires;
 
 	// Overrided methods
+	void onUpdate() override;
 	void onColliderEnter(Collider* collider) override;
 
 	// Own Methods

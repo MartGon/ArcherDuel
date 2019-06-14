@@ -61,12 +61,16 @@ public:
 	GameObject* dizzy_effect = nullptr;
 
 	// Components
+	AudioPlayer* aPlayer = nullptr;
 	TextureRenderer* tRenderer = nullptr;
 	BoxCollider* bCollider = nullptr;
 	Animator* animator = nullptr;
 	Navigator* mov_nav = nullptr;
 	Navigator* knock_nav = nullptr;
 	Navigator* jump_nav = nullptr;
+
+	// Audio
+	int power_up_sf = 0;
 
 	// Animation
 	enum PlayerAnimation

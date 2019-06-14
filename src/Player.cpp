@@ -100,7 +100,11 @@ Player::Player()
 	cannon = new Cannon();
 	cannon->isActive = false;
 
-	isSkillReady = true;
+	// Setup audio player
+	aPlayer = setComponent(new AudioPlayer());
+	power_up_sf = aPlayer->addAudioToList(aPlayer->loadAudioFile("PowerUp22.wav"));
+	aPlayer->setAudioToPlay(power_up_sf);
+	aPlayer->pause();
 }
 
 // Hooks
@@ -568,8 +572,14 @@ void Player::increase_skill_points(float skill_points)
 		this->skill_points = 100.0f;
 
 		// Activate skill if not yet ready
-		if(!isSkillReady)
+		if (!isSkillReady)
+		{
+			// Set flag
 			isSkillReady = true;
+
+			// Play sound effect
+			aPlayer->play();
+		}
 	}
 
 	// Modify bar
