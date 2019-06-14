@@ -34,11 +34,7 @@ void LevelOne::loadMedia()
 	setManager(aManager);
 	
 	// Renderer Manager
-	if (isOnline())
-		setManager(new RendererManager(10));
-	else
-		setManager(new RendererManager(0));
-	
+	setManager(new RendererManager());
 
 	// Background
 	GameObject *background = new GameObject();
@@ -213,8 +209,11 @@ void LevelOne::onUpdate()
 	previous_ticks = frame_ticks;
 	Uint32 frame_rate = (Uint32)(1.0f / (float)((float)diff / 1000.0f));
 
-	if(last_packet)
-		framerate_display->setText(std::to_string(last_packet->frame_count));
+	if (isOnline())
+	{
+		framerate_display->setText(std::to_string(calc_frame_count));
+		//std::cout << "Frame is: " << last_packet->frame_count << "\n";
+	}
 	else
 	{
 		framerate_display->setText(std::to_string(frame_rate));
