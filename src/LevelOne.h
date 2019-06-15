@@ -52,6 +52,7 @@ public:
     PlayerTurn turn = PLAYER_ONE_TURN;
 
 	// Game
+	MapRGB getColorMod(PlayerNumber number);
 	Vector2<float> getCannonBarPos(PlayerNumber number);
 	NetworkOwner getNetworkOwner(PlayerNumber number);
 	Vector2<float> getPlayerPos(PlayerNumber number);

@@ -211,6 +211,30 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
 
 // Game
 
+MapRGB LevelOne::getColorMod(PlayerNumber player_number)
+{
+	MapRGB color(0, 0, 0);
+
+	switch (player_number)
+	{
+	case PlayerNumber::PLAYER_TWO:
+		color.blue = 255;
+		break;
+	case PlayerNumber::PLAYER_THREE:
+		color.red = 255;
+		color.green = 255;
+		break;
+	case PlayerNumber::PLAYER_FOUR:
+		color.green = 255;
+		break;
+	default:
+		color.red = 255;
+		break;
+	}
+
+	return color;
+}
+
 Vector2<float> LevelOne::getCannonBarPos(PlayerNumber player_number)
 {
 	Vector2<float> pos;
@@ -283,7 +307,7 @@ Player* LevelOne::createPlayer(PlayerNumber player_number)
 	player->level = this;
 
 	// Set player team
-	player->player_team = static_cast<int>(player_number) & 1 ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
+	player->player_team = static_cast<int>(player_number) & 1 ? Player::PlayerTeam::RED_TEAM : Player::PlayerTeam::BLUE_TEAM;
 
 	// Set player tower
 	player->tower = static_cast<int>(player_number) & 1 ? tower : tower2;
@@ -294,6 +318,7 @@ Player* LevelOne::createPlayer(PlayerNumber player_number)
 	skill_bar->setScale({ 48, 1 });
 	skill_bar->setHealthPercentage(0);
 	skill_bar->tLabel->setText("Cannon");
+	skill_bar->tLabel->setTextColor(getColorMod(player_number));
 	skill_bar->transform.position = getCannonBarPos(player_number);
 	player->skill_bar = skill_bar;
 
@@ -354,9 +379,11 @@ void LevelOne::resetPlayerPosition(Player* player)
 	switch (pn)
 	{
 	case PlayerNumber::PLAYER_ONE:
+	case PlayerNumber::PLAYER_THREE:
 		player->transform.position = Vector2<float>(64, LEVEL_HEIGHT - 143);
 		break;
 	case PlayerNumber::PLAYER_TWO:
+	case PlayerNumber::PLAYER_FOUR:
 		player->transform.position = Vector2<float>(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 		break;
 	default:
