@@ -79,6 +79,7 @@ Tower::Tower(RoofColor roofColor) : GameObject()
 	// Set fire audio player
 	fire_aPlayer = setComponent(new AudioPlayer("fire.wav"));
 	fire_aPlayer->loop = true;
+	fire_aPlayer->volume = 50;
 	fire_aPlayer->pause();
 }
 

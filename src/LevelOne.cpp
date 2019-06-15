@@ -32,8 +32,6 @@ void LevelOne::loadMedia()
 	AudioManager* aManager = new AudioManager();
 	aManager->enable();
 	setManager(aManager);
-	
-	// Renderer Manager
 	setManager(new RendererManager());
 
 	// Background
@@ -41,57 +39,28 @@ void LevelOne::loadMedia()
 	background->setComponent(new TextureRenderer("ShittyBackground.png", nullptr, 1));
 	background->transform.scale = Vector2<float>(2, 2);
 
-	// Player
-	player = new Player();
-	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
-	player->transform.position = player_pos;
-	player->level = this;
-	players.push_back(player);
-
-	// Tower
-	Tower* tower = new Tower(this);
+	// Red Tower
+	tower = new Tower(this);
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
 	tower->transform.position = tower_pos;
 
-	// Set player tower
-	player->tower = tower;
-
-	// Player2
-	if (isOnline())
-		player2 = new Player();
-	else
-		player2 = new PlayerAI();
-
-	Vector2<float> player2_pos(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
-	player2->transform.position = player2_pos;
-	player2->level = this;
-	player2->player_number = Player::PlayerNumber::PLAYER_TWO;
-	player2->player_team = Player::PlayerTeam::BLUE_TEAM;
-	player2->network_owner = NetworkOwner::OWNER_CLIENT_1;
-	players.push_back(player2);
-
-	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player2))
-	{
-		playerAI->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
-		playerAI->enemy = player;
-	}
-	//player2->isActive = false;
-
-	// Tower
-	Tower* tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
+	// Blue Tower
+	tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
 	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 32);
 	tower2->transform.position = tower2_pos;
-
-	// Set player2 tower
-	player2->tower = tower2;
 
 	// Grass blocks
 	placeFloorBlocks();
 
+	// Create players
+	if(!isOnline())
+		for (int i = 0; i < 2; i++)
+			createPlayer(static_cast<PlayerNumber>(i + 1));
+
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
-	// Button
+	// Exit Button
 	Button* button = new Button(Texture("ExitButton.png", RendererManager::renderer));
 	button->setScale(Vector2<float>(0.25f, 0.25f));
 	button->transform.position = Vector2<float>(5, 5);
@@ -127,34 +96,6 @@ void LevelOne::loadMedia()
 	framerate_display = new TextLabel();
 	label->transform.position = Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10, 10);
 	label->isActive = false;
-
-	// Create player one skill bar
-	StatusBar* skill_bar = new StatusBar();
-	skill_bar->setScale({ 55, 1 });
-	skill_bar->setHealthPercentage(0);
-	skill_bar->tLabel->setText("Cannon");
-	skill_bar->transform.position = tower->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
-	player->skill_bar = skill_bar;
-
-	// Create player two skill bar
-	StatusBar* skill_bar2 = new StatusBar();
-	skill_bar2->setScale({ 55, 1 });
-	skill_bar2->setHealthPercentage(0);
-	skill_bar2->tLabel->setText("Cannon");
-	skill_bar2->transform.position = tower2->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
-	player2->skill_bar = skill_bar2;
-
-	// Create player timers
-	TimerObject* player_timer = new TimerObject(3 * 1000, player->id);
-	player_timer->timer->isOver = true;
-	player_timer->callback = std::bind(&LevelOne::onPlayerTimerFinish, this, std::placeholders::_1);
-
-	TimerObject* player_timer2 = new TimerObject(3 * 1000, player2->id);
-	player_timer2->timer->isOver = true;
-	player_timer2->callback = std::bind(&LevelOne::onPlayerTimerFinish, this, std::placeholders::_1);
-
-	player_timers.insert({ player->id,  player_timer });
-	player_timers.insert({ player2->id, player_timer2 });
 
 	// Create PowerUpObject timers
 	spawn_pu_timer = new TimerObject(5 * 1000, 0);
@@ -221,24 +162,13 @@ void LevelOne::onUpdate()
 	}
 }
 
-GameObject* LevelOne::createGameObjectByTemplateId(int template_id)
+void LevelOne::handleConnectionEstablished()
 {
-	GameObject* go = nullptr;
-	switch (template_id)
-	{
-	case 1:
-		if (mode == ONLINE_SERVER)
-			go = player2->bow->loadArrow();
-		else
-			go = player->bow->loadArrow();
-		break;
-	case -1:
-	default:
-		break;
-	}
-
-	return go;
+	int player_amount = networkAgent->player_amount;
+	for (int i = 0; i < player_amount; i++)
+		createPlayer(static_cast<PlayerNumber>(i + 1));
 }
+
 
 // Timer handler
 
@@ -281,6 +211,106 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
 
 // Game
 
+Vector2<float> LevelOne::getCannonBarPos(PlayerNumber player_number)
+{
+	Vector2<float> pos;
+	int number = static_cast<int>(player_number);
+
+	// It's odd
+	if (number & 1)
+	{
+		auto def_pos = tower->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+		float offset_x = 27.5f * (number - 1);
+		pos = { def_pos.x + offset_x, def_pos.y };
+	}
+	else
+	{
+		auto def_pos = tower2->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+		float offset_x = 27.5f * (number - 2);
+		pos = { def_pos.x + offset_x, def_pos.y };
+	}
+	
+	return pos;
+}
+
+NetworkOwner LevelOne::getNetworkOwner(PlayerNumber player_number)
+{
+	int number = static_cast<int>(player_number) - 1;
+	NetworkOwner owner = static_cast<NetworkOwner>(number);
+
+	return owner;
+}
+
+Vector2<float> LevelOne::getPlayerPos(PlayerNumber player_number)
+{
+	Vector2<float> player_pos = { 0, 0 };
+	int number = static_cast<int>(player_number);
+
+	// It's odd
+	if (number & 1)
+	{
+		float offset_x = (number - 1) * 10;
+		player_pos = { 44 + offset_x, LEVEL_HEIGHT - 143 };
+	}
+	else
+	{
+		float offset_x = (number - 2) * 10;
+		player_pos = { LEVEL_WIDTH - 84 + offset_x, LEVEL_HEIGHT - 111 - 32 };
+	}
+
+	return player_pos;
+}
+
+Player* LevelOne::createPlayer(PlayerNumber player_number) 
+{
+	Player* player = nullptr;
+
+	// Create player
+	if (player_number == PlayerNumber::PLAYER_TWO && !isOnline())
+		player = new PlayerAI();
+	else
+		player = new Player(player_number);
+
+	// Setting AI extra data
+	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
+	{
+		playerAI->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
+		playerAI->enemy = players.front();
+	}
+
+	// Set pos and level ref
+	player->transform.position = getPlayerPos(player_number);
+	player->level = this;
+
+	// Set player team
+	player->player_team = static_cast<int>(player_number) & 1 ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
+
+	// Set player tower
+	player->tower = static_cast<int>(player_number) & 1 ? tower : tower2;
+	player->network_owner = getNetworkOwner(player_number);
+
+	// Create player skill_bar
+	StatusBar* skill_bar = new StatusBar();
+	skill_bar->setScale({ 48, 1 });
+	skill_bar->setHealthPercentage(0);
+	skill_bar->tLabel->setText("Cannon");
+	skill_bar->transform.position = getCannonBarPos(player_number);
+	player->skill_bar = skill_bar;
+
+	// Create player timers
+	TimerObject* player_timer = new TimerObject(3 * 1000, player->id);
+	player_timer->timer->isOver = true;
+	player_timer->callback = std::bind(&LevelOne::onPlayerTimerFinish, this, std::placeholders::_1);
+
+	// Insert timer
+	player_timers.insert({ player->id,  player_timer });
+
+	// Add to player list
+	players.push_back(player);
+
+	return player;
+}
+
 void LevelOne::setWinnerTeam(Player::PlayerTeam winner_team)
 {
 	// Check flag
@@ -319,14 +349,14 @@ bool LevelOne::isPlayerPosValid(Player* player)
 
 void LevelOne::resetPlayerPosition(Player* player)
 {
-	Player::PlayerNumber pn = player->player_number;
+	PlayerNumber pn = player->player_number;
 
 	switch (pn)
 	{
-	case Player::PlayerNumber::PLAYER_ONE:
+	case PlayerNumber::PLAYER_ONE:
 		player->transform.position = Vector2<float>(64, LEVEL_HEIGHT - 143);
 		break;
-	case Player::PlayerNumber::PLAYER_TWO:
+	case PlayerNumber::PLAYER_TWO:
 		player->transform.position = Vector2<float>(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 		break;
 	default:

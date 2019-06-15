@@ -121,7 +121,7 @@ void MainMenu::loadMedia()
 	exit_button->tLabel->isActive = false;
 
 	// Player
-	player = new Player();
+	player = new Player(PlayerNumber::PLAYER_ONE);
 	player->tower = tower;
 	player->mov_enabled = false;
 	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);

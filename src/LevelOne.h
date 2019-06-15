@@ -22,7 +22,7 @@ public:
 		// Scene
 	void loadMedia() override;
 	void onUpdate() override;
-	GameObject* createGameObjectByTemplateId(int template_id) override;
+	void handleConnectionEstablished() override;
 		// Timer
 	std::unordered_map<Uint32, TimerObject*> player_timers;
 	TimerObject* spawn_pu_timer = nullptr;
@@ -31,10 +31,9 @@ public:
 	void onSpawnPowerUpTimerFinish(Uint8 flag);
 
     // GameObjects
-	Bow* bow = nullptr;
-	Player* player = nullptr;
-    Bow* p2_bow = nullptr;
-    Player* player2 = nullptr;
+
+	Tower* tower = nullptr;
+	Tower* tower2 = nullptr;
 
 	std::vector<Player*> players;
 
@@ -53,6 +52,10 @@ public:
     PlayerTurn turn = PLAYER_ONE_TURN;
 
 	// Game
+	Vector2<float> getCannonBarPos(PlayerNumber number);
+	NetworkOwner getNetworkOwner(PlayerNumber number);
+	Vector2<float> getPlayerPos(PlayerNumber number);
+	Player* createPlayer(PlayerNumber player_number);
 	void setWinnerTeam(Player::PlayerTeam winner_team);
 	bool isPlayerPosValid(Player* player);
 	void resetPlayerPosition(Player* player);

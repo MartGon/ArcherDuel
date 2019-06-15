@@ -98,7 +98,7 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Increase owner skill points
 		if (owner)
 		{
-			if (owner != player)
+			if (owner->player_team != player->player_team)
 				owner->increase_skill_points(25);
 		}
 
@@ -138,7 +138,7 @@ void Arrow::onColliderEnter(Collider* collider)
 	else if (Arrow* arrow = dynamic_cast<Arrow*>(collider->gameObject))
 	{
 		// Increase owner skill points
-		if (arrow->owner != owner)
+		if (arrow->owner->player_team != owner->player_team)
 		{
 			// Set both arrows to vanish
 			tRenderer->isVanishing = true;

@@ -10,16 +10,19 @@ class StatusBar;
 class Cannon;
 class Tower;
 class LevelOne;
+
+enum class PlayerNumber
+{
+	PLAYER_ONE = 1,
+	PLAYER_TWO,
+	PLAYER_THREE,
+	PLAYER_FOUR
+};
+
 class Player : public GameObject
 {
 public:
-	Player();
-
-	enum class PlayerNumber
-	{
-		PLAYER_ONE,
-		PLAYER_TWO
-	};
+	Player(PlayerNumber number);
 
 	enum class PlayerTeam
 	{
@@ -112,6 +115,7 @@ public:
 
 	typedef void (PowerUp::*PowerUpHook)();
 
+	std::string getPathByPlayerNumber(PlayerNumber number);
 	void jump();
 	void fast_fall();
 	void strafe(MovDirection dir);

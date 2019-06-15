@@ -3,7 +3,7 @@
 
 // Constructor
  
-PlayerAI::PlayerAI() : Player()
+PlayerAI::PlayerAI() : Player(PlayerNumber::PLAYER_TWO)
 {
 	isAI = true;
 }

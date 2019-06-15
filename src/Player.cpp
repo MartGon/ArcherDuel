@@ -8,12 +8,14 @@
 
 #include <functional>
 
-Player::Player()
+Player::Player(PlayerNumber player_number)
 {
 	// Texture Renderer
 	MapRGB *colorKey = new MapRGB();
 	colorKey->green = 255;
-	tRenderer = setComponent(new TextureRenderer("Archer.png", colorKey, 254));
+	std::string subPath = getPathByPlayerNumber(player_number);
+	std::string path = "Archer" + subPath + ".png";
+	tRenderer = setComponent(new TextureRenderer(path.c_str() , colorKey, 254));
 
 	// Jump Navigator
 	jump_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
@@ -36,7 +38,8 @@ Player::Player()
 
 	// Animator
 	animator = setComponent(new Animator());
-	move = animator->addAnimation("Archer_Walk", colorKey, tRenderer, 4, 1, PLAYER_ANIMATION_WALK);
+	path = "Archer_Walk" + subPath;
+	move = animator->addAnimation(path.c_str(), colorKey, tRenderer, 4, 1, PLAYER_ANIMATION_WALK);
 	move->loop = true;
 	animator->setCurrentAnimation(move);
 	animator->isEnabled = false;
@@ -91,7 +94,8 @@ Player::Player()
 	dizzy_effect->isActive = false;
 
 	// Animation - Dizzy
-	dizzy = animator->addAnimation("Archer_Dizzy_", colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
+	path = "Archer_Dizzy" + subPath;
+	dizzy = animator->addAnimation(path.c_str(), colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
 
 	// Network
 	isNetworkStatic = false;
@@ -105,6 +109,12 @@ Player::Player()
 	power_up_sf = aPlayer->addAudioToList(aPlayer->loadAudioFile("PowerUp22.wav"));
 	aPlayer->setAudioToPlay(power_up_sf);
 	aPlayer->pause();
+
+	// Set attributes
+	this->player_number = player_number;
+
+	// Add powerUpHaste
+	addPowerUp(new PowerUpHaste(this));
 }
 
 // Hooks
@@ -392,6 +402,25 @@ void Player::onColliderEnter(Collider *collider)
 }
 
 // Own methods
+
+std::string Player::getPathByPlayerNumber(PlayerNumber number)
+{
+	std::string path = "";
+	switch (number)
+	{
+	case PlayerNumber::PLAYER_ONE:
+		path = "_red";
+		break;
+	case PlayerNumber::PLAYER_TWO:
+		path = "_blue";
+		break;
+	case PlayerNumber::PLAYER_THREE:
+		path = "_yellow";
+		break;
+	}
+
+	return path;
+}
 
 void Player::jump()
 {
