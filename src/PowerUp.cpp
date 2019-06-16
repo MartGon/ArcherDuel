@@ -293,6 +293,13 @@ void PowerUpHaste::onApply()
 		// Increase animation speed
 		bow->animator->frame_speed = 2.5f;
 	}
+
+	// AI measure
+	if (PlayerAI* ai = dynamic_cast<PlayerAI*>(owner))
+	{
+		if (!ai->isChargingCannon)
+			ai->draw_frames = 1;
+	}
 }
 
 void PowerUpHaste::onRemove()

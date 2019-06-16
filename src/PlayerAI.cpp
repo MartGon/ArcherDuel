@@ -29,6 +29,12 @@ void PlayerAI::onPlayerUpdate()
 		onAttack();
 		break;
 	case PLAYERAI_STATE_ATTACKING:
+		// Check target state
+		if (!isTargetStillValid())
+		{
+			target_object = chooseTarget();
+			target = getAimingTargetPoint(target_collider);
+		}
 		onAttacking();
 		break;
 	case PLAYERAI_STATE_AFTERATTACK:
@@ -39,10 +45,7 @@ void PlayerAI::onPlayerUpdate()
 	}
 
 	// Alawys aim to target
-	if (isChargingCannon)
-		cannon->aim(target);
-	else
-		aimBowToTarget();
+	aimBowToTarget();
 
 	// Update waypoints
 	onMoveToWayPoint();
@@ -109,7 +112,7 @@ void PlayerAI::onIdle()
 {
 	// Choose temporary target
 	target_object = chooseTarget();
-	target = getAimingTargetPoint();
+	target = getAimingTargetPoint(target_collider);
 
 	// Change state
 	state = PLAYERAI_STATE_ATTACK;
@@ -170,9 +173,12 @@ void PlayerAI::onAttack()
 	if (isPlacingCannon)
 	{
 		// If cannon cannot be placed, look for other position
-		if (!placeCannon())
+		if (placeCannon())
 		{
 			cannon->aim(target);
+		}
+		else
+		{
 			state = PLAYERAI_STATE_IDLE;
 			return;
 		}
@@ -210,22 +216,17 @@ void PlayerAI::onAttacking()
 		{
 			float distance = transform.position.x - target.x;
 			int offset = distance / 50;
-			height_offset = Random::getRandomUniformInteger(offset, offset) * - 10;
+			height_offset = Random::getRandomUniformInteger(offset - 2, offset) * - 10;
 		}
 		// If fully charged, don't compensate
 		else
 			height_offset = 0;
 
 		// Set target
-		target_object = chooseTarget();
-		target = getAimingTargetPoint();
-		target.y += height_offset;
+		target = getAimingTargetPoint(target_collider);
 
 		if (isChargingCannon)
 		{
-			// Aim to target
-			cannon->aim(target);
-
 			// Shoot cannon
 			shootCannon();
 		}
@@ -302,68 +303,12 @@ PowerUpObject* PlayerAI::getCloserPowerUp(std::vector<PowerUpObject*> power_ups)
 	return closer_puo;
 }
 
-Vector2<float> PlayerAI::getAimingTargetPoint()
+Vector2<float> PlayerAI::getAimingTargetPoint(BoxCollider* collider)
 {
-	// Get target collider
-	BoxCollider* collider = nullptr;
-	BoxCollider bCollider;
-	if (target_object == enemy)
-	{
-		collider = enemy->bCollider;
-	}
-	else if (target_object == enemy_tower)
-	{
-		// Get colliders
-		auto colliders = enemy_tower->getComponents<BoxCollider>();
-
-		// Remove third collider option
-		colliders.erase(colliders.begin() + 2);
-
-		// If has powerup fire
-		int index = 0;
-		if (power_ups.find(POWER_UP_FIRE) != power_ups.end())
-		{
-			for (auto fire : enemy_tower->fires)
-			{
-				if (fire.second->isActive)
-					index++;
-				else
-					break;
-			}
-		}
-		else
-		{
-			// Choose one of them randomly
-			index = Random::getRandomUniformInteger(0, 3);
-		}
-
-		collider = colliders.at(index);
-	}
-	else
-	{
-		// Target closer power_up
-		auto power_ups = getActivePowerUpObjects();
-		if (!power_ups.empty())
-		{
-			// Get closer power up
-			target_object = getCloserPowerUp(power_ups);
-
-			// Create a collider based on texture
-			auto tRenderer = target_object->getComponent<TextureRenderer>();
-			bCollider = BoxCollider(tRenderer->texture);
-			collider = &bCollider;
-		}
-		// If there are not power_ups available, target enemy player and return
-		else
-		{
-			target_object = enemy;
-			collider = enemy->bCollider;
-		}
-	}
-
 	// Get  target center
 	Vector2<float> target_pos = target_object->getAbsolutePosition() + collider->offset + Vector2<float>(collider->cWidth / 2, collider->cHeight / 2);
-
+	if(!isPlacingCannon)
+		target_pos.y += height_offset;
 	return target_pos;
 }
 
@@ -371,11 +316,12 @@ GameObject* PlayerAI::chooseTarget()
 {
 	GameObject* target_object = nullptr;
 
-	// Target tower only if using cannon
-	if (isPlacingCannon || isChargingCannon)
+	// Target tower only if using cannon or have fire power up
+	if (isPlacingCannon || isChargingCannon || power_ups.find(POWER_UP_FIRE) != power_ups.end())
 	{
 		target_object = enemy_tower;
 	}
+	// Choose randomly otherwise
 	else
 	{
 		// Get active powerups
@@ -397,8 +343,7 @@ GameObject* PlayerAI::chooseTarget()
 			else
 			{
 				// Select a target, player or tower
-				modifier = power_ups.find(POWER_UP_FIRE) != power_ups.end() ? 8 : 2;
-				int target_enemy = Random::getBoolWithChance(1.f / modifier);
+				int target_enemy = Random::getBoolWithChance(0.5f);
 
 				// Set target object
 				if (target_enemy)
@@ -409,8 +354,102 @@ GameObject* PlayerAI::chooseTarget()
 
 		}
 		else
-			target_object = nullptr;
+			target_object = getCloserPowerUp(active_power_ups);
+	}
+
+	// Get target collider
+	target_collider = nullptr;
+
+	// Target is player
+	if (target_object == enemy)
+	{
+		target_collider = enemy->bCollider;
+	}
+	// Target is enemy tower
+	else if (target_object == enemy_tower)
+	{
+		// Get colliders
+		auto colliders = enemy_tower->getComponents<BoxCollider>();
+
+		// Remove third collider option
+		colliders.erase(colliders.begin() + 2);
+
+		// If has powerup fire
+		int index = 0;
+		if (!isPlacingCannon)
+		{
+			if (power_ups.find(POWER_UP_FIRE) != power_ups.end())
+			{
+				for (auto fire : enemy_tower->fires)
+				{
+					if (fire.second->isActive)
+						index++;
+					else
+						break;
+				}
+			}
+		}
+		else
+		{
+			// Choose one of them randomly
+			index = Random::getRandomUniformInteger(0, 3);
+		}
+
+		target_collider = colliders.at(index);
+	}
+	// Target is powerup
+	else
+	{
+		// Create a collider based on texture
+		target_collider = target_object->getComponent<BoxCollider>();
 	}
 
 	return target_object;
+}
+
+bool PlayerAI::isTargetStillValid()
+{
+	bool result = true;
+	// Player
+	if (target_object == enemy)
+	{
+		// Keep player if is active and not inmunne
+		result = enemy->isActive && !enemy->isInmunne;
+	}
+	// Enemy tower
+	else if (target_object == enemy_tower)
+	{
+		if (!isPlacingCannon)
+		{
+			// If has power up fire, should target a different one
+			if (power_ups.find(POWER_UP_FIRE) != power_ups.end())
+			{
+				if (target_collider)
+				{
+					unsigned int id = target_collider->id;
+
+					if (Fire* fire = enemy_tower->fires.at(id))
+					{
+						if (fire->isActive)
+							result = false;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		// If power up is no longer in the active list, is not valid
+		auto active_power_ups = getActivePowerUpObjects();
+
+		for (auto pou : active_power_ups)
+		{
+			if (target_object == pou)
+				break;
+		}
+
+		result = false;
+	}
+
+	return result;
 }

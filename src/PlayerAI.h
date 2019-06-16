@@ -29,6 +29,9 @@ public:
 	
 	// Own methods
 	void setBoundaries(Vector2<float> lBoundary, Vector2<float> rBoundary);
+
+	// Attack info
+	int draw_frames = 0;
 private:
 	// Movement
 	// Extracted by mouse l = 368 r = 464
@@ -43,15 +46,15 @@ private:
 
 	// Attacking
 	GameObject* target_object = nullptr;
+	BoxCollider* target_collider = nullptr;
 	Vector2<float> target;
 	float height_offset = 0;
-	int draw_frames;
 
 	// Targeting
 	GameObject* chooseTarget();
 	void setTarget(Vector2<float> target);
 	void aimBowToTarget();
-	Vector2<float> getAimingTargetPoint();
+	Vector2<float> getAimingTargetPoint(BoxCollider* collider);
 
 	// Next state
 	PlayerAIState next_state = PLAYERAI_STATE_IDLE;
@@ -59,6 +62,7 @@ private:
 	// Sensors
 	PowerUpObject* getCloserPowerUp(std::vector<PowerUpObject*> power_ups);
 	std::vector<PowerUpObject*> getActivePowerUpObjects();
+	bool isTargetStillValid();
 
 
 	// State
