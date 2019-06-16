@@ -374,25 +374,23 @@ GameObject* PlayerAI::chooseTarget()
 		// Remove third collider option
 		colliders.erase(colliders.begin() + 2);
 
-		// If has powerup fire
+		
 		int index = 0;
-		if (!isPlacingCannon)
+		// Is placing cannon or doesn't have fire
+		if (isPlacingCannon || power_ups.find(POWER_UP_FIRE) == power_ups.end())
 		{
-			if (power_ups.find(POWER_UP_FIRE) != power_ups.end())
-			{
-				for (auto fire : enemy_tower->fires)
-				{
-					if (fire.second->isActive)
-						index++;
-					else
-						break;
-				}
-			}
+			index = Random::getRandomUniformInteger(0, 3);
 		}
+		// If has powerup fire
 		else
 		{
-			// Choose one of them randomly
-			index = Random::getRandomUniformInteger(0, 3);
+			for (auto fire : enemy_tower->fires)
+			{
+				if (fire.second->isActive)
+					index++;
+				else
+					break;
+			}
 		}
 
 		target_collider = colliders.at(index);

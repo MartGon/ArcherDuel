@@ -23,9 +23,16 @@ enum PowerUpType
 	POWER_UP_THUNDERSTRIKE
 };
 
+enum PowerUpColor
+{
+	POWER_UP_COLOR_YELLOW,
+	POWER_UP_COLOR_BROWN
+};
+
 namespace PowerUpUtil
 {
 	std::string getIconTexturePathByPowerUpType(PowerUpType type);
+	std::string getPowerUpBackground(PowerUpColor color);
 }
 
 class PowerUpObject : public GameObject

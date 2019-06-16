@@ -44,6 +44,23 @@ std::string PowerUpUtil::getIconTexturePathByPowerUpType(PowerUpType type)
 	return path;
 }
 
+std::string PowerUpUtil::getPowerUpBackground(PowerUpColor color)
+{
+	std::string path;
+
+	switch (color)
+	{
+	case POWER_UP_COLOR_BROWN:
+		path = "PowerUp_Background_brown.png";
+		break;
+	default:
+		path = "PowerUp_Background_yellow.png";
+		break;
+	}
+
+	return path;
+}
+
 // PowerUpObject Class
 
 // Constructors
@@ -53,10 +70,9 @@ PowerUpObject::PowerUpObject(PowerUpType type)
 	// Set type
 	this->type = type;
 
-	// Background renderer
+	// Color key
 	MapRGB *colorKey = new MapRGB();
 	colorKey->green = 255;
-	background_renderer = setComponent(new TextureRenderer("PowerUp_Background_yellow.png", colorKey, 254));
 
 	// Icon
 	icon = new GameObject();
@@ -64,6 +80,9 @@ PowerUpObject::PowerUpObject(PowerUpType type)
 	icon_renderer = icon->setComponent(new TextureRenderer(icon_path.c_str(), colorKey, 254));
 	icon->transform.parent = &this->transform;
 	icon->setScale({ 1.5f, 1.5f });
+
+	// Background renderer
+	background_renderer = setComponent(new TextureRenderer("PowerUp_Background_dark_green.png", colorKey, 253));
 
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(16, 16));
