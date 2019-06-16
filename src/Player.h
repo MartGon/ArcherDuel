@@ -143,6 +143,11 @@ public:
 		return interrupt;
 	}
 
+		// Cannon
+	bool withdrawCannon();
+	bool placeCannon();
+	bool shootCannon();
+
 		// Status effects
 	void stun(int duration);
 	void knockback(Vector2<float> dir, float strength);

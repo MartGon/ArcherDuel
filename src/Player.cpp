@@ -113,7 +113,7 @@ Player::Player(PlayerNumber player_number)
 	// Set attributes
 	this->player_number = player_number;
 
-	// Add powerUpHaste
+	// Add powerUp
 	addPowerUp(new PowerUpHaste(this));
 }
 
@@ -212,32 +212,7 @@ void Player::onUpdate()
 	{
 		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::DOWN))
 		{
-			if (bow->state == Bow::BowState::BOW_STATE_IDLE)
-			{
-				if (!isInmunne)
-				{
-					// Create cannon and set this player to parent
-					cannon->isActive = true;
-					cannon->owner = this;
-					cannon->transform.parent = &this->transform;
-					cannon->transform.position = { 10, -4 };
-					cannon->isBeingCarried = true;
-
-					// Disable bow and hands
-					bow->isActive = false;
-					bow->arrow->isActive = false;
-					rHand->isActive = false;
-					pHand->isActive = false;
-
-					// Set flag
-					isPlacingCannon = true;
-					isSkillReady = false;
-
-					// Reset skill points and skill bar
-					skill_points = 0;
-					skill_bar->setHealthPercentage(0);
-				}
-			}
+			withdrawCannon();
 		}		
 	}
 	else if (isPlacingCannon)
@@ -274,29 +249,7 @@ void Player::onUpdate()
 		// Check cannon placement
 		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::DOWN))
 		{
-			// Check position
-			if (cannon->isCurrentPosValid())
-			{
-				if (!isInmunne)
-				{
-					// Place cannon and lock angle
-					Vector2<float> cannon_pos = cannon->getAbsolutePosition();
-					cannon->transform.parent = nullptr;
-					cannon->transform.position = cannon_pos;
-					cannon->isBeingCarried = false;
-
-					// Set flags
-					isPlacingCannon = false;
-					isChargingCannon = true;
-
-					// Start charge bar
-					chargeBar->enable(2);
-
-					// Disable movement
-					mov_enabled = false;
-					stop();
-				}
-			}
+			placeCannon();
 		}
 	}
 	else if (isChargingCannon)
@@ -307,26 +260,7 @@ void Player::onUpdate()
 		// Check for cannon shot
 		if (input_mgr->isKeyEvent(SDL_SCANCODE_E, network_owner, KeyEvent::UP))
 		{
-			// Set flags
-			isChargingCannon = false;
-
-			// Set CannonBall dmg
-			cannon->next_shot_dmg = chargeBar->getChargeValue() * 20;
-
-			// Start shot
-			cannon->animator->setCurrentAnimation(cannon->shot_animation);
-
-			// Recover bow and hands
-			bow->isActive = true;
-			bow->arrow->isActive = true;
-			rHand->isActive = true;
-			pHand->isActive = true;
-
-			// Disable ChargeBar
-			chargeBar->disable();
-
-			// Re-enable movement
-			mov_enabled = true;
+			shootCannon();
 		}
 	}
 
@@ -356,10 +290,10 @@ void Player::onUpdate()
 				fast_fall();
 			}
 		}
-		else
-			onPlayerUpdate();
-			// AI hook
 	}
+
+	// AI hook
+	onPlayerUpdate();
 }
 
 	// Texture Renderer
@@ -676,6 +610,105 @@ bool Player::powerUpHook(Player::PowerUpHook hook)
 	}
 
 	return interrupt;
+}
+
+// Cannon
+
+bool Player::withdrawCannon()
+{
+	bool result = false;
+
+	if (bow->state == Bow::BowState::BOW_STATE_IDLE)
+	{
+		if (!isInmunne)
+		{
+			// Create cannon and set this player to parent
+			cannon->isActive = true;
+			cannon->owner = this;
+			cannon->transform.parent = &this->transform;
+			cannon->transform.position = { 10, -4 };
+			cannon->isBeingCarried = true;
+
+			// Disable bow and hands
+			bow->isActive = false;
+			bow->arrow->isActive = false;
+			rHand->isActive = false;
+			pHand->isActive = false;
+
+			// Set flag
+			isPlacingCannon = true;
+			isSkillReady = false;
+
+			// Reset skill points and skill bar
+			skill_points = 0;
+			skill_bar->setHealthPercentage(0);
+
+			// Set result
+			result = true;
+		}
+	}
+
+	return result;
+}
+
+bool Player::placeCannon()
+{
+	bool result = false;
+
+	// Check position
+	if (cannon->isCurrentPosValid())
+	{
+		if (!isInmunne)
+		{
+			// Place cannon and lock angle
+			Vector2<float> cannon_pos = cannon->getAbsolutePosition();
+			cannon->transform.parent = nullptr;
+			cannon->transform.position = cannon_pos;
+			cannon->isBeingCarried = false;
+
+			// Set flags
+			isPlacingCannon = false;
+			isChargingCannon = true;
+
+			// Start charge bar
+			chargeBar->enable(2);
+
+			// Disable movement
+			mov_enabled = false;
+			stop();
+
+			// Set result
+			result = true;
+		}
+	}
+
+	return result;
+}
+
+bool Player::shootCannon()
+{
+	// Set flags
+	isChargingCannon = false;
+
+	// Set CannonBall dmg
+	cannon->next_shot_dmg = chargeBar->getChargeValue() * 20;
+
+	// Start shot
+	cannon->animator->setCurrentAnimation(cannon->shot_animation);
+
+	// Recover bow and hands
+	bow->isActive = true;
+	bow->arrow->isActive = true;
+	rHand->isActive = true;
+	pHand->isActive = true;
+
+	// Disable ChargeBar
+	chargeBar->disable();
+
+	// Re-enable movement
+	mov_enabled = true;
+
+	return true;
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

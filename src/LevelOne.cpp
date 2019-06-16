@@ -300,6 +300,7 @@ Player* LevelOne::createPlayer(PlayerNumber player_number)
 	{
 		playerAI->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
 		playerAI->enemy = players.front();
+		playerAI->enemy_tower = tower;
 	}
 
 	// Set pos and level ref

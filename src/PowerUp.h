@@ -162,7 +162,7 @@ class PowerUpHaste : public PowerUp
 {
 public:
 	// Constructor
-	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 100000){};
+	PowerUpHaste(Player* owner) : PowerUp(owner, POWER_UP_HASTE, 5 * 1000){};
 
 	// Overrided methods
 	void beforePull() override;
