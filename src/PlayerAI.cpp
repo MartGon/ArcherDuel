@@ -8,7 +8,7 @@
 
 // Constructor
  
-PlayerAI::PlayerAI() : Player(PlayerNumber::PLAYER_TWO)
+PlayerAI::PlayerAI(PlayerNumber player_number) : Player(player_number)
 {
 	isAI = true;
 
@@ -56,6 +56,8 @@ void PlayerAI::setBoundaries(Vector2<float> lBoundary, Vector2<float> rBoundary)
 {
 	this->lBoundary = lBoundary;
 	this->rBoundary = rBoundary;
+
+	waypoint = lBoundary;
 }
 
 // Private methods
@@ -139,15 +141,29 @@ void PlayerAI::onMoveToWayPoint()
 
 		// Get next waypoint
 		Vector2<float> rLimit;
+		Vector2<float> lLimit;
 
 		// Depending on target move closer to the ledge or anywhere
-		if (target_object == enemy_tower)
-			rLimit = (rBoundary - lBoundary) / 4 + lBoundary;
-		else
-			rLimit = (rBoundary - lBoundary) / 2 + lBoundary;
+		if (player_team == PlayerTeam::BLUE_TEAM)
+		{
+			if (target_object == enemy_tower)
+				rLimit = (rBoundary - lBoundary) / 4 + lBoundary;
+			else
+				rLimit = (rBoundary - lBoundary) / 2 + lBoundary;
 
+			lLimit = lBoundary;
+		}
+		else
+		{
+			if (target_object == enemy_tower)
+				lLimit = (3 * (rBoundary - lBoundary) / 4) + lBoundary;
+			else
+				lLimit = (rBoundary - lBoundary) / 2 + lBoundary;
+
+			rLimit = rBoundary;
+		}
 		// Get a random point wihtin boundaries
-		Vector2<float> waypoint = getRandomMovementPoint(lBoundary, rLimit);
+		Vector2<float> waypoint = getRandomMovementPoint(lLimit, rLimit);
 
 		// Set next waypoint
 		setWaypoint(waypoint);
@@ -172,12 +188,17 @@ void PlayerAI::onAttack()
 	// Place cannon if doing so
 	if (isPlacingCannon)
 	{
-		// If cannon cannot be placed, look for other position
-		if (placeCannon())
-		{
-			cannon->aim(target);
-		}
+		// Set flip
+		if (player_team == PlayerTeam::BLUE_TEAM)
+			flipCannon(SDL_FLIP_HORIZONTAL);
 		else
+			flipCannon(SDL_FLIP_NONE);
+
+		// Aim to target before placing
+		cannon->aim(target);
+
+		// If cannon cannot be placed, look for other position
+		if (!placeCannon())
 		{
 			state = PLAYERAI_STATE_IDLE;
 			return;
@@ -214,7 +235,7 @@ void PlayerAI::onAttacking()
 		// If charge is not full, compensate projectile fall
 		if (charge == 3)
 		{
-			float distance = transform.position.x - target.x;
+			float distance = std::abs(transform.position.x - target.x);
 			int offset = distance / 50;
 			height_offset = Random::getRandomUniformInteger(offset - 2, offset) * - 10;
 		}
@@ -254,7 +275,7 @@ void PlayerAI::afterAttack()
 			else
 			{
 				float modifier = power_ups.size() * 2 + 2;
-				int use_cannon = power_ups.empty() ? 0 : Random::getBoolWithChance(1.f / modifier);
+				int use_cannon = Random::getBoolWithChance(1.f / modifier);
 
 				if (use_cannon)
 					withdrawCannon();

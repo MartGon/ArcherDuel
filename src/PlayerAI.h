@@ -15,7 +15,7 @@ public:
 	};
 
 	// Constructor
-	PlayerAI();
+	PlayerAI(PlayerNumber player_number);
 
 	// Attributes
 	PlayerAIState state = PLAYERAI_STATE_IDLE;
@@ -37,7 +37,7 @@ private:
 	// Extracted by mouse l = 368 r = 464
 	Vector2<float> lBoundary;
 	Vector2<float> rBoundary;
-	Vector2<float> waypoint = {390, 0};
+	Vector2<float> waypoint = {-1, -1};
 
 	Vector2<float> getRandomMovementPoint(Vector2<float> lBoundary, Vector2<float> rBoundary);
 	Vector2<float> getRandomValidMovementPoint();

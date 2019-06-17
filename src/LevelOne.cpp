@@ -53,9 +53,26 @@ void LevelOne::loadMedia()
 	placeFloorBlocks();
 
 	// Create players
-	if(!isOnline())
-		for (int i = 0; i < 2; i++)
-			createPlayer(static_cast<PlayerNumber>(i + 1));
+	if (!isOnline())
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			bool isAI = i != 0;
+			createPlayer(static_cast<PlayerNumber>(i + 1), isAI);
+		}
+
+		// Set references
+		for(int i = 0; i < players.size(); i++)
+		{
+			Player* player = players[i];
+			if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
+			{
+				int index = i + 1 == players.size() ? i - 1 : i + 1;
+				playerAI->enemy = players.at(index);
+				playerAI->enemy_tower = playerAI->enemy->tower;
+			}
+		}
+	}
 
 	// Renderer Manager setup
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
@@ -164,6 +181,7 @@ void LevelOne::onUpdate()
 
 void LevelOne::handleConnectionEstablished()
 {
+	// Create players when connection is handled
 	int player_amount = networkAgent->player_amount;
 	for (int i = 0; i < player_amount; i++)
 		createPlayer(static_cast<PlayerNumber>(i + 1));
@@ -285,23 +303,15 @@ Vector2<float> LevelOne::getPlayerPos(PlayerNumber player_number)
 	return player_pos;
 }
 
-Player* LevelOne::createPlayer(PlayerNumber player_number) 
+Player* LevelOne::createPlayer(PlayerNumber player_number, bool isAI) 
 {
 	Player* player = nullptr;
 
 	// Create player
-	if (player_number == PlayerNumber::PLAYER_TWO && !isOnline())
-		player = new PlayerAI();
+	if (isAI)
+		player = new PlayerAI(player_number);
 	else
 		player = new Player(player_number);
-
-	// Setting AI extra data
-	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
-	{
-		playerAI->setBoundaries(Vector2<float>(368, 196), Vector2<float>(462, 196));
-		playerAI->enemy = players.front();
-		playerAI->enemy_tower = tower;
-	}
 
 	// Set pos and level ref
 	player->transform.position = getPlayerPos(player_number);
@@ -313,6 +323,19 @@ Player* LevelOne::createPlayer(PlayerNumber player_number)
 	// Set player tower
 	player->tower = static_cast<int>(player_number) & 1 ? tower : tower2;
 	player->network_owner = getNetworkOwner(player_number);
+
+	// Setting AI extra data
+	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
+	{
+		// Set boundaries
+		BoxCollider* floor_collider = playerAI->tower->getComponent<BoxCollider>();
+		int height = floor_collider->cHeight + floor_collider->offset.y + playerAI->tower->getAbsolutePosition().y;
+		int lLimit = floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
+		int rLimit = floor_collider->cWidth + floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
+
+		playerAI->setBoundaries(Vector2<float>(lLimit, height), Vector2<float>(rLimit, height));
+
+	}
 
 	// Create player skill_bar
 	StatusBar* skill_bar = new StatusBar();

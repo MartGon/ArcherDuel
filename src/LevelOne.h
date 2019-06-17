@@ -56,7 +56,7 @@ public:
 	Vector2<float> getCannonBarPos(PlayerNumber number);
 	NetworkOwner getNetworkOwner(PlayerNumber number);
 	Vector2<float> getPlayerPos(PlayerNumber number);
-	Player* createPlayer(PlayerNumber player_number);
+	Player* createPlayer(PlayerNumber player_number, bool isAI = false);
 	void setWinnerTeam(Player::PlayerTeam winner_team);
 	bool isPlayerPosValid(Player* player);
 	void resetPlayerPosition(Player* player);

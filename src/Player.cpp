@@ -220,27 +220,11 @@ void Player::onUpdate()
 
 		if (mouse_pos.x > pos.x)
 		{
-			// Reset sprite
-			tRenderer->flip = SDL_FLIP_NONE;
-			cannon->tRenderer->flip = SDL_FLIP_NONE;
-			cannon->support->getComponent<TextureRenderer>()->flip = SDL_FLIP_NONE;
-			cannon->transform.position = { 10, -4 };
-
-			// Reset rotation center
-			delete cannon->transform.rotationCenter;
-			cannon->transform.rotationCenter = new Vector2<int>(8, 15);
+			flipCannon(SDL_FLIP_NONE);
 		}
 		else
 		{
-			// Flip sprite
-			tRenderer->flip = SDL_FLIP_HORIZONTAL;
-			cannon->tRenderer->flip = SDL_FLIP_HORIZONTAL;
-			cannon->support->getComponent<TextureRenderer>()->flip = SDL_FLIP_HORIZONTAL;
-			cannon->transform.position = Vector2<float>(-cannon->tRenderer->texture.mWidth, -4);
-
-			// Flip rotation center
-			delete cannon->transform.rotationCenter;
-			cannon->transform.rotationCenter = new Vector2<int>(22, 15);
+			flipCannon(SDL_FLIP_HORIZONTAL);
 		}
 
 		// Check cannon placement
@@ -706,6 +690,30 @@ bool Player::shootCannon()
 	mov_enabled = true;
 
 	return true;
+}
+
+void Player::flipCannon(SDL_RendererFlip flip)
+{
+	tRenderer->flip = flip;
+	cannon->tRenderer->flip = flip;
+	cannon->support->getComponent<TextureRenderer>()->flip = flip;
+
+	if (flip == SDL_FLIP_NONE)
+	{
+		cannon->transform.position = { 10, -4 };
+
+		// Reset rotation center
+		delete cannon->transform.rotationCenter;
+		cannon->transform.rotationCenter = new Vector2<int>(8, 15);
+	}
+	else
+	{
+		cannon->transform.position = Vector2<float>(-cannon->tRenderer->texture.mWidth, -4);
+
+		// Flip rotation center
+		delete cannon->transform.rotationCenter;
+		cannon->transform.rotationCenter = new Vector2<int>(22, 15);
+	}
 }
 
 // TODO - Los boundaries se calculan antes del navigator -> HACK: Anadir primero el navigator -> Solucion: Poner prioridad a los componentes.

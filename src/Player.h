@@ -144,6 +144,7 @@ public:
 	}
 
 		// Cannon
+	void flipCannon(SDL_RendererFlip flip);
 	bool withdrawCannon();
 	bool placeCannon();
 	bool shootCannon();
