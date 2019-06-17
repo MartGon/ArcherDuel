@@ -62,9 +62,10 @@ Arrow::Arrow()
 
 void Arrow::onColliderEnter(Collider* collider)
 {
-	// Disable nav and collisions
+	// Disable nav and collisions and trail
 	nav->isEnabled = false;
 	rotCollider->isEnabled = false;
+	tRenderer->hasTrailEffect = false;
 
 	// Create timer flag
 	bool wait_timer = true;
@@ -154,6 +155,7 @@ void Arrow::onColliderEnter(Collider* collider)
 			// Re-enable components
 			nav->isEnabled = true;
 			rotCollider->isEnabled = true;
+			tRenderer->hasTrailEffect = true;
 		}
 	}
 	else if (Button* button = dynamic_cast<Button*>(collider->gameObject))

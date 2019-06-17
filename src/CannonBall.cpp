@@ -36,6 +36,7 @@ void CannonBall::onColliderEnter(Collider* collider)
 	// Disable nav and collisions
 	nav->isEnabled = false;
 	bCollider->isEnabled = false;
+	tRenderer->hasTrailEffect = false;
 
 	// Create timer flag
 	bool wait_timer = true;

@@ -145,6 +145,9 @@ void Cannon::shoot()
 
 	// Update collider
 	ball->bCollider->update();
+
+	// Set trail effect
+	ball->tRenderer->hasTrailEffect = true;
 }
 
 bool Cannon::isCurrentPosValid()

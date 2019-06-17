@@ -430,4 +430,7 @@ void Bow::launchArrow(Arrow* arrow, float charge)
 
 	// Set to disappeart after 15 seconds of flight
 	arrow->timer = arrow->setComponent(new TimerComponent(15 * 1000));
+
+	// Set trail effect
+	arrow->tRenderer->hasTrailEffect = true;
 }
