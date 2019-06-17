@@ -3,6 +3,7 @@
 
 #include "Button.h"
 #include "TextLabel.h"
+#include "TextInput.h"
 
 #include "Player.h"
 
@@ -18,12 +19,16 @@ public:
 
 	// UI
 		// Buttons
+	std::vector<Button*> widgets;
 	Button* play_button = nullptr;
 	Button* online_button = nullptr;
 	Button* server_button = nullptr;
 	Button* client_button = nullptr;
 	Button* back_button = nullptr;
 	Button* exit_button = nullptr;
+
+		// TextInput
+	TextInput* ip_input = nullptr;
 
 		// Game title
 	TextLabel* game_title_1 = nullptr;
@@ -39,6 +44,7 @@ public:
 	static const int LEVEL_HEIGHT;
 
 	// Button methods
+	void enableLayer(Uint8 layer);
 	void exitGame();
 	void loadLevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
 	void playButtonHandler();

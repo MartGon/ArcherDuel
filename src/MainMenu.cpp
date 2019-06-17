@@ -58,12 +58,6 @@ void MainMenu::loadMedia()
 	game_title_2->setText("Duel");
 	game_title_2->setRelativePosition(Vector2<float>(LEVEL_WIDTH / 10 * 0.75f, LEVEL_HEIGHT / 10));
 
-	// Game title bow
-	//game_title_bow = new GameObject();
-	//game_title_bow->setComponent(new TextureRenderer("MyBow1.png", new MapRGB(0, 0, 255), 255));
-	//game_title_bow->transform.scale = Vector2<float>(0.6f, 0.4f);
-	//ame_title_bow->setRelativePosition(Vector2<float>(LEVEL_WIDTH / 20 * 1.5f , LEVEL_HEIGHT / 20 * 2.05f));
-
 	// Play Button
 	play_button = new Button(Texture("button_background4.png"));
 	play_button->setScale(Vector2<float>(2, 2));
@@ -72,6 +66,7 @@ void MainMenu::loadMedia()
 	play_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
 	play_button->tLabel->transform.position = (play_button->collider->getDimensions() / 2 ) - Vector2<float>(20, 5);
 	play_button->setOnClickListener(std::bind(&MainMenu::playButtonHandler, this));
+	play_button->layer = 1;
 
 	// Online button
 	online_button = new Button(Texture("button_background4.png"));
@@ -81,6 +76,7 @@ void MainMenu::loadMedia()
 	online_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
 	online_button->tLabel->transform.position = (online_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
 	online_button->setOnClickListener(std::bind(&MainMenu::onlineButtonHandler, this));
+	online_button->layer = 1;
 
 	// Online Sub-menu
 		// Server button
@@ -92,6 +88,16 @@ void MainMenu::loadMedia()
 	server_button->tLabel->transform.position = (server_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
 	server_button->setOnClickListener(std::bind(&MainMenu::serverButtonHandler, this));
 	server_button->isActive = false;
+	server_button->layer = 2;
+
+			// Server submenu
+	ip_input = new TextInput("button_background4.png", "127.0.0.1");
+	ip_input->setScale(Vector2<float>(2, 1));
+	ip_input->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 2.5f));
+	ip_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	ip_input->tLabel->transform.position = Vector2<float>(1.5f * ip_input->tRenderer->texture.mWidth / 10, 4 * ip_input->tRenderer->texture.mHeight / 10 );
+	ip_input->isActive = false;
+	ip_input->layer = 4;
 
 		// Client button
 	client_button = new Button(Texture("button_background4.png"));
@@ -102,8 +108,9 @@ void MainMenu::loadMedia()
 	client_button->tLabel->transform.position = (client_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
 	client_button->setOnClickListener(std::bind(&MainMenu::clientButtonHandler, this));
 	client_button->isActive = false;
+	client_button->layer = 2;
 
-	// Client button
+		// Back button
 	back_button = new Button(Texture("button_background4.png"));
 	back_button->setScale(Vector2<float>(2, 2));
 	back_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 5.f));
@@ -112,6 +119,7 @@ void MainMenu::loadMedia()
 	back_button->tLabel->transform.position = (back_button->collider->getDimensions() / 2) - Vector2<float>(20, 5);
 	back_button->setOnClickListener(std::bind(&MainMenu::backButtonHandler, this));
 	back_button->isActive = false;
+	back_button->layer = 254;
 
 	// Exit button
 	exit_button = new Button(Texture("ExitButton.png"));
@@ -119,6 +127,7 @@ void MainMenu::loadMedia()
 	exit_button->transform.position = Vector2<float>(5, 5);
 	exit_button->setOnClickListener(std::bind(&MainMenu::exitGame, this));
 	exit_button->tLabel->isActive = false;
+	exit_button->layer = 255;
 
 	// Player
 	player = new Player(PlayerNumber::PLAYER_ONE);
@@ -133,14 +142,38 @@ void MainMenu::loadMedia()
 
 void MainMenu::onUpdate()
 {
-
+	// Fill vector
+	if(widgets.empty())
+		widgets = getGameObjects<Button*>();
 }
 
 void MainMenu::OnHandleEvent(const SDL_Event& event)
 {
+	if (event.type == SDL_MOUSEBUTTONUP)
+	{
+		for (auto go_p : gameObjectMap)
+		{
+			GameObject* go = go_p.second;
+			if (TextInput* tInput = dynamic_cast<TextInput*>(go))
+			{
+				tInput->setSelected(false);
+			}
+		}
+	}
 }
 
 // Own methods
+
+void MainMenu::enableLayer(Uint8 layer)
+{
+	for (auto widget : widgets)
+	{
+		if (widget->layer & layer)
+			widget->isActive = true;
+		else
+			widget->isActive = false;
+	}
+}
 
 void MainMenu::exitGame()
 {
@@ -161,19 +194,13 @@ void MainMenu::playButtonHandler()
 
 void MainMenu::onlineButtonHandler()
 {
-	// Deactivate old buttons
-	play_button->isActive = false;
-	online_button->isActive = false;
-
-	// Activate new buttons
-	server_button->isActive = true;
-	client_button->isActive = true;
-	back_button->isActive = true;
+	enableLayer(2);
 }
 
 void MainMenu::serverButtonHandler()
 {
-	loadLevelOne(ONLINE_SERVER);
+	enableLayer(4);
+	//loadLevelOne(ONLINE_SERVER);
 }
 
 void MainMenu::clientButtonHandler() 
@@ -183,12 +210,5 @@ void MainMenu::clientButtonHandler()
 
 void MainMenu::backButtonHandler()
 {
-	// Activate old buttons
-	play_button->isActive = true;
-	online_button->isActive = true;
-
-	// Deactivate new buttons
-	server_button->isActive = false;
-	client_button->isActive = false;
-	back_button->isActive = false;
+	enableLayer(1);
 }

@@ -9,12 +9,6 @@ class Player;
 class LevelOne : public Scene
 {
 public:
-    enum PlayerTurn
-    {
-        PLAYER_ONE_TURN,
-        PLAYER_TWO_TURN
-    };
-
 	// Constructor
 	LevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
 
@@ -31,10 +25,8 @@ public:
 	void onSpawnPowerUpTimerFinish(Uint8 flag);
 
     // GameObjects
-
 	Tower* tower = nullptr;
 	Tower* tower2 = nullptr;
-
 	std::vector<Player*> players;
 
 	// Debug
@@ -47,9 +39,6 @@ public:
 
 	// Object level Placement
 	static void placeFloorBlocks();
-
-    // GameState
-    PlayerTurn turn = PLAYER_ONE_TURN;
 
 	// Game
 	MapRGB getColorMod(PlayerNumber number);
