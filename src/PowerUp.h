@@ -65,7 +65,7 @@ public:
 	PowerUp* getPowerUp(Player* target);
 
 	// Overridede Methods
-	void onTimerEnd(Uint8 flag) override;
+	void onTimerEnd(Uint32 flag) override;
 	void onVanish() override;
 };
 
@@ -144,7 +144,7 @@ public:
 	virtual void afterShoot(float charge) {};
 
 	// Overrided methods
-	void onTimerEnd(Uint8 flag) override;
+	void onTimerEnd(Uint32 flag) override;
 
 protected:
 	void preventDefaultAction();

@@ -105,7 +105,7 @@ void CannonBall::onColliderEnter(Collider* collider)
 		timer = setComponent(new TimerComponent(15 * 1000));
 }
 
-void CannonBall::onTimerEnd(Uint8 flag)
+void CannonBall::onTimerEnd(Uint32 flag)
 {
 	tRenderer->isVanishing = true;
 }

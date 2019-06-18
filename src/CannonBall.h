@@ -26,7 +26,7 @@ public:
 
 	// Overrided Methods
 	void onColliderEnter(Collider* collider);
-	void onTimerEnd(Uint8 flag);
+	void onTimerEnd(Uint32 flag);
 	void onVanish();
 
 };

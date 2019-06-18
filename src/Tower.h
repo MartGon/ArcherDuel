@@ -65,5 +65,5 @@ public:
 	Animation* idle = nullptr;
 
 	// Overrided methods
-	void onTimerEnd(Uint8 flag);
+	void onTimerEnd(Uint32 flag);
 };

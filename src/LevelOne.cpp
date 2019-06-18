@@ -190,11 +190,10 @@ void LevelOne::handleConnectionEstablished()
 
 // Timer handler
 
-void LevelOne::onPlayerTimerFinish(Uint8 flag)
+void LevelOne::onPlayerTimerFinish(Uint32 flag)
 {
 	if (Player* player = dynamic_cast<Player*>(getGameObjectById(flag))) 
 	{
-
 		player->isActive = true;
 		player->isInmunne = true;
 		player->tRenderer->setBlink(6, 60 * 3);
@@ -202,12 +201,12 @@ void LevelOne::onPlayerTimerFinish(Uint8 flag)
 	
 }
 
-void LevelOne::onEndGameTimerFininsh(Uint8 flag)
+void LevelOne::onEndGameTimerFininsh(Uint32 flag)
 {
 	exitGame();
 }
 
-void LevelOne::onSpawnPowerUpTimerFinish(Uint8 flag)
+void LevelOne::onSpawnPowerUpTimerFinish(Uint32 flag)
 {
 	// Spawn power up Object
 	PowerUpType type = (PowerUpType)Random::getRandomUniformInteger(1, 6);
@@ -286,7 +285,7 @@ NetworkOwner LevelOne::getNetworkOwner(PlayerNumber player_number)
 Vector2<float> LevelOne::getPlayerPos(PlayerNumber player_number)
 {
 	Vector2<float> player_pos = { 0, 0 };
-	int number = static_cast<int>(player_number);
+	int number = static_cast<int>(player_number) % 4;
 
 	// It's odd
 	if (number & 1)
@@ -398,7 +397,7 @@ bool LevelOne::isPlayerPosValid(Player* player)
 
 void LevelOne::resetPlayerPosition(Player* player)
 {
-	PlayerNumber pn = player->player_number;
+	PlayerNumber pn = (PlayerNumber)((int)player->player_number % 4);
 
 	switch (pn)
 	{

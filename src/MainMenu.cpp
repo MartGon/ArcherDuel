@@ -48,7 +48,7 @@ void MainMenu::loadMedia()
 	game_title_1->setTextScale(Vector2<float>(4, 4));
 
 	game_title_1->setText("Archers");
-	game_title_1->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 3, LEVEL_HEIGHT / 10 * 0.5f));
+	game_title_1->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 5.5f, 3.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 	// Game title 2
 	game_title_2 = new TextLabel();
@@ -56,70 +56,123 @@ void MainMenu::loadMedia()
 	game_title_2->setTextScale(Vector2<float>(4, 4));
 
 	game_title_2->setText("Duel");
-	game_title_2->setRelativePosition(Vector2<float>(LEVEL_WIDTH / 10 * 0.75f, LEVEL_HEIGHT / 10));
+	game_title_2->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.5f, 11.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 	// Play Button
 	play_button = new Button(Texture("button_background4.png"));
 	play_button->setScale(Vector2<float>(2, 2));
-	play_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 2.5f));
+	play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, {ALIGN_FROM_RIGHT, ALIGN_FROM_TOP});
 	play_button->tLabel->setText("Play");
 	play_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
-	play_button->tLabel->transform.position = (play_button->collider->getDimensions() / 2 ) - Vector2<float>(20, 5);
+	play_button->tLabel->setCenteredWithinParent();
 	play_button->setOnClickListener(std::bind(&MainMenu::playButtonHandler, this));
-	play_button->layer = 1;
+	play_button->layer = MAIN_MENU_LAYER | PLAYER_MENU_LAYER;
 
 	// Online button
 	online_button = new Button(Texture("button_background4.png"));
 	online_button->setScale(Vector2<float>(2, 2));
-	online_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 3.75f));
+	online_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	online_button->tLabel->setText("Online");
 	online_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
-	online_button->tLabel->transform.position = (online_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	online_button->tLabel->setCenteredWithinParent();
 	online_button->setOnClickListener(std::bind(&MainMenu::onlineButtonHandler, this));
-	online_button->layer = 1;
+	online_button->layer = MAIN_MENU_LAYER;
 
 	// Online Sub-menu
 		// Server button
 	server_button = new Button(Texture("button_background4.png"));
 	server_button->setScale(Vector2<float>(2, 2));
-	server_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 2.5f));
+	server_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	server_button->tLabel->setText("Server");
 	server_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
-	server_button->tLabel->transform.position = (server_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	server_button->tLabel->setCenteredWithinParent();
 	server_button->setOnClickListener(std::bind(&MainMenu::serverButtonHandler, this));
 	server_button->isActive = false;
-	server_button->layer = 2;
+	server_button->layer = ONLINE_MENU_LAYER;
 
-			// Server submenu
-	ip_input = new TextInput("button_background4.png", "127.0.0.1");
-	ip_input->setScale(Vector2<float>(2, 1));
-	ip_input->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 2.5f));
+			// Server Address / Server Port
+	ip_input = new TextInput("button_background4.png", "127.0.0.1:1338");
+	ip_input->setScale(Vector2<float>(2.5f, 1));
+	ip_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	ip_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
-	ip_input->tLabel->transform.position = Vector2<float>(1.5f * ip_input->tRenderer->texture.mWidth / 10, 4 * ip_input->tRenderer->texture.mHeight / 10 );
+	ip_input->tLabel->setCenteredWithinParent();
 	ip_input->isActive = false;
-	ip_input->layer = 4;
+	ip_input->layer = CLIENT_MENU_LAYER | SERVER_MENU_LAYER;
+		
+			// Server address label
+	ip_label = new TextLabel();
+	ip_label->setScale(Vector2<float>(1, 1));
+	ip_label->setText("Server Address");
+	ip_label->transform.parent = &ip_input->transform;
+	ip_label->setCenteredWithinParent({0, -15.f});
+	ip_label->setTextColor({ 0, 0, 0 });
+
+			// Connect button
+	connect_button = new Button(Texture("button_background4.png"));
+	connect_button->setScale(Vector2<float>(2, 2));
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connect_button->tLabel->setText("Connect");
+	connect_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	connect_button->tLabel->setCenteredWithinParent();
+	connect_button->setOnClickListener(std::bind(&MainMenu::connectButtonHandler, this));
+	connect_button->isActive = false;
+	connect_button->layer = CLIENT_MENU_LAYER | SERVER_MENU_LAYER;
+
+		// Player amount input
+	player_amount_input = new TextInput("button_background4.png", "4");
+	player_amount_input->setScale(Vector2<float>(2.5f, 1));
+	player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 35.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	player_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	player_amount_input->tLabel->setCenteredWithinParent();
+	player_amount_input->isActive = false;
+	player_amount_input->layer = SERVER_MENU_LAYER | PLAYER_MENU_LAYER;
+
+		// Player amount label
+	player_amount_label = new TextLabel();
+	player_amount_label->setScale(Vector2<float>(1, 1));
+	player_amount_label->setText("Player Amount");
+	player_amount_label->transform.parent = &player_amount_input->transform;
+	player_amount_label->setCenteredWithinParent({ 0, -15.f });
+	player_amount_label->setTextColor({ 0, 0, 0 });
+
+		// Frame amount input
+	frame_amount_input = new TextInput("button_background4.png", "8");
+	frame_amount_input->setScale(Vector2<float>(2.5f, 1));
+	frame_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	frame_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	frame_amount_input->tLabel->setCenteredWithinParent();
+	frame_amount_input->isActive = false;
+	frame_amount_input->layer = SERVER_MENU_LAYER;
+
+		// Frmae amount lable
+	frame_amount_label = new TextLabel();
+	frame_amount_label->setScale(Vector2<float>(1, 1));
+	frame_amount_label->setText("Frame Buffer Size");
+	frame_amount_label->transform.parent = &frame_amount_input->transform;
+	frame_amount_label->setCenteredWithinParent({ 0, -15.f });
+	frame_amount_label->setTextColor({ 0, 0, 0 });
 
 		// Client button
 	client_button = new Button(Texture("button_background4.png"));
 	client_button->setScale(Vector2<float>(2, 2));
-	client_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 3.75f));
+	client_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	client_button->tLabel->setText("Client");
 	client_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
-	client_button->tLabel->transform.position = (client_button->collider->getDimensions() / 2) - Vector2<float>(30, 5);
+	client_button->tLabel->setCenteredWithinParent();
 	client_button->setOnClickListener(std::bind(&MainMenu::clientButtonHandler, this));
 	client_button->isActive = false;
-	client_button->layer = 2;
+	client_button->layer = ONLINE_MENU_LAYER;
 
 		// Back button
 	back_button = new Button(Texture("button_background4.png"));
 	back_button->setScale(Vector2<float>(2, 2));
-	back_button->setRelativePosition(Vector2<float>(LEVEL_WIDTH - LEVEL_WIDTH / 10 * 1.75f, LEVEL_HEIGHT / 10 * 5.f));
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	back_button->tLabel->setText("Back");
 	back_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
-	back_button->tLabel->transform.position = (back_button->collider->getDimensions() / 2) - Vector2<float>(20, 5);
+	back_button->tLabel->setCenteredWithinParent();
 	back_button->setOnClickListener(std::bind(&MainMenu::backButtonHandler, this));
 	back_button->isActive = false;
-	back_button->layer = 254;
+	back_button->layer = EVERY_LAYER - 1;
 
 	// Exit button
 	exit_button = new Button(Texture("ExitButton.png"));
@@ -127,7 +180,7 @@ void MainMenu::loadMedia()
 	exit_button->transform.position = Vector2<float>(5, 5);
 	exit_button->setOnClickListener(std::bind(&MainMenu::exitGame, this));
 	exit_button->tLabel->isActive = false;
-	exit_button->layer = 255;
+	exit_button->layer = EVERY_LAYER;
 
 	// Player
 	player = new Player(PlayerNumber::PLAYER_ONE);
@@ -173,6 +226,8 @@ void MainMenu::enableLayer(Uint8 layer)
 		else
 			widget->isActive = false;
 	}
+
+	current_layer = layer;
 }
 
 void MainMenu::exitGame()
@@ -189,26 +244,76 @@ void MainMenu::loadLevelOne(SceneMode mode)
 
 void MainMenu::playButtonHandler()
 {
-	loadLevelOne();
+	//loadLevelOne();
+	if (current_layer == MAIN_MENU_LAYER)
+	{
+		// Set next mode
+		next_mode = SINGLE_PLAYER;
+
+		// Move player amount input 
+		player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+		play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 37.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+		back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+		enableLayer(PLAYER_MENU_LAYER);
+	}
+	else
+		loadLevelOne();
 }
 
 void MainMenu::onlineButtonHandler()
 {
-	enableLayer(2);
+	enableLayer(ONLINE_MENU_LAYER);
 }
 
 void MainMenu::serverButtonHandler()
 {
-	enableLayer(4);
-	//loadLevelOne(ONLINE_SERVER);
+	// Set next mode
+	next_mode = ONLINE_SERVER;
+
+	// Set text
+	ip_label->setText("Server port");
+	ip_label->setTextColor({ 0, 0, 0 });
+	ip_input->setText("65534");
+	ip_label->setCenteredWithinParent({ 0, -15.f });
+
+	// Move connect and back buttons
+	player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 35.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 57.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 70.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+	enableLayer(SERVER_MENU_LAYER);
 }
 
 void MainMenu::clientButtonHandler() 
 {
-	loadLevelOne(ONLINE_CLIENT);
+	// Set next mode
+	next_mode = ONLINE_CLIENT;
+
+	// Set text
+	ip_label->setText("Server Address");
+	ip_label->setTextColor({ 0, 0, 0 });
+	ip_input->setText("127.0.0.1:65534");
+	ip_label->setCenteredWithinParent({ 0, -15.f });
+
+	// Move connect and back buttons
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 37.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+	enableLayer(CLIENT_MENU_LAYER);
+}
+
+void MainMenu::connectButtonHandler()
+{
+	// Network connection stuff
+	std::cout << "Connecting \n";
 }
 
 void MainMenu::backButtonHandler()
 {
-	enableLayer(1);
+	// Reset pos
+	play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+	enableLayer(MAIN_MENU_LAYER);
 }

@@ -72,6 +72,24 @@ void Arrow::onColliderEnter(Collider* collider)
 
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
+
+		// Prevent Friendly fire
+		if (owner)
+		{
+			if (owner->player_team == player->player_team)
+			{
+				// We don't wait for timer
+				wait_timer = false;
+
+				// Re-enable components
+				nav->isEnabled = true;
+				rotCollider->isEnabled = true;
+				tRenderer->hasTrailEffect = true;
+
+				return;
+			}
+		}
+
 		// Set player to new parent
 		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
 		transform.parent = &player->transform;
@@ -236,7 +254,7 @@ void Arrow::onVanish()
 	dmg_label->destroy();
 }
 
-void Arrow::onTimerEnd(Uint8 flag)
+void Arrow::onTimerEnd(Uint32 flag)
 {
 	tRenderer->isVanishing = true;
 }

@@ -138,7 +138,7 @@ PowerUp* PowerUpObject::getPowerUp(Player* target)
 
 // Overrided Methods
 
-void PowerUpObject::onTimerEnd(Uint8 flag)
+void PowerUpObject::onTimerEnd(Uint32 flag)
 {
 	if (flag == TIMER_EVENT_ROTATION)
 	{
@@ -262,7 +262,7 @@ bool PowerUp::interruptDefaultAction()
 
 // Overrided Methods
 
-void PowerUp::onTimerEnd(Uint8 flag)
+void PowerUp::onTimerEnd(Uint32 flag)
 {
 	// Remove from owner
 	owner->removePowerUp(this);

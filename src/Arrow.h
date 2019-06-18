@@ -36,7 +36,7 @@ public:
     void afterMove() override;
     void onUpdate() override;
 	void onVanish() override;
-	void onTimerEnd(Uint8 flag) override;
+	void onTimerEnd(Uint32 flag) override;
 
 	// Own Hooks
 	virtual void onImpactGameObject(Collider* go) {};

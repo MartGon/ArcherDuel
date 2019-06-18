@@ -321,7 +321,7 @@ void Player::onColliderEnter(Collider *collider)
 std::string Player::getPathByPlayerNumber(PlayerNumber number)
 {
 	std::string path = "";
-	switch (number)
+	switch ((PlayerNumber)((int)number % 4))
 	{
 	case PlayerNumber::PLAYER_ONE:
 		path = "_red";

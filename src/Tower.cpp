@@ -216,7 +216,7 @@ Fire::Fire()
 }
 
 
-void Fire::onTimerEnd(Uint8 flag)
+void Fire::onTimerEnd(Uint32 flag)
 {
 	// Deactivate on timer end
 	isActive = false;
