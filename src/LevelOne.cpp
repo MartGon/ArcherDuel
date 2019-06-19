@@ -20,8 +20,9 @@
 const int LevelOne::LEVEL_WIDTH = 480;
 const int LevelOne::LEVEL_HEIGHT = 320;
 
-LevelOne::LevelOne(SceneMode mode)
+LevelOne::LevelOne(SceneMode mode, Uint32 player_amount)
 {
+	this->player_amount = player_amount;
 	this->mode = mode;
 }
 
@@ -55,7 +56,7 @@ void LevelOne::loadMedia()
 	// Create players
 	if (!isOnline())
 	{
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < player_amount; i++)
 		{
 			bool isAI = i != 0;
 			createPlayer(static_cast<PlayerNumber>(i + 1), isAI);
@@ -198,7 +199,6 @@ void LevelOne::onPlayerTimerFinish(Uint32 flag)
 		player->isInmunne = true;
 		player->tRenderer->setBlink(6, 60 * 3);
 	}
-	
 }
 
 void LevelOne::onEndGameTimerFininsh(Uint32 flag)

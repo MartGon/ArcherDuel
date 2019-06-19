@@ -7,6 +7,8 @@
 
 #include "Player.h"
 
+#include <optional>
+
 enum MenuLayer
 {
 	MAIN_MENU_LAYER = 1,
@@ -78,4 +80,8 @@ public:
 	void clientButtonHandler();
 	void connectButtonHandler();
 	void backButtonHandler();
+
+	// Validation methods
+	std::optional<std::pair<std::string, std::optional<int>>> getAddressIfValid(std::string address);
+	
 };

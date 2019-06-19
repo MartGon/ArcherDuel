@@ -10,6 +10,8 @@
 #include "Cannon.h"
 #include "PowerUp.h"
 
+#include <regex>
+
 // Const values
 const int MainMenu::LEVEL_WIDTH = 480;
 const int MainMenu::LEVEL_HEIGHT = 320;
@@ -97,6 +99,7 @@ void MainMenu::loadMedia()
 	ip_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
 	ip_input->tLabel->setCenteredWithinParent();
 	ip_input->isActive = false;
+	ip_input->valid_inputs = { R"(\d|\.|:|[a-z])" };
 	ip_input->layer = CLIENT_MENU_LAYER | SERVER_MENU_LAYER;
 		
 			// Server address label
@@ -125,6 +128,7 @@ void MainMenu::loadMedia()
 	player_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
 	player_amount_input->tLabel->setCenteredWithinParent();
 	player_amount_input->isActive = false;
+	player_amount_input->valid_inputs = { R"(\d)" };
 	player_amount_input->layer = SERVER_MENU_LAYER | PLAYER_MENU_LAYER;
 
 		// Player amount label
@@ -142,6 +146,7 @@ void MainMenu::loadMedia()
 	frame_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
 	frame_amount_input->tLabel->setCenteredWithinParent();
 	frame_amount_input->isActive = false;
+	frame_amount_input->valid_inputs = { R"(\d)" };
 	frame_amount_input->layer = SERVER_MENU_LAYER;
 
 		// Frmae amount lable
@@ -237,7 +242,8 @@ void MainMenu::exitGame()
 
 void MainMenu::loadLevelOne(SceneMode mode)
 {
-	Scene* level_one = new LevelOne();
+	Uint32 player_amount = std::stoi(player_amount_input->getText());
+	Scene* level_one = new LevelOne(SINGLE_PLAYER, player_amount);
 	level_one->setSceneMode(mode);
 	SceneManager::loadNextScene(level_one);
 }
@@ -274,7 +280,7 @@ void MainMenu::serverButtonHandler()
 	// Set text
 	ip_label->setText("Server port");
 	ip_label->setTextColor({ 0, 0, 0 });
-	ip_input->setText("65534");
+	ip_input->setText("1338");
 	ip_label->setCenteredWithinParent({ 0, -15.f });
 
 	// Move connect and back buttons
@@ -293,7 +299,7 @@ void MainMenu::clientButtonHandler()
 	// Set text
 	ip_label->setText("Server Address");
 	ip_label->setTextColor({ 0, 0, 0 });
-	ip_input->setText("127.0.0.1:65534");
+	ip_input->setText("127.0.0.1:1338");
 	ip_label->setCenteredWithinParent({ 0, -15.f });
 
 	// Move connect and back buttons
@@ -305,8 +311,44 @@ void MainMenu::clientButtonHandler()
 
 void MainMenu::connectButtonHandler()
 {
-	// Network connection stuff
-	std::cout << "Connecting \n";
+	// Check if address is valid
+	if (current_layer == CLIENT_MENU_LAYER)
+	{
+		std::string input_address = ip_input->getText();
+		if (auto optional = getAddressIfValid(input_address))
+		{
+			auto[ip, port_opt] = optional.value();
+			auto port = port_opt.value_or(1338);
+
+			// Connect
+			NetworkClient* client_agent = new NetworkClient();
+			client_agent->state = NetworkClient::CLIENT_OPENING_SOCKET;
+		}
+		else
+		{
+			// Set color red, input is not valid
+			ip_input->tLabel->setTextColor({ 255, 0, 0 });
+		}
+	}
+	else
+	{
+		std::string str_port = ip_input->getText();
+		std::regex is_number{ R"(\d+)" };
+
+		if (std::regex_match(str_port, is_number))
+		{
+			if (auto port = std::stoi(str_port); port < 65536)
+			{
+
+				// Connect
+
+				return;
+			}
+
+		}	
+		// Set color red, input is not valid
+		ip_input->tLabel->setTextColor({ 255, 0, 0 });
+	}
 }
 
 void MainMenu::backButtonHandler()
@@ -316,4 +358,42 @@ void MainMenu::backButtonHandler()
 	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 	enableLayer(MAIN_MENU_LAYER);
+}
+
+// Validation methods
+
+std::optional<std::pair<std::string, std::optional<int>>> MainMenu::getAddressIfValid(std::string address)
+{
+	std::regex ip_port{R"(^((?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]))(?::(\d{1,5}))?$)"};
+
+	std::smatch matches;
+	if (std::regex_match(address, matches, ip_port)) 
+	{
+		for (int i = 0; i < matches.size(); i++)
+		{
+			std::string match = matches[i];
+
+			// If there's port
+			if (i == 2)
+			{
+				if (!match.empty())
+				{
+					if (int port = std::stoi(match); port < 65536)
+					{
+						// Return IP + Port
+						return  std::make_pair(matches[1], port);
+					}
+					else
+						// Return nothing, port is not valid
+						return {};
+				}
+			}
+		}
+
+		// Return IP + nullopt
+		return std::make_pair(matches[1], std::nullopt);
+	}
+	
+	// Return nothing, IP is not valid
+	return {};
 }

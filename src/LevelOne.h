@@ -10,7 +10,7 @@ class LevelOne : public Scene
 {
 public:
 	// Constructor
-	LevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
+	LevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER, Uint32 player_amount = 2);
 
 	// Overrided methods
 		// Scene
@@ -25,6 +25,7 @@ public:
 	void onSpawnPowerUpTimerFinish(Uint32 flag);
 
     // GameObjects
+	Uint32 player_amount = 2;
 	Tower* tower = nullptr;
 	Tower* tower2 = nullptr;
 	std::vector<Player*> players;
