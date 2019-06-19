@@ -16,8 +16,14 @@ enum MenuLayer
 	SERVER_MENU_LAYER = 4,
 	CLIENT_MENU_LAYER = 8,
 	PLAYER_MENU_LAYER = 16,
+	CLIENT_CONNECTION_MENU_LAYER = 32,
+	SERVER_CONNECTION_MENU_LAYER = 64,
 	EVERY_LAYER = 255
+};
 
+enum ConnectionCodes
+{
+	FAILED_CONNECTION_TO_SERVER
 };
 
 class MainMenu : public Scene
@@ -32,7 +38,7 @@ public:
 
 	// UI
 		// Buttons
-	std::vector<Button*> widgets;
+	std::vector<GUIComponent*> widgets;
 	Button* play_button = nullptr;
 	Button* online_button = nullptr;
 	Button* server_button = nullptr;
@@ -45,6 +51,7 @@ public:
 	TextLabel* ip_label = nullptr;
 	TextLabel* player_amount_label = nullptr;
 	TextLabel* frame_amount_label = nullptr;
+	TextLabel* connecting_label = nullptr;
 
 		// TextInput
 	TextInput* ip_input = nullptr;
@@ -64,6 +71,23 @@ public:
 
 	// Level One attributes
 	SceneMode next_mode = SINGLE_PLAYER;
+
+	// Online Handling
+	NetworkClient* network_client = nullptr;
+	NetworkServer* network_server = nullptr;
+
+	// Online timer
+	TimerObject* timer = nullptr;
+	Uint32 connection_tries = 0;
+	Uint32 connection_tries_limit = 5;
+	void handleTimer(Uint32 flag);
+
+
+	SDL_mutex* flag_mutex = nullptr;
+	SDL_Thread* connection_thread = nullptr;
+	bool time_over = true;
+	bool connection_attempt_finished = true;
+	bool connection_attempt_succeeded = false;
 
 	// Dimensions
 	// Level Dimensions
@@ -85,3 +109,25 @@ public:
 	std::optional<std::pair<std::string, std::optional<int>>> getAddressIfValid(std::string address);
 	
 };
+
+namespace MainMenuConnection 
+{
+	template <typename T>
+	int handleConnection(T* data)
+	{
+		int result = 0;
+
+		if (MainMenu* menu = static_cast<MainMenu*>(data))
+		{
+			result = menu->network_client->establishConnection();
+
+			// We have finished
+			SDL_LockMutex(menu->flag_mutex);
+			menu->connection_attempt_finished = true;
+			SDL_UnlockMutex(menu->flag_mutex);
+
+		}
+
+		return result;
+	}
+}
