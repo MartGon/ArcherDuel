@@ -42,7 +42,7 @@ public:
 	static void placeFloorBlocks();
 
 	// Game
-	MapRGB getColorMod(PlayerNumber number);
+	static MapRGB getColorMod(PlayerNumber number);
 	Vector2<float> getCannonBarPos(PlayerNumber number);
 	NetworkOwner getNetworkOwner(PlayerNumber number);
 	Vector2<float> getPlayerPos(PlayerNumber number);

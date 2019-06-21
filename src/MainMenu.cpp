@@ -100,6 +100,7 @@ void MainMenu::loadMedia()
 	ip_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
 	ip_input->tLabel->setCenteredWithinParent();
 	ip_input->isActive = false;
+	ip_input->onSelect = std::bind(&MainMenu::onSelectIPInput, this);
 	ip_input->valid_inputs = { R"(\d|\.|:|[a-z])" };
 	ip_input->setLayer(CLIENT_MENU_LAYER | SERVER_MENU_LAYER);
 		
@@ -172,11 +173,43 @@ void MainMenu::loadMedia()
 		// Connection label
 	connecting_label = new TextLabel();
 	connecting_label->setScale(Vector2<float>(1, 1));
-	connecting_label->setText("Connecting...");
-	connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 12.5f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connecting_label->setText("Connecting");
+	connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.25f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	connecting_label->setTextColor({ 0, 0, 0 });
-	connecting_label->setLayer(CLIENT_CONNECTION_MENU_LAYER);
+	connecting_label->setLayer(CLIENT_CONNECTION_MENU_LAYER | SERVER_CONNECTION_MENU_LAYER);
 	connecting_label->isActive = false;
+
+		// Player info label
+	player_info_label = new TextLabel();
+	player_info_label->setScale(Vector2<float>(1, 1));
+	player_info_label->setTextColor({ 0, 0, 0 });
+	player_info_label->setText("You are player");
+	player_info_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 12.5f, 30.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	player_info_label->isActive = false;
+
+		// Player color report label
+	player_color_info_label = new TextLabel();
+	player_color_info_label->setScale({ 1, 1 });
+	player_color_info_label->setTextColor({ 255, 0, 0 });
+	player_color_info_label->setText("red");
+	player_color_info_label->transform.parent = &player_info_label->transform;
+	player_color_info_label->setCenteredWithinParent({ 0, 15.f });
+
+	// Connected players label
+	connected_players_label = new TextLabel();
+	connected_players_label->setScale(Vector2<float>(1, 1));
+	connected_players_label->setText("Connected players: 0/0");
+	connected_players_label->setTextColor({ 0, 0, 0 });
+	connected_players_label->transform.parent = &player_color_info_label->transform;
+	connected_players_label->setCenteredWithinParent({ 0, 15.f });
+
+		// Connection info label
+	connection_action_label = new TextLabel();
+	connection_action_label->setScale({ 1, 1 });
+	connection_action_label->setText("Waiting for server");
+	connection_action_label->transform.parent = &player_color_info_label->transform;
+	connection_action_label->setCenteredWithinParent({ 0, 15.f });
+	connection_action_label->isActive = false;
 
 		// Back button
 	back_button = new Button(Texture("button_background4.png"));
@@ -208,9 +241,9 @@ void MainMenu::loadMedia()
 	RendererManager::setCameraPosition(Vector2<int>(0, 0), Vector2<int>(LEVEL_WIDTH, LEVEL_HEIGHT));
 
 	// Create timer object
-	timer = new TimerObject(3 * 1000, 1);
+	timer = new TimerObject(1 * 1000, 1);
 	timer->timer->isOver = true;
-	timer->callback = std::bind(&MainMenu::handleTimer, this, 0);
+	timer->callback = std::bind(&MainMenu::handleTimer, this, std::placeholders::_1);
 }
 
 void MainMenu::onUpdate()
@@ -221,65 +254,99 @@ void MainMenu::onUpdate()
 
 	if (current_layer == CLIENT_CONNECTION_MENU_LAYER)
 	{
-		if (network_client)
-		{			
-			// Check if connection attempt succeeded
-			if (!connection_attempt_succeeded)
+		if (!disconnected)
+		{
+			if (network_client)
 			{
-				// We have to try again
-				SDL_LockMutex(flag_mutex);
-				bool can_attempt_connection = connection_attempt_finished;
-				SDL_UnlockMutex(flag_mutex);
-
-				// Check if can try to connect now
-				if (can_attempt_connection)
+				if (!connection_established)
 				{
-					// Check if timer is over
-					if (time_over)
+					// We have to try again
+					SDL_LockMutex(flag_mutex);
+					bool can_attempt_connection = connection_attempt_finished;
+					SDL_UnlockMutex(flag_mutex);
+
+					// Check if can try to connect now
+					if (can_attempt_connection)
 					{
-						// If it exists, wait to prev thread and store result
-						if (connection_thread)
+						// Check if timer is over
+						if (time_over)
 						{
-							// Wait and free thread
-							int result = 0;
-							SDL_WaitThread(connection_thread, &result);
-							connection_thread = nullptr;
+							// If it exists, wait to prev thread and store result
+							if (connection_thread)
+							{
+								// Wait and free thread
+								int result = 0;
+								SDL_WaitThread(connection_thread, &result);
+								connection_thread = nullptr;
 
-							// Store result
-							connection_attempt_succeeded = result == 1;
+								// Store result
+								connection_established = result;
+							}
+
+							// Check if previous attempt was successful
+							if (connection_established)
+							{
+								// Enable next layer or set text with connection info
+								// Update connecting message
+								std::string connect_msg = "Connected!";
+								connecting_label->setTextColor({ 0, 255, 0 });
+								connecting_label->setText(connect_msg);
+
+								// Activate player info label
+								player_info_label->isActive = true;
+
+								// Activate player color info label
+								PlayerNumber player_number = static_cast<PlayerNumber>((network_client->pair_identity % 4) + 1);
+
+								// Get color text
+								std::string player_color = player->getPathByPlayerNumber(player_number).empty() ? "_green" : player->getPathByPlayerNumber(player_number);
+								if (!player_color.empty())
+									player_color.erase(player_color.begin());
+								player_color_info_label->setText(player_color);
+
+								// Get color mod
+								MapRGB mod = LevelOne::getColorMod(player_number);
+								player_color_info_label->setTextColor(mod);
+								player_color_info_label->setCenteredWithinParent({ 0, 15.f });
+
+								player_color_info_label->isActive = true;
+
+								// Enable connection action label
+								connection_action_label->setText("Waiting for server");
+								connection_action_label->isActive = true;
+								connection_action_label->setTextColor({ 0, 0 , 0 });
+								connection_action_label->setCenteredWithinParent({ 0, 15.f });
+							}
+							else
+							{
+								// Set flag to false
+								SDL_LockMutex(flag_mutex);
+								connection_attempt_finished = false;
+								SDL_UnlockMutex(flag_mutex);
+
+								// Create thread to connect to server
+								connection_thread = SDL_CreateThread(MainMenuConnection::handleConnection, "connection", this);
+
+								// Increment connection tries
+								connection_tries++;
+
+								// Set timer flag to false
+								time_over = false;
+
+								// Init timer to try again
+								timer->timer->reset();
+								timer->setFlag(FAILED_CONNECTION_TO_SERVER);
+							}
 						}
-
-						// Check if previous attempt was successful
-						if (!connection_attempt_succeeded)
-						{
-							// Create thread to connect to server
-							connection_thread = SDL_CreateThread(MainMenuConnection::handleConnection, "connection", this);
-
-							// Increment connection tries
-							connection_tries++;
-
-							// Set flag to false
-							SDL_LockMutex(flag_mutex);
-							connection_attempt_finished = false;
-							SDL_UnlockMutex(flag_mutex);
-
-							// Set timer flag to false
-							time_over = false;
-
-							// Init timer to try again
-							timer->timer->reset();
-							timer->setFlag(FAILED_CONNECTION_TO_SERVER);
-
-							// Update connecting message
-							std::string connect_msg = "Connecting";
-
-							// Get amount of dots to set
-							int dots = connection_tries % 4;
-							for (int i = 0; i < dots; i++)
-								connect_msg += '.';
-
-							connecting_label->setText(connect_msg);
-						}
+					}
+				}
+				else
+				{
+					// Wait for game start packet
+					if (Packet* packet = network_client->recvPacket())
+					{
+						if (packet->packetType == GAME_START_PACKET)
+							playButtonHandler();
 					}
 				}
 			}
@@ -289,8 +356,49 @@ void MainMenu::onUpdate()
 	{
 		if (network_server)
 		{
-			bool result = network_server->establishConnection();
+			if (time_over)
+			{
+				bool finished = network_server->establishConnection();
+
+				if (finished)
+				{
+					// Change connecting label
+					std::string game_ready_str = "Game Ready!";
+					connecting_label->setTextColor({ 0, 255, 0 });
+					connecting_label->setText(game_ready_str);
+					connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 13.f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+					// Enable start game button
+					play_button->isActive = true;
+					play_button->tLabel->isActive = true;
+					play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 57.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+				}
+				else
+				{
+					// Increment connection tries
+					connection_tries++;
+
+					// Init timer to try again
+					timer->timer->reset();
+					timer->setFlag(FAILED_WAITING_FOR_CLIENT);
+
+					// Set timer flag to false
+					time_over = false;
+				}
+
+				// Check for pair disconnect
+				auto packets = network_server->recvPackets();
+			}
 		}
+	}
+}
+
+void MainMenu::onDestroy()
+{
+	if (flag_mutex)
+	{
+		SDL_DestroyMutex(flag_mutex);
+		flag_mutex = nullptr;
 	}
 }
 
@@ -313,10 +421,36 @@ void MainMenu::OnHandleEvent(const SDL_Event& event)
 
 void MainMenu::handleTimer(Uint32 flag)
 {
+	time_over = true;
+
 	if (flag == FAILED_CONNECTION_TO_SERVER)
 	{
-		time_over = true;
+		if (!disconnected) 
+		{
+			// Update connecting message
+			std::string connect_msg = "Connecting";
+
+			// Get amount of dots to set
+			int dots = connection_tries % 4;
+			for (int i = 0; i < dots; i++)
+				connect_msg += '.';
+
+			connecting_label->setText(connect_msg);
+		}
 	}
+	else if (flag == FAILED_WAITING_FOR_CLIENT)
+	{
+		// Update connecting message
+		std::string connect_msg = "Waiting for players";
+
+		// Get amount of dots to set
+		int dots = connection_tries % 4;
+		for (int i = 0; i < dots; i++)
+			connect_msg += '.';
+
+		connecting_label->setText(connect_msg);
+	}
+
 }
 
 // Own methods
@@ -339,19 +473,33 @@ void MainMenu::exitGame()
 	SceneManager::quitGame();
 }
 
-void MainMenu::loadLevelOne(SceneMode mode)
+void MainMenu::loadLevelOne(SceneMode mode, Uint32 player_amount)
 {
-	Uint32 player_amount = std::stoi(player_amount_input->getText());
-	Scene* level_one = new LevelOne(SINGLE_PLAYER, player_amount);
+	Scene* level_one = new LevelOne(mode, player_amount);
 	level_one->setSceneMode(mode);
+
+	NetworkAgent* nAgent = nullptr;
+	if (mode == ONLINE_CLIENT)
+		nAgent = network_client;
+	else if (mode == ONLINE_SERVER)
+	{
+		nAgent = network_server;
+
+		// Send start packet
+		GameStartPacket gsp;
+		nAgent->sendPacket(&gsp, false);
+	}
+
+	level_one->networkAgent = nAgent;
 	SceneManager::loadNextScene(level_one);
 }
 
 void MainMenu::playButtonHandler()
 {
 	//loadLevelOne();
-	if (current_layer == MAIN_MENU_LAYER)
+	switch(current_layer)
 	{
+	case MAIN_MENU_LAYER:
 		// Set next mode
 		next_mode = SINGLE_PLAYER;
 
@@ -361,9 +509,20 @@ void MainMenu::playButtonHandler()
 		back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 		enableLayer(PLAYER_MENU_LAYER);
+		break;
+	case PLAYER_MENU_LAYER:
+	{
+		Uint32 player_amount = std::stoi(player_amount_input->getText());
+		loadLevelOne(SINGLE_PLAYER, player_amount);
+		break;
 	}
-	else
-		loadLevelOne();
+	case CLIENT_CONNECTION_MENU_LAYER:
+		loadLevelOne(ONLINE_CLIENT, network_client->player_amount);
+		break;
+	case SERVER_CONNECTION_MENU_LAYER:
+		loadLevelOne(ONLINE_SERVER, network_server->player_amount);
+		break;
+	}
 }
 
 void MainMenu::onlineButtonHandler()
@@ -425,6 +584,8 @@ void MainMenu::connectButtonHandler()
 			network_client->state = NetworkClient::CLIENT_OPENING_SOCKET;
 			network_client->serverIP = ip;
 			network_client->serverPort = port;
+			network_client->isBlocking = false;
+			network_client->HandleNAEvent = std::bind(&MainMenu::HandleClientAgentEvent, this, std::placeholders::_1);
 
 			// Enable connection layer
 			enableLayer(CLIENT_CONNECTION_MENU_LAYER);
@@ -432,6 +593,14 @@ void MainMenu::connectButtonHandler()
 			// Create mutex
 			if(!flag_mutex)
 				flag_mutex = SDL_CreateMutex();
+
+			// Connecting label
+			connecting_label->setText("Connecting...");
+			connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.25f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+			connecting_label->setTextColor({ 0, 0, 0 });
+
+			// Reset flag
+			disconnected = false;
 		}
 		else
 		{
@@ -439,7 +608,7 @@ void MainMenu::connectButtonHandler()
 			ip_input->tLabel->setTextColor({ 255, 0, 0 });
 		}
 	}
-	else
+	else if (current_layer == SERVER_MENU_LAYER)
 	{
 		std::string str_port = ip_input->getText();
 		std::regex is_number{ R"(\d+)" };
@@ -452,14 +621,32 @@ void MainMenu::connectButtonHandler()
 				auto player_amount = std::stoi(player_amount_input->getText());
 
 				// Create client agent to be used for connection
-				network_server = new NetworkServer();
+				if(!network_server)
+					network_server = new NetworkServer();
 				network_server->state = NetworkServer::SERVER_STATE_OPENING_SOCKET;
 				network_server->serverPort = port;
 				network_server->max_buffer_size = frame_amount;
 				network_server->player_amount = player_amount;
+				network_server->socket_set = SDLNet_AllocSocketSet(network_server->player_amount);
+				network_server->isBlocking = false;
+				network_server->HandleNAEvent = std::bind(&MainMenu::HandleServerAgentEvent, this, std::placeholders::_1);
 
 				// Enable server connection layer
 				enableLayer(SERVER_CONNECTION_MENU_LAYER);
+
+				// Enabling connecting label
+				connecting_label->setText("Waiting for players");
+				connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.0f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+				connecting_label->setTextColor({ 0, 0, 0 });
+
+				// Enabling labels
+				player_info_label->isActive = true;
+				player_color_info_label->isActive = true;
+				connected_players_label->isActive = true;
+				setConnectedPlayers(1, network_server->player_amount);
+
+				// Set timer flag
+				timer->setFlag(FAILED_WAITING_FOR_CLIENT);
 
 				return;
 			}
@@ -476,7 +663,120 @@ void MainMenu::backButtonHandler()
 	play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
+	switch (current_layer)
+	{
+	case CLIENT_CONNECTION_MENU_LAYER:
+		if (network_client)
+		{
+			// Destroy net agent
+			delete network_client;
+			network_client = nullptr;
+
+			// Disable flag
+			connection_established = false;
+		}
+		break;
+	case SERVER_CONNECTION_MENU_LAYER:
+		if (network_server)
+		{
+			delete network_server;
+			network_server = nullptr;
+		}
+		break;
+	}
+
 	enableLayer(MAIN_MENU_LAYER);
+}
+
+// TextInput methods
+
+void MainMenu::onSelectIPInput()
+{
+	ip_input->tLabel->setTextColor({ 255, 255, 255 });
+}
+
+void MainMenu::setConnectedPlayers(Uint32 connected_players, Uint32 max_players)
+{
+	std::string default_str = "Connected players: ";
+	std::string player_balance = std::to_string(connected_players) + "/" + std::to_string(max_players);
+
+	connected_players_label->setText(default_str + player_balance);
+}
+
+// Network agent handle
+
+void MainMenu::HandleServerAgentEvent(NetworkAgent::NetworkAgentEvent event)
+{
+	switch (event)
+	{
+	case NetworkAgent::EVENT_PAIR_CONNECTED:
+	{
+		// Increase player connected amount label
+		Uint32 max_players = network_server->player_amount;
+		Uint32 connected_players = network_server->client_sockets.size() + 1;
+
+		setConnectedPlayers(connected_players, max_players);
+	}
+		break;
+	case NetworkAgent::EVENT_PAIR_DISCONNECTED:
+	{
+		// Decrease player connected amount label
+		Uint32 max_players = network_server->player_amount;
+		Uint32 connected_players = network_server->client_sockets.size();
+
+		setConnectedPlayers(connected_players, max_players);
+
+		// If game was ready to start, prevent the game from starting
+		if (play_button->isActive)
+		{
+			play_button->isActive = false;
+			play_button->tLabel->isActive = false;
+		}
+
+		// Enabling connecting label
+		connecting_label->setText("Waiting for players");
+		connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.0f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+		connecting_label->setTextColor({ 0, 0, 0 });
+
+		// Reset to pairin
+		network_server->state = NetworkServer::SERVER_STATE_PAIRING;
+
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void MainMenu::HandleClientAgentEvent(NetworkAgent::NetworkAgentEvent event)
+{
+	switch (event)
+	{
+	case NetworkAgent::EVENT_PAIR_CONNECTED:
+	{
+	}
+	break;
+	case NetworkAgent::EVENT_PAIR_DISCONNECTED:
+	{
+		// Set failure
+		connecting_label->setText("Disconnected from server");
+		connecting_label->setTextColor({ 255, 0, 0 });
+		connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 8.f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+		// Deactivate label
+		player_info_label->isActive = false;
+		player_color_info_label->isActive = false;
+		connection_action_label->isActive = false;
+
+		// Stop connection
+		disconnected = true;
+		connection_established = false;
+
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 // Validation methods

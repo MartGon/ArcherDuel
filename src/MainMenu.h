@@ -23,7 +23,8 @@ enum MenuLayer
 
 enum ConnectionCodes
 {
-	FAILED_CONNECTION_TO_SERVER
+	FAILED_CONNECTION_TO_SERVER,
+	FAILED_WAITING_FOR_CLIENT
 };
 
 class MainMenu : public Scene
@@ -34,6 +35,7 @@ public:
 		// Scene
 	void loadMedia() override;
 	void onUpdate() override;
+	void onDestroy() override;
 	void OnHandleEvent(const SDL_Event& event) override;
 
 	// UI
@@ -52,6 +54,10 @@ public:
 	TextLabel* player_amount_label = nullptr;
 	TextLabel* frame_amount_label = nullptr;
 	TextLabel* connecting_label = nullptr;
+	TextLabel* player_info_label = nullptr;
+	TextLabel* player_color_info_label = nullptr;
+	TextLabel* connection_action_label = nullptr;
+	TextLabel* connected_players_label = nullptr;
 
 		// TextInput
 	TextInput* ip_input = nullptr;
@@ -82,12 +88,12 @@ public:
 	Uint32 connection_tries_limit = 5;
 	void handleTimer(Uint32 flag);
 
-
 	SDL_mutex* flag_mutex = nullptr;
 	SDL_Thread* connection_thread = nullptr;
 	bool time_over = true;
 	bool connection_attempt_finished = true;
-	bool connection_attempt_succeeded = false;
+	bool connection_established = false;
+	bool disconnected = false;
 
 	// Dimensions
 	// Level Dimensions
@@ -97,7 +103,7 @@ public:
 	// Button methods
 	void enableLayer(Uint8 layer);
 	void exitGame();
-	void loadLevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER);
+	void loadLevelOne(SceneMode mode = SceneMode::SINGLE_PLAYER, Uint32 player_amount = 2);
 	void playButtonHandler();
 	void onlineButtonHandler();
 	void serverButtonHandler();
@@ -105,6 +111,14 @@ public:
 	void connectButtonHandler();
 	void backButtonHandler();
 
+	// TextInput methods
+	void onSelectIPInput();
+	void setConnectedPlayers(Uint32 connected_players, Uint32 max_players);
+
+	// Network agent handler
+	void HandleServerAgentEvent(NetworkAgent::NetworkAgentEvent event);
+	void HandleClientAgentEvent(NetworkAgent::NetworkAgentEvent event);
+	
 	// Validation methods
 	std::optional<std::pair<std::string, std::optional<int>>> getAddressIfValid(std::string address);
 	
@@ -125,7 +139,6 @@ namespace MainMenuConnection
 			SDL_LockMutex(menu->flag_mutex);
 			menu->connection_attempt_finished = true;
 			SDL_UnlockMutex(menu->flag_mutex);
-
 		}
 
 		return result;

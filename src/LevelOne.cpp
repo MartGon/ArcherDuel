@@ -54,24 +54,21 @@ void LevelOne::loadMedia()
 	placeFloorBlocks();
 
 	// Create players
-	if (!isOnline())
+	for (int i = 0; i < player_amount; i++)
 	{
-		for (int i = 0; i < player_amount; i++)
-		{
-			bool isAI = i != 0;
-			createPlayer(static_cast<PlayerNumber>(i + 1), isAI);
-		}
+		bool isAI = isOnline() ? false : i != 0;
+		createPlayer(static_cast<PlayerNumber>(i + 1), isAI);
+	}
 
-		// Set references
-		for(int i = 0; i < players.size(); i++)
+	// Set references
+	for(int i = 0; i < players.size(); i++)
+	{
+		Player* player = players[i];
+		if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
 		{
-			Player* player = players[i];
-			if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
-			{
-				int index = i + 1 == players.size() ? i - 1 : i + 1;
-				playerAI->enemy = players.at(index);
-				playerAI->enemy_tower = playerAI->enemy->tower;
-			}
+			int index = i + 1 == players.size() ? i - 1 : i + 1;
+			playerAI->enemy = players.at(index);
+			playerAI->enemy_tower = playerAI->enemy->tower;
 		}
 	}
 
@@ -183,9 +180,9 @@ void LevelOne::onUpdate()
 void LevelOne::handleConnectionEstablished()
 {
 	// Create players when connection is handled
-	int player_amount = networkAgent->player_amount;
-	for (int i = 0; i < player_amount; i++)
-		createPlayer(static_cast<PlayerNumber>(i + 1));
+	//int player_amount = networkAgent->player_amount;
+	//for (int i = 0; i < player_amount; i++)
+	//	createPlayer(static_cast<PlayerNumber>(i + 1));
 }
 
 
