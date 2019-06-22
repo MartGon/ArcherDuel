@@ -11,11 +11,11 @@
 Player::Player(PlayerNumber player_number)
 {
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
+	MapRGB colorKey;
+	colorKey.green = 255;
 	std::string subPath = getPathByPlayerNumber(player_number);
 	std::string path = "Archer" + subPath + ".png";
-	tRenderer = setComponent(new TextureRenderer(path.c_str() , colorKey, 254));
+	tRenderer = setComponent(new TextureRenderer(path.c_str() , &colorKey, 254));
 
 	// Jump Navigator
 	jump_nav = setComponent(new Navigator(Vector2<float>(0, 0), 1, true, Vector2<float>(0, -0.15)));
@@ -39,7 +39,7 @@ Player::Player(PlayerNumber player_number)
 	// Animator
 	animator = setComponent(new Animator());
 	path = "Archer_Walk" + subPath;
-	move = animator->addAnimation(path.c_str(), colorKey, tRenderer, 4, 1, PLAYER_ANIMATION_WALK);
+	move = animator->addAnimation(path.c_str(), &colorKey, tRenderer, 4, 1, PLAYER_ANIMATION_WALK);
 	move->loop = true;
 	animator->setCurrentAnimation(move);
 	animator->isEnabled = false;
@@ -65,7 +65,7 @@ Player::Player(PlayerNumber player_number)
 
 	// Add player pHand
 	pHand = new GameObject();
-	pHand->setComponent(new TextureRenderer("ArcherHand.png", colorKey, 255));
+	pHand->setComponent(new TextureRenderer("ArcherHand.png", &colorKey, 255));
 	pHand->setScale(Vector2<float>(0.65f, 0.65f));
 	pHand->transform.parent = &this->transform;
 	pHand->transform.position = Vector2<float>(13, 11);
@@ -73,7 +73,7 @@ Player::Player(PlayerNumber player_number)
 
 	// Add player rHand
 	rHand = new GameObject();
-	rHand->setComponent(new TextureRenderer("ArcherHand.png", colorKey, 252));
+	rHand->setComponent(new TextureRenderer("ArcherHand.png", &colorKey, 252));
 	rHand->setScale(Vector2<float>(0.65f, 0.65f));
 	rHand->transform.parent = &this->transform;
 	rHand->transform.position = Vector2<float>(16, 11);
@@ -88,14 +88,14 @@ Player::Player(PlayerNumber player_number)
 	dizzy_effect = new GameObject();
 	dizzy_effect->transform.parent = &this->transform;
 	dizzy_effect->transform.position = Vector2<float>(2, -7);
-	TextureRenderer* dizzy_tRenderer = dizzy_effect->setComponent(new TextureRenderer("dizzy_effect1.png", colorKey, 255));
-	Animator* dizzy_anim = dizzy_effect->setComponent(new Animator("dizzy_effect", colorKey, dizzy_tRenderer, 4, 1 ));
+	TextureRenderer* dizzy_tRenderer = dizzy_effect->setComponent(new TextureRenderer("dizzy_effect1.png", &colorKey, 255));
+	Animator* dizzy_anim = dizzy_effect->setComponent(new Animator("dizzy_effect", &colorKey, dizzy_tRenderer, 4, 1 ));
 	dizzy_anim->currentAnimation->loop = true;
 	dizzy_effect->isActive = false;
 
 	// Animation - Dizzy
 	path = "Archer_Dizzy" + subPath;
-	dizzy = animator->addAnimation(path.c_str(), colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
+	dizzy = animator->addAnimation(path.c_str(), &colorKey, tRenderer, 1, 1, PLAYER_ANIMATION_DIZZY);
 
 	// Network
 	isNetworkStatic = false;
@@ -112,6 +112,9 @@ Player::Player(PlayerNumber player_number)
 
 	// Set attributes
 	this->player_number = player_number;
+
+	// Testing heap corruption
+	isSkillReady = true;
 }
 
 // Hooks

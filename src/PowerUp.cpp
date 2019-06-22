@@ -71,18 +71,18 @@ PowerUpObject::PowerUpObject(PowerUpType type)
 	this->type = type;
 
 	// Color key
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
+	MapRGB colorKey;
+	colorKey.green = 255;
 
 	// Icon
 	icon = new GameObject();
 	std::string icon_path = PowerUpUtil::getIconTexturePathByPowerUpType(type);
-	icon_renderer = icon->setComponent(new TextureRenderer(icon_path.c_str(), colorKey, 254));
+	icon_renderer = icon->setComponent(new TextureRenderer(icon_path.c_str(), &colorKey, 254));
 	icon->transform.parent = &this->transform;
 	icon->setScale({ 1.5f, 1.5f });
 
 	// Background renderer
-	background_renderer = setComponent(new TextureRenderer("PowerUp_Background_dark_green.png", colorKey, 253));
+	background_renderer = setComponent(new TextureRenderer("PowerUp_Background_dark_green.png", &colorKey, 253));
 
 	// BoxCollider
 	bCollider = setComponent(new BoxCollider(16, 16));
@@ -188,10 +188,10 @@ PowerUpTimeDisplay::PowerUpTimeDisplay(PowerUp* power_up)
 	this->power_up = power_up;
 
 	// Create icon renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
+	MapRGB colorKey;
+	colorKey.green = 255;
 	std::string icon_path = PowerUpUtil::getIconTexturePathByPowerUpType(type);
-	icon_renderer = setComponent(new TextureRenderer(icon_path.c_str(), colorKey, 254));
+	icon_renderer = setComponent(new TextureRenderer(icon_path.c_str(), &colorKey, 254));
 	icon_renderer->render_offset = { -4, -2};
 
 	// Create TextLabel and set this as parent

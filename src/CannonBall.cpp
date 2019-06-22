@@ -11,9 +11,9 @@
 CannonBall::CannonBall()
 {
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
-	tRenderer = setComponent(new TextureRenderer("Cannon_ball.png", colorKey, 254));
+	MapRGB colorKey;
+	colorKey.green = 255;
+	tRenderer = setComponent(new TextureRenderer("Cannon_ball.png", &colorKey, 254));
 
 	// Navigator
 	nav = setComponent(new Navigator(Vector2<float>(0, 0), 1));

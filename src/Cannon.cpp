@@ -11,15 +11,15 @@
 Cannon::Cannon()
 {
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
-	tRenderer = setComponent(new TextureRenderer("Cannon_idle.png", colorKey, 254));
+	MapRGB colorKey;
+	colorKey.green = 255;
+	tRenderer = setComponent(new TextureRenderer("Cannon_idle.png", &colorKey, 254));
 
 	// Animator
 	animator = setComponent(new Animator());
 
 	// Shoot Animation 
-	shot_animation = animator->addAnimation("Cannon_shot", colorKey, tRenderer, 27, 1);
+	shot_animation = animator->addAnimation("Cannon_shot", &colorKey, tRenderer, 27, 1);
 
 	for (auto &frame : shot_animation->frames)
 	{
@@ -53,7 +53,7 @@ Cannon::Cannon()
 
 	// Support
 	support = new GameObject();
-	support->setComponent(new TextureRenderer("Cannon_support.png", colorKey, 254));
+	support->setComponent(new TextureRenderer("Cannon_support.png", &colorKey, 254));
 	
 	support->transform.parent = &transform;
 

@@ -10,18 +10,19 @@
 Bow::Bow() : GameObject()
 {
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->blue = 0xFF;
+	MapRGB colorKey;
+	colorKey.blue = 0xFF;
 	tRenderer = setComponent(new TextureRenderer());
 	tRenderer->setLayer(253);
 	SceneManager::scene->addComponentToManager(tRenderer);
+	tRenderer->hasTrailEffect = true;
 
 	// Set scale
 	transform.scale = Vector2<float>(0.5f, 0.5f);
 
 	// Setup Animator
 	animator = setComponent(new Animator());
-	pull = animator->addAnimation("MyBow", colorKey, tRenderer, 5, 1, 1);
+	pull = animator->addAnimation("MyBow", &colorKey, tRenderer, 5, 1, 1);
 	animator->setCurrentAnimation(pull);
 
 	for (auto &frame : pull->frames)
@@ -29,7 +30,7 @@ Bow::Bow() : GameObject()
 		frame->duration = 10;
 	}
 
-	rel = animator->addAnimation("MyBow", colorKey, tRenderer, 9, 5, 2);
+	rel = animator->addAnimation("MyBow", &colorKey, tRenderer, 9, 5, 2);
 
 	for (auto &frame : rel->frames)
 	{

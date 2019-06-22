@@ -4,6 +4,7 @@
 #include "AudioManager.h"
 #include "RendererManager.h"
 #include "SceneManager.h"
+#include "Random.h"
 
 #include "Tower.h"
 #include "HealthBar.h"
@@ -14,7 +15,7 @@
 
 // Const values
 const int MainMenu::LEVEL_WIDTH = 480;
-const int MainMenu::LEVEL_HEIGHT = 320;
+const int MainMenu::LEVEL_HEIGHT = 270;
 
 // Overrided methods
 
@@ -244,6 +245,10 @@ void MainMenu::loadMedia()
 	timer = new TimerObject(1 * 1000, 1);
 	timer->timer->isOver = true;
 	timer->callback = std::bind(&MainMenu::handleTimer, this, std::placeholders::_1);
+
+	// Init random
+	std::random_device rd;
+	Random::dre = std::mt19937(rd());
 }
 
 void MainMenu::onUpdate()

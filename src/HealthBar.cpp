@@ -3,15 +3,15 @@
 StatusBar::StatusBar()
 {
 	// Create RGB Map
-	MapRGB *colorKey = new MapRGB();
-	colorKey->green = 255;
+	MapRGB colorKey;
+	colorKey.green = 255;
 
 	// Preparing texture renderers
 	// Load Textures
-	healthBarEndingEmpty = Texture("HealtBarEndingEmpty.png", RendererManager::renderer, colorKey);
-	healthBarEndingFilled = Texture("HealtBarEndingFilled.png", RendererManager::renderer, colorKey);
-	healthBarFragEmpty = Texture("HealthBarFragEmpty.png", RendererManager::renderer, colorKey);
-	healthBarFragFilled = Texture("HealthBarFragFilled.png", RendererManager::renderer, colorKey);
+	healthBarEndingEmpty = Texture("HealtBarEndingEmpty.png", RendererManager::renderer, &colorKey);
+	healthBarEndingFilled = Texture("HealtBarEndingFilled.png", RendererManager::renderer, &colorKey);
+	healthBarFragEmpty = Texture("HealthBarFragEmpty.png", RendererManager::renderer, &colorKey);
+	healthBarFragFilled = Texture("HealthBarFragFilled.png", RendererManager::renderer, &colorKey);
 
 	// Setting textureRenderers
 	leftEndingTRenderer = setComponent(new TextureRenderer(healthBarEndingFilled, 255));

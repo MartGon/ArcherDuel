@@ -21,7 +21,7 @@ int main(int argc, char* args[])
 #endif
 	gFirstScene->setSceneMode(mode);*/
 
-	setWindowResolution(960, 640);
+	setWindowResolution(480, 270);
 
 	// Engine loop
 	engine_main();

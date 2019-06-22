@@ -14,17 +14,17 @@
 Tower::Tower(RoofColor roofColor) : GameObject()
 {
 	// Texture Renderer
-	MapRGB *colorKey = new MapRGB();
-	colorKey->red = 48;
-	colorKey->green = 96;
-	colorKey->blue = 130;
+	MapRGB colorKey;
+	colorKey.red = 48;
+	colorKey.green = 96;
+	colorKey.blue = 130;
 	
 	team = roofColor;
 
 	if(roofColor)
-		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2Bluew.png", colorKey, 2));
+		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2Bluew.png", &colorKey, 2));
 	else
-		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2.png", colorKey, 2));
+		tRenderer = setComponent(new TextureRenderer("SymmetricTowerWRoof2.png", &colorKey, 2));
 
 	// Colliders
 	BoxCollider* collider = nullptr;

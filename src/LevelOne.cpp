@@ -18,7 +18,7 @@
 
 // TODO - Escalar todo a x2 para evitar problemas con arco, arquero
 const int LevelOne::LEVEL_WIDTH = 480;
-const int LevelOne::LEVEL_HEIGHT = 320;
+const int LevelOne::LEVEL_HEIGHT = 270;
 
 LevelOne::LevelOne(SceneMode mode, Uint32 player_amount)
 {
@@ -173,7 +173,7 @@ void LevelOne::onUpdate()
 	else
 	{
 		framerate_display->setText(std::to_string(frame_rate));
-		std::cout << "FPS: " << frame_rate << "\n";
+		//std::cout << "FPS: " << frame_rate << "\n";
 	}
 }
 
@@ -212,14 +212,17 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint32 flag)
 
 	// Choose a random location
 	Vector2<float> spawn_pos;
-	spawn_pos.y = Random::getRandomUniformInteger(20, 100);
+	spawn_pos.y = Random::getRandomUniformInteger(20, 75);
 	spawn_pos.x = Random::getRandomUniformInteger(20, LEVEL_WIDTH - 20 - 22);
 
 	// Set position
 	power_up_object->transform.position = spawn_pos;
 
+	int players = player_amount ? player_amount : 1;
+	float mod = 2.f / (float)players;
+
 	// Reset Timer
-	spawn_pu_timer->timer->delay = Random::getRandomUniformInteger(6, 12) * 1000;
+	spawn_pu_timer->timer->delay = Random::getRandomUniformFloat((4.f * mod) + 2, (10.f * mod) + 2) * 1000;
 	spawn_pu_timer->timer->reset();
 }
 
@@ -394,7 +397,8 @@ bool LevelOne::isPlayerPosValid(Player* player)
 
 void LevelOne::resetPlayerPosition(Player* player)
 {
-	PlayerNumber pn = (PlayerNumber)((int)player->player_number % 4);
+	int number = (int)player->player_number % 4;
+	PlayerNumber pn = (PlayerNumber)(number);
 
 	switch (pn)
 	{
@@ -404,9 +408,8 @@ void LevelOne::resetPlayerPosition(Player* player)
 		break;
 	case PlayerNumber::PLAYER_TWO:
 	case PlayerNumber::PLAYER_FOUR:
-		player->transform.position = Vector2<float>(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
-		break;
 	default:
+		player->transform.position = Vector2<float>(LEVEL_WIDTH - 64, LEVEL_HEIGHT - 111 - 32);
 		break;
 	}
 
