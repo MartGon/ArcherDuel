@@ -428,6 +428,7 @@ void Bow::launchArrow(Arrow* arrow, float charge)
 
 	// Enabling arrow collider
 	arrow->rotCollider->isEnabled = true;
+	arrow->extCollider->isEnabled = true;
 
 	// Set to disappeart after 15 seconds of flight
 	arrow->timer = arrow->setComponent(new TimerComponent(15 * 1000));

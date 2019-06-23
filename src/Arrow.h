@@ -22,6 +22,7 @@ public:
 	// Components
 	TextureRenderer* tRenderer = nullptr;
 	RotatableBoxCollider* rotCollider = nullptr;
+	RotatableBoxCollider* extCollider = nullptr;
 	Navigator *nav = nullptr;
 	AudioPlayer* aPlayer = nullptr;
 	TimerComponent* timer = nullptr;

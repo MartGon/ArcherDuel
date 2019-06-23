@@ -692,6 +692,7 @@ void PowerUpThunderStrike::launchArrowAgainstTarget(Player* target, Arrow* arrow
 
 	// Enable collider
 	arrow->rotCollider->isEnabled = true;
+	arrow->extCollider->isEnabled = true;
 
 	// Set arrow owner
 	arrow->owner = owner;

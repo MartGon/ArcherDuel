@@ -4,6 +4,7 @@
 #include "Button.h"
 #include "TextLabel.h"
 #include "TextInput.h"
+#include "Checkbox.h"
 
 #include "Player.h"
 
@@ -18,6 +19,7 @@ enum MenuLayer
 	PLAYER_MENU_LAYER = 16,
 	CLIENT_CONNECTION_MENU_LAYER = 32,
 	SERVER_CONNECTION_MENU_LAYER = 64,
+	OPTIONS_MENU_LAYER = 128,
 	EVERY_LAYER = 255
 };
 
@@ -48,6 +50,7 @@ public:
 	Button* connect_button = nullptr;
 	Button* back_button = nullptr;
 	Button* exit_button = nullptr;
+	Button* options_button = nullptr;
 
 		// TextLabel
 	TextLabel* ip_label = nullptr;
@@ -58,11 +61,27 @@ public:
 	TextLabel* player_color_info_label = nullptr;
 	TextLabel* connection_action_label = nullptr;
 	TextLabel* connected_players_label = nullptr;
+	TextLabel* graphics_options_title = nullptr;
+	TextLabel* sound_options_title = nullptr;
+	TextLabel* fullscreen_label = nullptr;
+	TextLabel* window_width_label = nullptr;
+	TextLabel* window_height_label = nullptr;
+	TextLabel* sound_label = nullptr;
+	TextLabel* sound_volume_label = nullptr;
 
 		// TextInput
 	TextInput* ip_input = nullptr;
 	TextInput* player_amount_input = nullptr;
 	TextInput* frame_amount_input = nullptr;
+	TextInput* window_width_input = nullptr;
+	TextInput* window_height_input = nullptr;
+	TextInput* sound_volume_input = nullptr;
+
+		// Checkboxes
+	CheckBox* fullscreen_checkbox = nullptr;
+	CheckBox* sound_checkbox = nullptr;
+	CheckBox* friendly_fire_checkbox = nullptr;
+	CheckBox* shared_power_up_checkbox = nullptr;
 
 		// Game title
 	TextLabel* game_title_1 = nullptr;
@@ -109,6 +128,7 @@ public:
 	void serverButtonHandler();
 	void clientButtonHandler();
 	void connectButtonHandler();
+	void optionsButtonHandler();
 	void backButtonHandler();
 
 	// TextInput methods

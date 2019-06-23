@@ -112,9 +112,6 @@ Player::Player(PlayerNumber player_number)
 
 	// Set attributes
 	this->player_number = player_number;
-
-	// Testing heap corruption
-	isSkillReady = true;
 }
 
 // Hooks

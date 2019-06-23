@@ -25,7 +25,7 @@ ChargeBar::ChargeBar()
 	indicator->setComponent(new TextureRenderer("ChargeIndicator.png", nullptr, 255));
 	indicator->transform.scale = transform.scale;
 	indicator->transform.parent = &this->transform;
-	indicator->transform.position = Vector2<float>(0.75f, 0.75f);
+	indicator->transform.position = Vector2<float>(0.75f, 0.5f);
 
 	// Set isActive to false
 	isActive = false;

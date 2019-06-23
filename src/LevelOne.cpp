@@ -42,12 +42,12 @@ void LevelOne::loadMedia()
 
 	// Red Tower
 	tower = new Tower(this);
-	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
+	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
 
 	// Blue Tower
 	tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
-	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 32);
+	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 31);
 	tower2->transform.position = tower2_pos;
 
 	// Grass blocks
@@ -127,7 +127,7 @@ void LevelOne::placeFloorBlocks()
 	for (int i = 0; i <= block_amount; i++)
 	{
 		GrassBlock* block = new GrassBlock(i & 1);
-		block->transform.position = Vector2<float>(i * block_width, LEVEL_HEIGHT - block_texture.mHeight);
+		block->transform.position = Vector2<float>(i * block_width, LEVEL_HEIGHT - block_texture.mHeight + 1);
 	}
 }
 
@@ -333,7 +333,6 @@ Player* LevelOne::createPlayer(PlayerNumber player_number, bool isAI)
 		int rLimit = floor_collider->cWidth + floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
 
 		playerAI->setBoundaries(Vector2<float>(lLimit, height), Vector2<float>(rLimit, height));
-
 	}
 
 	// Create player skill_bar

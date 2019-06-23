@@ -34,6 +34,11 @@ Arrow::Arrow()
 		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
 	rotCollider->isEnabled = false;
     //rotCollider->debug = true;
+
+	extCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y),
+		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
+	extCollider->isEnabled = false;
+	extCollider->debug = true;
 	
 	// Damage text label
 	dmg_label = new TextLabel();
@@ -65,6 +70,7 @@ void Arrow::onColliderEnter(Collider* collider)
 	// Disable nav and collisions and trail
 	nav->isEnabled = false;
 	rotCollider->isEnabled = false;
+	extCollider->isEnabled = false;
 	tRenderer->hasTrailEffect = false;
 
 	// Create timer flag
@@ -73,20 +79,28 @@ void Arrow::onColliderEnter(Collider* collider)
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
 
-		// Prevent Friendly fire
-		if (owner)
+		// If friendly fire is disabled
+		if (player->level)
 		{
-			if (owner->player_team == player->player_team)
+			if (!player->level->friendly_fire)
 			{
-				// We don't wait for timer
-				wait_timer = false;
+				// Prevent Friendly fire
+				if (owner)
+				{
+					if (owner->player_team == player->player_team)
+					{
+						// We don't wait for timer
+						wait_timer = false;
 
-				// Re-enable components
-				nav->isEnabled = true;
-				rotCollider->isEnabled = true;
-				tRenderer->hasTrailEffect = true;
+						// Re-enable components
+						nav->isEnabled = true;
+						rotCollider->isEnabled = true;
+						extCollider->isEnabled = true;
+						tRenderer->hasTrailEffect = true;
 
-				return;
+						return;
+					}
+				}
 			}
 		}
 
@@ -173,6 +187,7 @@ void Arrow::onColliderEnter(Collider* collider)
 			// Re-enable components
 			nav->isEnabled = true;
 			rotCollider->isEnabled = true;
+			extCollider->isEnabled = true;
 			tRenderer->hasTrailEffect = true;
 		}
 	}
@@ -200,8 +215,24 @@ void Arrow::onColliderEnter(Collider* collider)
 		// Play sound effect
 
 		// Give effect to owner
+		PowerUp* power_up = power_up_object->getPowerUp(owner);
 		if(owner)
-			owner->addPowerUp(power_up_object->getPowerUp(owner));
+			owner->addPowerUp(power_up);
+
+		LevelOne* level = owner->level;
+		if (level->shared_powerups)
+		{
+			// Don't replicate thunderstrike
+			if (power_up->type != POWER_UP_THUNDERSTRIKE)
+			{
+				for (auto player : level->players)
+				{
+					if(player->player_team == owner->player_team)
+						if (player != owner)
+							player->addPowerUp(power_up_object->getPowerUp(player));
+				}
+			}
+		}
 	}
 
 	// Return if we dont have to create a timer
@@ -240,11 +271,19 @@ void Arrow::afterMove()
 
 void Arrow::onUpdate()
 {
-	/*
+	// Update ext collider
 	if (nav)
-		if (nav->isEnabled)
-			std::cout << "Arrow position is" << transform.position << "in frame " << SceneManager::scene->frame_count++ << "\n";
-	*/
+	{
+		if (extCollider->isEnabled)
+		{
+			auto displacement = nav->prev_dir * nav->speed;
+			auto vertex_0 = Vector2<float>( rotCollider->roVertex[0].x - nav->speed, rotCollider->roVertex[0].y );
+			auto vertex_1 = Vector2<float>( rotCollider->roVertex[1].x - nav->speed, rotCollider->roVertex[1].y );
+
+			extCollider->roVertex = {vertex_0, vertex_1, rotCollider->roVertex[2],rotCollider->roVertex[3] };
+			extCollider->update();
+		}
+	}
 }
 
 void Arrow::onVanish()
@@ -269,6 +308,9 @@ FireArrow::FireArrow() : Arrow()
 	mapRGB.green = 255;
 	animator = setComponent(new Animator("FireArrowIdle", &mapRGB, tRenderer, 5));
 	
+	// Fix collider
+	rotCollider->offset.y = 1.5;
+
 	// Set animation
 	idle = animator->currentAnimation;
 	idle->loop = true;

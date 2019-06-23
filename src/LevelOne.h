@@ -34,6 +34,10 @@ public:
 	TextLabel* framerate_display = nullptr;
 	Uint32 previous_ticks = 0;
 
+	// Settings
+	bool shared_powerups = false;
+	bool friendly_fire = false;
+
 	// Level Dimensions
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;

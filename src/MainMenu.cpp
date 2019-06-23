@@ -37,7 +37,7 @@ void MainMenu::loadMedia()
 
 	// Tower
 	Tower* tower = new Tower();
-	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 32);
+	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
 	tower->healthBar->isActive = false;
 
@@ -61,6 +61,7 @@ void MainMenu::loadMedia()
 
 	game_title_2->setText("Duel");
 	game_title_2->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.5f, 11.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	game_title_2->setLayer(EVERY_LAYER);
 
 	// Play Button
 	play_button = new Button(Texture("button_background4.png"));
@@ -141,6 +142,28 @@ void MainMenu::loadMedia()
 	player_amount_label->transform.parent = &player_amount_input->transform;
 	player_amount_label->setCenteredWithinParent({ 0, -15.f });
 	player_amount_label->setTextColor({ 0, 0, 0 });
+
+		// Friendly fire check box
+	friendly_fire_checkbox = new CheckBox(Texture("button_background.png"));
+	friendly_fire_checkbox->transform.parent = &player_amount_input->transform;
+	friendly_fire_checkbox->setCenteredWithinParent({ 30, 20 });
+	friendly_fire_checkbox->isActive = false;
+	friendly_fire_checkbox->tLabel->isActive = false;
+	friendly_fire_checkbox->tLabel->setText("Friendly Fire");
+	friendly_fire_checkbox->tLabel->setTextColor({ 0,0,0 });
+	friendly_fire_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
+	friendly_fire_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+
+	// Friendly fire check box
+	shared_power_up_checkbox = new CheckBox(Texture("button_background.png"));
+	shared_power_up_checkbox->transform.parent = &player_amount_input->transform;
+	shared_power_up_checkbox->setCenteredWithinParent({ 30, 40 });
+	shared_power_up_checkbox->isActive = false;
+	shared_power_up_checkbox->tLabel->isActive = false;
+	shared_power_up_checkbox->tLabel->setText("Team PowerUps");
+	shared_power_up_checkbox->tLabel->setTextColor({ 0,0,0 });
+	shared_power_up_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
+	shared_power_up_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
 
 		// Frame amount input
 	frame_amount_input = new TextInput("button_background4.png", "8");
@@ -229,7 +252,141 @@ void MainMenu::loadMedia()
 	exit_button->transform.position = Vector2<float>(5, 5);
 	exit_button->setOnClickListener(std::bind(&MainMenu::exitGame, this));
 	exit_button->tLabel->isActive = false;
+	exit_button->tLabel->setText("");
 	exit_button->setLayer(EVERY_LAYER);
+
+	// Options
+	options_button = new Button(Texture("button_background4.png"));
+	options_button->setScale(Vector2<float>(2, 2));
+	options_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	options_button->tLabel->setText("Settings");
+	options_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	options_button->tLabel->setCenteredWithinParent();
+	options_button->setOnClickListener(std::bind(&MainMenu::optionsButtonHandler, this));
+	options_button->setLayer(MAIN_MENU_LAYER);
+
+	// Graphics TextLabel
+	graphics_options_title = new TextLabel();
+	graphics_options_title->setScale(Vector2<float>(1.5f, 1.5f));
+	graphics_options_title->setText("Graphics");
+	graphics_options_title->setTextColor({ 0, 0, 0 });
+	graphics_options_title->transform.parent = &game_title_2->transform;
+	graphics_options_title->setCenteredWithinParent({ 0, 20.f });
+	graphics_options_title->setLayer(OPTIONS_MENU_LAYER);
+	graphics_options_title->isActive = false;
+
+	// Fullscreen text label
+	fullscreen_label = new TextLabel();
+	fullscreen_label->setScale(Vector2<float>(1.f, 1.f));
+	fullscreen_label->setText("Fullscreen");
+	fullscreen_label->setTextColor({ 0, 0, 0 });
+	fullscreen_label->transform.parent = &graphics_options_title->transform;
+	fullscreen_label->setCenteredWithinParent({ -20, 20.f });
+	fullscreen_label->setLayer(OPTIONS_MENU_LAYER);
+	fullscreen_label->isActive = false;
+
+	// Fullscreen check box
+	fullscreen_checkbox = new CheckBox(Texture("button_background.png"));
+	fullscreen_checkbox->transform.parent = &fullscreen_label->transform;
+	fullscreen_checkbox->setCenteredWithinParent({40, 0});
+	fullscreen_checkbox->setLayer(OPTIONS_MENU_LAYER);
+	fullscreen_checkbox->isActive = false;
+	fullscreen_checkbox->tLabel->isActive = false;
+	fullscreen_checkbox->tLabel->setText("");
+
+	// Window  width label
+	window_width_label = new TextLabel();
+	window_width_label->setScale(Vector2<float>(1.f, 1.f));
+	window_width_label->setText("Window Width");
+	window_width_label->setTextColor({ 0, 0, 0 });
+	window_width_label->transform.parent = &fullscreen_label->transform;
+	window_width_label->setCenteredWithinParent({ -20, 20 });
+	window_width_label->setLayer(OPTIONS_MENU_LAYER);
+	window_width_label->isActive = false;
+
+	// Window size width
+	window_width_input = new TextInput("button_background4.png", "960");
+	window_width_input->setScale(Vector2<float>(1, 1));
+	window_width_input->transform.parent = &window_width_label->transform;
+	window_width_input->setCenteredWithinParent({ 0, 20 });
+	window_width_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	window_width_input->tLabel->setCenteredWithinParent();
+	window_width_input->isActive = false;
+	window_width_input->valid_inputs = { R"(\d)" };
+	window_width_input->setLayer(OPTIONS_MENU_LAYER);
+	window_width_input->isActive = false;
+
+	// Window height label
+	window_height_label = new TextLabel();
+	window_height_label->setScale(Vector2<float>(1.f, 1.f));
+	window_height_label->setText("Window Height");
+	window_height_label->setTextColor({ 0, 0, 0 });
+	window_height_label->transform.parent = &fullscreen_label->transform;
+	window_height_label->setCenteredWithinParent({ 60, 20 });
+	window_height_label->setLayer(OPTIONS_MENU_LAYER);
+	window_height_label->isActive = false;
+
+	// Window size height
+	window_height_input = new TextInput("button_background4.png", "520");
+	window_height_input->setScale(Vector2<float>(1, 1));
+	window_height_input->transform.parent = &window_height_label->transform;
+	window_height_input->setCenteredWithinParent({ 0, 20 });
+	window_height_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	window_height_input->tLabel->setCenteredWithinParent();
+	window_height_input->isActive = false;
+	window_height_input->valid_inputs = { R"(\d)" };
+	window_height_input->setLayer(OPTIONS_MENU_LAYER);
+
+	// Sound TextLabel title
+	sound_options_title = new TextLabel();
+	sound_options_title->setScale(Vector2<float>(1.5f, 1.5f));
+	sound_options_title->setText("Sound");
+	sound_options_title->setTextColor({ 0, 0, 0 });
+	sound_options_title->transform.parent = &graphics_options_title->transform;
+	sound_options_title->setCenteredWithinParent({ 0, 80.f });
+	sound_options_title->setLayer(OPTIONS_MENU_LAYER);
+	sound_options_title->isActive = false;
+
+	// Sound text label
+	sound_label = new TextLabel();
+	sound_label->setScale(Vector2<float>(1.f, 1.f));
+	sound_label->setText("Sound");
+	sound_label->setTextColor({ 0, 0, 0 });
+	sound_label->transform.parent = &sound_options_title->transform;
+	sound_label->setCenteredWithinParent({ -34, 20.f });
+	sound_label->setLayer(OPTIONS_MENU_LAYER);
+	sound_label->isActive = false;
+
+	// Sound checkbox
+	sound_checkbox = new CheckBox(Texture("button_background.png"));
+	sound_checkbox->transform.parent = &fullscreen_checkbox->transform;
+	sound_checkbox->setCenteredWithinParent({ 0, 80 });
+	sound_checkbox->setLayer(OPTIONS_MENU_LAYER);
+	sound_checkbox->isActive = false;
+	sound_checkbox->select();
+	sound_checkbox->tLabel->isActive = false;
+	sound_checkbox->tLabel->setText("");
+
+	// Sound volume label
+	sound_volume_label = new TextLabel();
+	sound_volume_label->setScale(Vector2<float>(1.f, 1.f));
+	sound_volume_label->setText("Volume");
+	sound_volume_label->setTextColor({ 0, 0, 0 });
+	sound_volume_label->transform.parent = &sound_options_title->transform;
+	sound_volume_label->setCenteredWithinParent({ 0, 40.f });
+	sound_volume_label->setLayer(OPTIONS_MENU_LAYER);
+	sound_volume_label->isActive = false;
+
+	// Sound volume input
+	sound_volume_input = new TextInput("button_background4.png", "100");
+	sound_volume_input->setScale(Vector2<float>(1, 1));
+	sound_volume_input->transform.parent = &sound_volume_label->transform;
+	sound_volume_input->setCenteredWithinParent({ 0, 20 });
+	sound_volume_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	sound_volume_input->tLabel->setCenteredWithinParent();
+	sound_volume_input->isActive = false;
+	sound_volume_input->valid_inputs = { R"(\d)" };
+	sound_volume_input->setLayer(OPTIONS_MENU_LAYER);
 
 	// Player
 	player = new Player(PlayerNumber::PLAYER_ONE);
@@ -471,6 +628,10 @@ void MainMenu::enableLayer(Uint8 layer)
 	}
 
 	current_layer = layer;
+
+	// Disable graphics options layer
+	if(current_layer != OPTIONS_MENU_LAYER)
+		graphics_options_title->isActive = false;
 }
 
 void MainMenu::exitGame()
@@ -480,8 +641,12 @@ void MainMenu::exitGame()
 
 void MainMenu::loadLevelOne(SceneMode mode, Uint32 player_amount)
 {
-	Scene* level_one = new LevelOne(mode, player_amount);
+	LevelOne* level_one = new LevelOne(mode, player_amount);
 	level_one->setSceneMode(mode);
+
+	// Set config
+	level_one->friendly_fire = friendly_fire_checkbox->isSelected();
+	level_one->shared_powerups = shared_power_up_checkbox->isSelected();
 
 	NetworkAgent* nAgent = nullptr;
 	if (mode == ONLINE_CLIENT)
@@ -510,8 +675,10 @@ void MainMenu::playButtonHandler()
 
 		// Move player amount input 
 		player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-		play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 37.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-		back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+		friendly_fire_checkbox->setCenteredWithinParent({ 30, 20 });
+		shared_power_up_checkbox->setCenteredWithinParent({ 30, 40 });
+		play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+		back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 63.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 		enableLayer(PLAYER_MENU_LAYER);
 		break;
@@ -548,8 +715,10 @@ void MainMenu::serverButtonHandler()
 
 	// Move connect and back buttons
 	player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 35.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 57.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 70.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 70.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 82.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	friendly_fire_checkbox->setCenteredWithinParent({ 30, 50 });
+	shared_power_up_checkbox->setCenteredWithinParent({ 30, 70 });
 
 	enableLayer(SERVER_MENU_LAYER);
 }
@@ -662,6 +831,13 @@ void MainMenu::connectButtonHandler()
 	}
 }
 
+void MainMenu::optionsButtonHandler()
+{
+	enableLayer(OPTIONS_MENU_LAYER);
+
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 82.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+}
+
 void MainMenu::backButtonHandler()
 {
 	// Reset pos
@@ -688,8 +864,81 @@ void MainMenu::backButtonHandler()
 			network_server = nullptr;
 		}
 		break;
+	case OPTIONS_MENU_LAYER:
+		{
+			// Get winodw size
+			int w = std::stoi(window_width_input->getText());
+			int h = std::stoi(window_height_input->getText());
+
+			// Set fullscren
+			bool fullscreen = fullscreen_checkbox->isSelected();
+			if (fullscreen)
+			{
+				if (!(SDL_GetWindowFlags(RendererManager::window) & SDL_WINDOW_FULLSCREEN))
+				{
+					// Get size of display
+					SDL_DisplayMode dm;
+					SDL_GetCurrentDisplayMode(0, &dm);
+					w = dm.w;
+					h = dm.h;
+
+					// Set window size
+					SDL_SetWindowSize(RendererManager::window, w, h);
+
+					// Set fullscreen
+					SDL_SetWindowFullscreen(RendererManager::window, SDL_WINDOW_FULLSCREEN);
+				}
+			}
+			// Set window mode
+			else
+			{
+				// Get old size
+				int prev_w = 0;
+				int prev_h = 0;
+
+				SDL_GetWindowSize(RendererManager::window, &prev_w, &prev_h);
+
+				// Change only if was different before
+				if (prev_w != w || prev_h != h)
+					SDL_SetWindowSize(RendererManager::window, w, h);
+
+				// Get size of display
+				SDL_DisplayMode dm;
+				SDL_GetCurrentDisplayMode(0, &dm);
+
+				// Set borderless if same size as display
+				if (dm.w == w && dm.h == h)
+				{
+					SDL_SetWindowFullscreen(RendererManager::window, SDL_WINDOW_BORDERLESS);
+					SDL_SetWindowPosition(RendererManager::window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+				}
+				else
+				{
+					// Set to window
+					SDL_SetWindowFullscreen(RendererManager::window, 0);
+					SDL_SetWindowPosition(RendererManager::window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+				}
+			}
+
+			// Get new size
+			SDL_GetWindowSize(RendererManager::window, &w, &h);
+			WINDOW_HEIGHT = h;
+			WINDOW_WIDTH = w;
+
+			// Set audio enabled
+			bool sound_enabled = sound_checkbox->isSelected();
+			AudioManager::sound_enabled = sound_enabled;
+
+			// Set volume
+			int volume = std::stoi(sound_volume_input->getText());
+			volume = volume <= 100 ? volume : 100;
+			AudioManager::volume = volume;
+
+			break;
+		}
 	}
 
+	// Enable main menu
 	enableLayer(MAIN_MENU_LAYER);
 }
 
