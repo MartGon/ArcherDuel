@@ -12,6 +12,7 @@
 #include "PowerUp.h"
 
 #include <regex>
+#include <fstream>
 
 // Const values
 const int MainMenu::LEVEL_WIDTH = 480;
@@ -148,7 +149,7 @@ void MainMenu::loadMedia()
 	friendly_fire_checkbox->transform.parent = &player_amount_input->transform;
 	friendly_fire_checkbox->setCenteredWithinParent({ 30, 20 });
 	friendly_fire_checkbox->isActive = false;
-	friendly_fire_checkbox->tLabel->isActive = false;
+	friendly_fire_checkbox->tLabel->isActive = true;
 	friendly_fire_checkbox->tLabel->setText("Friendly Fire");
 	friendly_fire_checkbox->tLabel->setTextColor({ 0,0,0 });
 	friendly_fire_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
@@ -231,7 +232,7 @@ void MainMenu::loadMedia()
 	connection_action_label = new TextLabel();
 	connection_action_label->setScale({ 1, 1 });
 	connection_action_label->setText("Waiting for server");
-	connection_action_label->transform.parent = &player_color_info_label->transform;
+	connection_action_label->transform.parent = &connected_players_label->transform;
 	connection_action_label->setCenteredWithinParent({ 0, 15.f });
 	connection_action_label->isActive = false;
 
@@ -507,6 +508,39 @@ void MainMenu::onUpdate()
 					// Wait for game start packet
 					if (Packet* packet = network_client->recvPacket())
 					{
+						if (packet->packetType == DATA_PACKET)
+						{
+							DataPacket<GameConfig>* config_pkt = static_cast<DataPacket<GameConfig>*>(packet);
+
+							auto data = config_pkt->data;
+
+							// Enable players connected label
+							int connected_players = data.connected_players;
+							int max_players = data.max_players;
+							connected_players_label->isActive = true;
+							setConnectedPlayers(connected_players, max_players);
+
+							// Set game config
+							friendly_fire = data.friendly_fire;
+							team_powerups = data.friendly_fire;
+
+							// Enable game config checkboxes
+							friendly_fire_checkbox->transform.parent = &connection_action_label->transform;
+							shared_power_up_checkbox->transform.parent = &friendly_fire_checkbox->transform;
+							friendly_fire_checkbox->setCenteredWithinParent({ 40, 20 });
+							shared_power_up_checkbox->setCenteredWithinParent({ 0, 20 });
+							friendly_fire_checkbox->isSelectable = false;
+							shared_power_up_checkbox->isSelectable = false;
+
+							friendly_fire_checkbox->isActive = true;
+							friendly_fire_checkbox->tLabel->isActive = true;
+							shared_power_up_checkbox->isActive = true;
+							shared_power_up_checkbox->tLabel->isActive = true;
+
+							friendly_fire_checkbox->setSelected(friendly_fire);
+							shared_power_up_checkbox->setSelected(team_powerups);
+						}
+
 						if (packet->packetType == GAME_START_PACKET)
 							playButtonHandler();
 					}
@@ -533,7 +567,7 @@ void MainMenu::onUpdate()
 					// Enable start game button
 					play_button->isActive = true;
 					play_button->tLabel->isActive = true;
-					play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 57.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+					play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 70.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 				}
 				else
 				{
@@ -645,14 +679,18 @@ void MainMenu::loadLevelOne(SceneMode mode, Uint32 player_amount)
 	level_one->setSceneMode(mode);
 
 	// Set config
-	level_one->friendly_fire = friendly_fire_checkbox->isSelected();
-	level_one->shared_powerups = shared_power_up_checkbox->isSelected();
+	level_one->friendly_fire = friendly_fire;
+	level_one->shared_powerups = team_powerups;
 
 	NetworkAgent* nAgent = nullptr;
 	if (mode == ONLINE_CLIENT)
+	{
+		network_client->HandleNAEvent = std::function<void(NetworkAgent::NetworkAgentEvent)>();
 		nAgent = network_client;
+	}
 	else if (mode == ONLINE_SERVER)
 	{
+		network_server->HandleNAEvent = std::function<void(NetworkAgent::NetworkAgentEvent)>();
 		nAgent = network_server;
 
 		// Send start packet
@@ -666,7 +704,6 @@ void MainMenu::loadLevelOne(SceneMode mode, Uint32 player_amount)
 
 void MainMenu::playButtonHandler()
 {
-	//loadLevelOne();
 	switch(current_layer)
 	{
 	case MAIN_MENU_LAYER:
@@ -685,6 +722,11 @@ void MainMenu::playButtonHandler()
 	case PLAYER_MENU_LAYER:
 	{
 		Uint32 player_amount = std::stoi(player_amount_input->getText());
+
+		// Set game config values
+		friendly_fire = friendly_fire_checkbox->isSelected();
+		team_powerups = shared_power_up_checkbox->isSelected();
+
 		loadLevelOne(SINGLE_PLAYER, player_amount);
 		break;
 	}
@@ -692,6 +734,11 @@ void MainMenu::playButtonHandler()
 		loadLevelOne(ONLINE_CLIENT, network_client->player_amount);
 		break;
 	case SERVER_CONNECTION_MENU_LAYER:
+
+		// Set game config values
+		friendly_fire = friendly_fire_checkbox->isSelected();
+		team_powerups = shared_power_up_checkbox->isSelected();
+
 		loadLevelOne(ONLINE_SERVER, network_server->player_amount);
 		break;
 	}
@@ -704,14 +751,23 @@ void MainMenu::onlineButtonHandler()
 
 void MainMenu::serverButtonHandler()
 {
+	// Read server config
+	readServerConfig();
+
 	// Set next mode
 	next_mode = ONLINE_SERVER;
 
 	// Set text
 	ip_label->setText("Server port");
 	ip_label->setTextColor({ 0, 0, 0 });
-	ip_input->setText("1338");
 	ip_label->setCenteredWithinParent({ 0, -15.f });
+
+	// Set config data
+	ip_input->setText(server_port);
+	frame_amount_input->setText(server_frame_buffer);
+	player_amount_input->setText(server_player_amount);
+	friendly_fire_checkbox->setSelected(server_friendly_fire);
+	shared_power_up_checkbox->setSelected(server_team_powerups);
 
 	// Move connect and back buttons
 	player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 35.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
@@ -725,18 +781,21 @@ void MainMenu::serverButtonHandler()
 
 void MainMenu::clientButtonHandler() 
 {
+	// Read Config file
+	readClientConfig();
+
 	// Set next mode
 	next_mode = ONLINE_CLIENT;
 
 	// Set text
 	ip_label->setText("Server Address");
 	ip_label->setTextColor({ 0, 0, 0 });
-	ip_input->setText("127.0.0.1:1338");
+	ip_input->setText(client_ip + ":" + client_port);
 	ip_label->setCenteredWithinParent({ 0, -15.f });
 
 	// Move connect and back buttons
-	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 37.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 50.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 70.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 82.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 
 	enableLayer(CLIENT_MENU_LAYER);
 }
@@ -775,6 +834,12 @@ void MainMenu::connectButtonHandler()
 
 			// Reset flag
 			disconnected = false;
+
+			// Save config
+			client_ip = ip;
+			client_port = std::to_string(port);
+
+			saveClientConfig();
 		}
 		else
 		{
@@ -813,6 +878,10 @@ void MainMenu::connectButtonHandler()
 				connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.0f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
 				connecting_label->setTextColor({ 0, 0, 0 });
 
+				// Reset player color label
+				player_color_info_label->setText("red");
+				player_color_info_label->setTextColor({ 255, 0, 0 });
+
 				// Enabling labels
 				player_info_label->isActive = true;
 				player_color_info_label->isActive = true;
@@ -821,6 +890,15 @@ void MainMenu::connectButtonHandler()
 
 				// Set timer flag
 				timer->setFlag(FAILED_WAITING_FOR_CLIENT);
+
+				// Save config
+				server_port = str_port;
+				server_player_amount = player_amount_input->getText();
+				server_frame_buffer = frame_amount_input->getText();
+				server_friendly_fire = friendly_fire_checkbox->isSelected();
+				server_team_powerups = shared_power_up_checkbox->isSelected();
+
+				saveServerConfig();
 
 				return;
 			}
@@ -836,13 +914,31 @@ void MainMenu::optionsButtonHandler()
 	enableLayer(OPTIONS_MENU_LAYER);
 
 	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 82.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+
+	// Read Window data
+
+	// Set fullscreen
+	fullscreen_checkbox->setSelected(SDL_GetWindowFlags(RendererManager::window) & SDL_WINDOW_FULLSCREEN);
+
+	// Get current window size
+	int w = 0;
+	int h = 0;
+	SDL_GetWindowSize(RendererManager::window, &w, &h);
+
+	window_width_input->setText(std::to_string(w));
+	window_height_input->setText(std::to_string(h));
+
+	// Sound
+	fullscreen_checkbox->setSelected(AudioManager::sound_enabled);
+
+	int volume = AudioManager::volume;
+	sound_volume_input->setText(std::to_string(volume));
 }
 
 void MainMenu::backButtonHandler()
 {
 	// Reset pos
-	play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
-	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	setDefaultLayout();
 
 	switch (current_layer)
 	{
@@ -934,6 +1030,9 @@ void MainMenu::backButtonHandler()
 			volume = volume <= 100 ? volume : 100;
 			AudioManager::volume = volume;
 
+			// Save config file
+			saveGeneralConfig();
+
 			break;
 		}
 	}
@@ -970,6 +1069,11 @@ void MainMenu::HandleServerAgentEvent(NetworkAgent::NetworkAgentEvent event)
 		Uint32 connected_players = network_server->client_sockets.size() + 1;
 
 		setConnectedPlayers(connected_players, max_players);
+
+		// Send Game data
+		GameConfig config{ friendly_fire_checkbox->isSelected(), shared_power_up_checkbox->isSelected(), connected_players , max_players};
+		DataPacket data{ config };
+		network_server->sendPacket(&data, false);
 	}
 		break;
 	case NetworkAgent::EVENT_PAIR_DISCONNECTED:
@@ -979,6 +1083,11 @@ void MainMenu::HandleServerAgentEvent(NetworkAgent::NetworkAgentEvent event)
 		Uint32 connected_players = network_server->client_sockets.size();
 
 		setConnectedPlayers(connected_players, max_players);
+
+		// Info other clients
+		GameConfig config{ friendly_fire_checkbox->isSelected(), shared_power_up_checkbox->isSelected(), connected_players , max_players };
+		DataPacket data{ config };
+		network_server->sendPacket(&data, false);
 
 		// If game was ready to start, prevent the game from starting
 		if (play_button->isActive)
@@ -1069,4 +1178,412 @@ std::optional<std::pair<std::string, std::optional<int>>> MainMenu::getAddressIf
 	
 	// Return nothing, IP is not valid
 	return {};
+}
+
+// Config files methods
+
+void MainMenu::saveGeneralConfig()
+{
+	// Open stream
+	std::ofstream output_file{ general_config.c_str() };
+
+	if (!output_file)
+	{
+		return;
+	}
+
+	// Get values to save
+	// Graphics options
+	bool fullscreen = fullscreen_checkbox->isSelected();
+	std::string win_w = window_width_input->getText();
+	std::string win_h = window_height_input->getText();
+
+	// Sound options
+	bool sound_enabled = sound_checkbox->isSelected();
+	std::string volume = sound_volume_input->getText();
+
+	// Write values to file
+	output_file << fullscreen << "\n";
+	output_file << win_w << "\n";
+	output_file << win_h << "\n";
+
+	output_file << sound_enabled << "\n";
+	output_file << volume << "\n";
+
+	// Close file
+	output_file.close();
+}
+
+void MainMenu::readClientConfig()
+{
+	std::ifstream client_file(client_config);
+
+	if (client_file)
+	{
+		std::getline(client_file, client_ip);
+		std::getline(client_file, client_port);
+	}
+}
+
+void MainMenu::saveClientConfig()
+{
+	std::ofstream client_file(client_config);
+
+	if (client_file)
+	{
+		client_file << client_ip << "\n";
+		client_file << client_port << "\n";;
+
+		client_file.close();
+	}
+}
+
+void MainMenu::readServerConfig()
+{
+	std::ifstream server_file(server_config);
+
+	if (server_file)
+	{
+		std::getline(server_file, server_port);
+		std::getline(server_file, server_player_amount);
+		std::getline(server_file, server_frame_buffer);
+		
+		std::string ff;
+		std::getline(server_file, ff);
+		std::istringstream(ff) >> server_friendly_fire;
+		
+		std::string tpu;
+		std::getline(server_file, tpu);
+		std::istringstream(tpu) >> server_team_powerups;
+
+		server_file.close();
+	}
+}
+
+void MainMenu::saveServerConfig()
+{
+	std::ofstream server_file(server_config);
+
+	if (server_file)
+	{
+		server_file << server_port << "\n";;
+		server_file << server_player_amount << "\n";;
+		server_file << server_frame_buffer << "\n";;
+		server_file << server_friendly_fire << "\n";;
+		server_file << server_team_powerups << "\n";;
+
+		server_file.close();
+	}
+}
+
+// Convenience
+
+void MainMenu::setDefaultLayout()
+{
+	// Game title 1
+	game_title_1->setTextScale(Vector2<float>(4, 4));
+
+	game_title_1->setText("Archers");
+	game_title_1->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 5.5f, 3.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	game_title_1->setLayer(EVERY_LAYER);
+
+	// Game title 2
+	game_title_2->transform.parent = &game_title_1->transform;
+	game_title_2->setTextScale(Vector2<float>(4, 4));
+
+	game_title_2->setText("Duel");
+	game_title_2->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.5f, 11.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	game_title_2->setLayer(EVERY_LAYER);
+
+	// Play Button
+	play_button->setScale(Vector2<float>(2, 2));
+	play_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	play_button->tLabel->setText("Play");
+	play_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	play_button->tLabel->setCenteredWithinParent();
+	play_button->setOnClickListener(std::bind(&MainMenu::playButtonHandler, this));
+	play_button->setLayer(MAIN_MENU_LAYER | PLAYER_MENU_LAYER);
+
+	// Online button
+	online_button->setScale(Vector2<float>(2, 2));
+	online_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	online_button->tLabel->setText("Online");
+	online_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	online_button->tLabel->setCenteredWithinParent();
+	online_button->setOnClickListener(std::bind(&MainMenu::onlineButtonHandler, this));
+	online_button->setLayer(MAIN_MENU_LAYER);
+
+	// Online Sub-menu
+		// Server button
+	server_button->setScale(Vector2<float>(2, 2));
+	server_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	server_button->tLabel->setText("Server");
+	server_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	server_button->tLabel->setCenteredWithinParent();
+	server_button->setOnClickListener(std::bind(&MainMenu::serverButtonHandler, this));
+	server_button->isActive = false;
+	server_button->setLayer(ONLINE_MENU_LAYER);
+
+	// Server Address / Server Port
+	ip_input->setScale(Vector2<float>(2.5f, 1));
+	ip_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	ip_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	ip_input->tLabel->setCenteredWithinParent();
+	ip_input->isActive = false;
+	ip_input->onSelect = std::bind(&MainMenu::onSelectIPInput, this);
+	ip_input->valid_inputs = { R"(\d|\.|:|[a-z])" };
+	ip_input->setLayer(CLIENT_MENU_LAYER | SERVER_MENU_LAYER);
+
+	// Server address label
+	ip_label->setScale(Vector2<float>(1, 1));
+	ip_label->setText("Server Address");
+	ip_label->transform.parent = &ip_input->transform;
+	ip_label->setCenteredWithinParent({ 0, -15.f });
+	ip_label->setTextColor({ 0, 0, 0 });
+
+	// Connect button
+	connect_button->setScale(Vector2<float>(2, 2));
+	connect_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connect_button->tLabel->setText("Connect");
+	connect_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	connect_button->tLabel->setCenteredWithinParent();
+	connect_button->setOnClickListener(std::bind(&MainMenu::connectButtonHandler, this));
+	connect_button->isActive = false;
+	connect_button->setLayer(CLIENT_MENU_LAYER | SERVER_MENU_LAYER);
+
+	// Player amount input
+	player_amount_input->setScale(Vector2<float>(2.5f, 1));
+	player_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 35.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	player_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	player_amount_input->tLabel->setCenteredWithinParent();
+	player_amount_input->isActive = false;
+	player_amount_input->valid_inputs = { R"(\d)" };
+	player_amount_input->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+
+	// Player amount label
+	player_amount_label->setScale(Vector2<float>(1, 1));
+	player_amount_label->setText("Player Amount");
+	player_amount_label->transform.parent = &player_amount_input->transform;
+	player_amount_label->setCenteredWithinParent({ 0, -15.f });
+	player_amount_label->setTextColor({ 0, 0, 0 });
+
+	// Friendly fire check box
+	friendly_fire_checkbox->transform.parent = &player_amount_input->transform;
+	friendly_fire_checkbox->setCenteredWithinParent({ 30, 20 });
+	friendly_fire_checkbox->isActive = false;
+	friendly_fire_checkbox->tLabel->isActive = false;
+	friendly_fire_checkbox->tLabel->setText("Friendly Fire");
+	friendly_fire_checkbox->tLabel->setTextColor({ 0,0,0 });
+	friendly_fire_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
+	friendly_fire_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+
+	// Friendly fire check box
+	shared_power_up_checkbox->transform.parent = &player_amount_input->transform;
+	shared_power_up_checkbox->setCenteredWithinParent({ 30, 40 });
+	shared_power_up_checkbox->isActive = false;
+	shared_power_up_checkbox->tLabel->isActive = false;
+	shared_power_up_checkbox->tLabel->setText("Team PowerUps");
+	shared_power_up_checkbox->tLabel->setTextColor({ 0,0,0 });
+	shared_power_up_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
+	shared_power_up_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+
+	// Frame amount input
+	frame_amount_input->setScale(Vector2<float>(2.5f, 1));
+	frame_amount_input->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 7.5f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	frame_amount_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	frame_amount_input->tLabel->setCenteredWithinParent();
+	frame_amount_input->isActive = false;
+	frame_amount_input->valid_inputs = { R"(\d)" };
+	frame_amount_input->setLayer(SERVER_MENU_LAYER);
+
+	// Frmae amount lable
+	frame_amount_label->setScale(Vector2<float>(1, 1));
+	frame_amount_label->setText("Frame Buffer Size");
+	frame_amount_label->transform.parent = &frame_amount_input->transform;
+	frame_amount_label->setCenteredWithinParent({ 0, -15.f });
+	frame_amount_label->setTextColor({ 0, 0, 0 });
+
+	// Client button
+	client_button->setScale(Vector2<float>(2, 2));
+	client_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 32.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	client_button->tLabel->setText("Client");
+	client_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	client_button->tLabel->setCenteredWithinParent();
+	client_button->setOnClickListener(std::bind(&MainMenu::clientButtonHandler, this));
+	client_button->isActive = false;
+	client_button->setLayer(ONLINE_MENU_LAYER);
+
+	// Connection label
+	connecting_label->setScale(Vector2<float>(1, 1));
+	connecting_label->setText("Connecting");
+	connecting_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 11.25f, 24.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	connecting_label->setTextColor({ 0, 0, 0 });
+	connecting_label->setLayer(CLIENT_CONNECTION_MENU_LAYER | SERVER_CONNECTION_MENU_LAYER);
+	connecting_label->isActive = false;
+
+	// Player info label
+	player_info_label->setScale(Vector2<float>(1, 1));
+	player_info_label->setTextColor({ 0, 0, 0 });
+	player_info_label->setText("You are player");
+	player_info_label->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 12.5f, 30.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	player_info_label->isActive = false;
+
+	// Player color report label
+	player_color_info_label->setScale({ 1, 1 });
+	player_color_info_label->setTextColor({ 255, 0, 0 });
+	player_color_info_label->setText("red");
+	player_color_info_label->transform.parent = &player_info_label->transform;
+	player_color_info_label->setCenteredWithinParent({ 0, 15.f });
+
+	// Connected players label
+	connected_players_label->setScale(Vector2<float>(1, 1));
+	connected_players_label->setText("Connected players: 0/0");
+	connected_players_label->setTextColor({ 0, 0, 0 });
+	connected_players_label->transform.parent = &player_color_info_label->transform;
+	connected_players_label->setCenteredWithinParent({ 0, 15.f });
+
+	// Connection info label
+	connection_action_label->setScale({ 1, 1 });
+	connection_action_label->setText("Waiting for server");
+	connection_action_label->transform.parent = &connected_players_label->transform;
+	connection_action_label->setCenteredWithinParent({ 0, 15.f });
+	connection_action_label->isActive = false;
+
+	// Back button
+	back_button->setScale(Vector2<float>(2, 2));
+	back_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	back_button->tLabel->setText("Back");
+	back_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	back_button->tLabel->setCenteredWithinParent();
+	back_button->setOnClickListener(std::bind(&MainMenu::backButtonHandler, this));
+	back_button->isActive = false;
+	back_button->setLayer(EVERY_LAYER - 1);
+
+	// Exit button
+	exit_button->setScale(Vector2<float>(0.25f, 0.25f));
+	exit_button->transform.position = Vector2<float>(5, 5);
+	exit_button->setOnClickListener(std::bind(&MainMenu::exitGame, this));
+	exit_button->tLabel->isActive = false;
+	exit_button->tLabel->setText("");
+	exit_button->setLayer(EVERY_LAYER);
+
+	// Options
+	options_button->setScale(Vector2<float>(2, 2));
+	options_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 45.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	options_button->tLabel->setText("Settings");
+	options_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	options_button->tLabel->setCenteredWithinParent();
+	options_button->setOnClickListener(std::bind(&MainMenu::optionsButtonHandler, this));
+	options_button->setLayer(MAIN_MENU_LAYER);
+
+	// Graphics TextLabel
+	graphics_options_title->setScale(Vector2<float>(1.5f, 1.5f));
+	graphics_options_title->setText("Graphics");
+	graphics_options_title->setTextColor({ 0, 0, 0 });
+	graphics_options_title->transform.parent = &game_title_2->transform;
+	graphics_options_title->setCenteredWithinParent({ 0, 20.f });
+	graphics_options_title->setLayer(OPTIONS_MENU_LAYER);
+	graphics_options_title->isActive = false;
+
+	// Fullscreen text label
+	fullscreen_label->setScale(Vector2<float>(1.f, 1.f));
+	fullscreen_label->setText("Fullscreen");
+	fullscreen_label->setTextColor({ 0, 0, 0 });
+	fullscreen_label->transform.parent = &graphics_options_title->transform;
+	fullscreen_label->setCenteredWithinParent({ -20, 20.f });
+	fullscreen_label->setLayer(OPTIONS_MENU_LAYER);
+	fullscreen_label->isActive = false;
+
+	// Fullscreen check box
+	fullscreen_checkbox->transform.parent = &fullscreen_label->transform;
+	fullscreen_checkbox->setCenteredWithinParent({ 40, 0 });
+	fullscreen_checkbox->setLayer(OPTIONS_MENU_LAYER);
+	fullscreen_checkbox->isActive = false;
+	fullscreen_checkbox->tLabel->isActive = false;
+	fullscreen_checkbox->tLabel->setText("");
+
+	// Window  width label
+	window_width_label->setScale(Vector2<float>(1.f, 1.f));
+	window_width_label->setText("Window Width");
+	window_width_label->setTextColor({ 0, 0, 0 });
+	window_width_label->transform.parent = &fullscreen_label->transform;
+	window_width_label->setCenteredWithinParent({ -20, 20 });
+	window_width_label->setLayer(OPTIONS_MENU_LAYER);
+	window_width_label->isActive = false;
+
+	// Window size width
+	window_width_input->setScale(Vector2<float>(1, 1));
+	window_width_input->transform.parent = &window_width_label->transform;
+	window_width_input->setCenteredWithinParent({ 0, 20 });
+	window_width_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	window_width_input->tLabel->setCenteredWithinParent();
+	window_width_input->isActive = false;
+	window_width_input->valid_inputs = { R"(\d)" };
+	window_width_input->setLayer(OPTIONS_MENU_LAYER);
+	window_width_input->isActive = false;
+
+	// Window height label
+	window_height_label->setScale(Vector2<float>(1.f, 1.f));
+	window_height_label->setText("Window Height");
+	window_height_label->setTextColor({ 0, 0, 0 });
+	window_height_label->transform.parent = &fullscreen_label->transform;
+	window_height_label->setCenteredWithinParent({ 60, 20 });
+	window_height_label->setLayer(OPTIONS_MENU_LAYER);
+	window_height_label->isActive = false;
+
+	// Window size height
+	window_height_input->setScale(Vector2<float>(1, 1));
+	window_height_input->transform.parent = &window_height_label->transform;
+	window_height_input->setCenteredWithinParent({ 0, 20 });
+	window_height_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	window_height_input->tLabel->setCenteredWithinParent();
+	window_height_input->isActive = false;
+	window_height_input->valid_inputs = { R"(\d)" };
+	window_height_input->setLayer(OPTIONS_MENU_LAYER);
+
+	// Sound TextLabel title
+	sound_options_title->setScale(Vector2<float>(1.5f, 1.5f));
+	sound_options_title->setText("Sound");
+	sound_options_title->setTextColor({ 0, 0, 0 });
+	sound_options_title->transform.parent = &graphics_options_title->transform;
+	sound_options_title->setCenteredWithinParent({ 0, 80.f });
+	sound_options_title->setLayer(OPTIONS_MENU_LAYER);
+	sound_options_title->isActive = false;
+
+	// Sound text label
+	sound_label->setScale(Vector2<float>(1.f, 1.f));
+	sound_label->setText("Sound");
+	sound_label->setTextColor({ 0, 0, 0 });
+	sound_label->transform.parent = &sound_options_title->transform;
+	sound_label->setCenteredWithinParent({ -34, 20.f });
+	sound_label->setLayer(OPTIONS_MENU_LAYER);
+	sound_label->isActive = false;
+
+	// Sound checkbox
+	sound_checkbox->transform.parent = &fullscreen_checkbox->transform;
+	sound_checkbox->setCenteredWithinParent({ 0, 80 });
+	sound_checkbox->setLayer(OPTIONS_MENU_LAYER);
+	sound_checkbox->isActive = false;
+	sound_checkbox->select();
+	sound_checkbox->tLabel->isActive = false;
+	sound_checkbox->tLabel->setText("");
+
+	// Sound volume label
+	sound_volume_label->setScale(Vector2<float>(1.f, 1.f));
+	sound_volume_label->setText("Volume");
+	sound_volume_label->setTextColor({ 0, 0, 0 });
+	sound_volume_label->transform.parent = &sound_options_title->transform;
+	sound_volume_label->setCenteredWithinParent({ 0, 40.f });
+	sound_volume_label->setLayer(OPTIONS_MENU_LAYER);
+	sound_volume_label->isActive = false;
+
+	// Sound volume input
+	sound_volume_input->setScale(Vector2<float>(1, 1));
+	sound_volume_input->transform.parent = &sound_volume_label->transform;
+	sound_volume_input->setCenteredWithinParent({ 0, 20 });
+	sound_volume_input->tLabel->setTextScale(Vector2<float>(1.f, 1.f));
+	sound_volume_input->tLabel->setCenteredWithinParent();
+	sound_volume_input->isActive = false;
+	sound_volume_input->valid_inputs = { R"(\d)" };
+	sound_volume_input->setLayer(OPTIONS_MENU_LAYER);
 }

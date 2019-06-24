@@ -125,7 +125,7 @@ void Tower::takeDamage(float dmg)
 		}
 
 		// Update healthbar
-		float health_percent = health / max_health * 100;
+		double health_percent = health / max_health * (double)100;
 		healthBar->setHealthPercentage(health_percent, true);
 	}
 }

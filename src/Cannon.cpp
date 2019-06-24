@@ -143,6 +143,9 @@ void Cannon::shoot()
 	// Set cannon ball dmg
 	ball->dmg = next_shot_dmg;
 
+	// Set owner ref
+	ball->owner = owner;
+
 	// Update collider
 	ball->bCollider->update();
 

@@ -29,6 +29,14 @@ enum ConnectionCodes
 	FAILED_WAITING_FOR_CLIENT
 };
 
+struct GameConfig
+{
+	bool friendly_fire = false;
+	bool team_powerups = false;
+	int connected_players = 0;
+	int max_players = 0;
+};
+
 class MainMenu : public Scene
 {
 public:
@@ -107,6 +115,7 @@ public:
 	Uint32 connection_tries_limit = 5;
 	void handleTimer(Uint32 flag);
 
+	// Networking
 	SDL_mutex* flag_mutex = nullptr;
 	SDL_Thread* connection_thread = nullptr;
 	bool time_over = true;
@@ -114,10 +123,29 @@ public:
 	bool connection_established = false;
 	bool disconnected = false;
 
+	// Game config
+	bool friendly_fire = false;
+	bool team_powerups = false;
+
+	// Network Config
+	std::string client_ip = "127.0.0.1";
+	std::string client_port = "1338";
+
+	std::string server_port = "1338";
+	std::string server_frame_buffer = "8";
+	std::string server_player_amount = "4";
+	bool server_friendly_fire = false;
+	bool server_team_powerups = false;
+
 	// Dimensions
 	// Level Dimensions
 	static const int LEVEL_WIDTH;
 	static const int LEVEL_HEIGHT;
+
+	// Config file names
+	std::string client_config = "resources/client-config.txt";
+	std::string server_config = "resources/server-config.txt";
+	std::string general_config = "resources/general-config.txt";
 
 	// Button methods
 	void enableLayer(Uint8 layer);
@@ -142,6 +170,17 @@ public:
 	// Validation methods
 	std::optional<std::pair<std::string, std::optional<int>>> getAddressIfValid(std::string address);
 	
+	// Config files methods
+	void saveGeneralConfig();
+
+	void saveClientConfig();
+	void readClientConfig();
+
+	void saveServerConfig();
+	void readServerConfig();
+
+	// Convenience
+	void setDefaultLayout();
 };
 
 namespace MainMenuConnection 

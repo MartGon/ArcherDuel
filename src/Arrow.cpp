@@ -38,7 +38,7 @@ Arrow::Arrow()
 	extCollider = setComponent(new RotatableBoxCollider(Vector2<int>(0, 0), Vector2<int>(0, 3 * transform.scale.y),
 		Vector2<int>(14 * transform.scale.x, 0), Vector2<int>(14 * transform.scale.x, 3 * transform.scale.y)));
 	extCollider->isEnabled = false;
-	extCollider->debug = true;
+	//extCollider->debug = true;
 	
 	// Damage text label
 	dmg_label = new TextLabel();
@@ -276,7 +276,6 @@ void Arrow::onUpdate()
 	{
 		if (extCollider->isEnabled)
 		{
-			auto displacement = nav->prev_dir * nav->speed;
 			auto vertex_0 = Vector2<float>( rotCollider->roVertex[0].x - nav->speed, rotCollider->roVertex[0].y );
 			auto vertex_1 = Vector2<float>( rotCollider->roVertex[1].x - nav->speed, rotCollider->roVertex[1].y );
 

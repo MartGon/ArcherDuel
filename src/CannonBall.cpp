@@ -6,7 +6,7 @@
 
 #include "Timer.h"
 #include "Tower.h"
-#include "Player.h"
+#include "LevelOne.h"
 
 CannonBall::CannonBall()
 {
@@ -43,6 +43,30 @@ void CannonBall::onColliderEnter(Collider* collider)
 
 	if (Player* player = dynamic_cast<Player*>(collider->gameObject))
 	{
+		// If friendly fire is disabled
+		if (player->level)
+		{
+			if (!player->level->friendly_fire)
+			{
+				// Prevent Friendly fire
+				if (owner)
+				{
+					if (owner->player_team == player->player_team)
+					{
+						// We don't wait for timer
+						wait_timer = false;
+
+						// Re-enable components
+						nav->isEnabled = true;
+						bCollider->isEnabled = true;
+						tRenderer->hasTrailEffect = true;
+
+						return;
+					}
+				}
+			}
+		}
+
 		// Set player to new parent
 		transform.position = getAbsolutePosition() - player->getAbsolutePosition();
 		transform.parent = &player->transform;

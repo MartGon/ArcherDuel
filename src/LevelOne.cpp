@@ -44,11 +44,17 @@ void LevelOne::loadMedia()
 	tower = new Tower(this);
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
+	int blue_players = player_amount / 2;
+	tower->max_health = blue_players * 500;
+	tower->health = tower->max_health;
 
 	// Blue Tower
 	tower2 = new Tower(this, Tower::ROOF_COLOR_BLUE);
 	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 31);
 	tower2->transform.position = tower2_pos;
+	int red_players = player_amount / 2 + player_amount % 2;
+	tower2->max_health = red_players * 500;
+	tower2->health = tower2->max_health;
 
 	// Grass blocks
 	placeFloorBlocks();

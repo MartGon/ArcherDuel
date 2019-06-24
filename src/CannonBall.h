@@ -4,6 +4,7 @@
 #include "TimerHandler.h"
 
 #include "TextLabel.h"
+#include "Player.h"
 
 class CannonBall : public GameObject
 {
@@ -23,6 +24,9 @@ public:
 
 	// Attributes
 	Uint32 dmg = 20;
+
+	// Refs
+	Player* owner = nullptr;
 
 	// Overrided Methods
 	void onColliderEnter(Collider* collider);

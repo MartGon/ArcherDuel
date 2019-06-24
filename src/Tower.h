@@ -46,11 +46,12 @@ public:
 	bool isCompletelyOnFire();
 	void disableFires();
 
+	double max_health = 1000.0f;
+	double health = 1000.0f;
+
 private:
 	// Attributes
 	RoofColor team = ROOF_COLOR_RED;
-	float max_health = 1000.0f;
-	float health = 1000.0f;
 };
 
 class Fire : public GameObject
