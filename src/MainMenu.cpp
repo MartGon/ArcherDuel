@@ -1,5 +1,6 @@
 #include "MainMenu.h"
 #include "LevelOne.h"
+#include "TutorialLevel.h"
 
 #include "AudioManager.h"
 #include "RendererManager.h"
@@ -389,6 +390,16 @@ void MainMenu::loadMedia()
 	sound_volume_input->valid_inputs = { R"(\d)" };
 	sound_volume_input->setLayer(OPTIONS_MENU_LAYER);
 
+	// Tutorial Button
+	tutorial_button = new Button(Texture("button_background4.png"));
+	tutorial_button->setScale(Vector2<float>(2, 2));
+	tutorial_button->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 10.f, 57.5f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	tutorial_button->tLabel->setText("Tutorial");
+	tutorial_button->tLabel->setTextScale(Vector2<float>(2.f, 2.f));
+	tutorial_button->tLabel->setCenteredWithinParent();
+	tutorial_button->setOnClickListener(std::bind(&MainMenu::tutorialButtonHandler, this));
+	tutorial_button->setLayer(MAIN_MENU_LAYER);
+
 	// Player
 	player = new Player(PlayerNumber::PLAYER_ONE);
 	player->tower = tower;
@@ -449,6 +460,9 @@ void MainMenu::onUpdate()
 							// Check if previous attempt was successful
 							if (connection_established)
 							{
+								if (network_client->state == NetworkClient::ClientState::CLIENT_OPENING_SOCKET)
+									std::cout << "Theres some shit going on\n";
+
 								// Enable next layer or set text with connection info
 								// Update connecting message
 								std::string connect_msg = "Connected!";
@@ -529,8 +543,8 @@ void MainMenu::onUpdate()
 							shared_power_up_checkbox->transform.parent = &friendly_fire_checkbox->transform;
 							friendly_fire_checkbox->setCenteredWithinParent({ 40, 20 });
 							shared_power_up_checkbox->setCenteredWithinParent({ 0, 20 });
-							friendly_fire_checkbox->isSelectable = false;
-							shared_power_up_checkbox->isSelectable = false;
+							friendly_fire_checkbox->setEnabled(false);
+							shared_power_up_checkbox->setEnabled(false);
 
 							friendly_fire_checkbox->isActive = true;
 							friendly_fire_checkbox->tLabel->isActive = true;
@@ -840,6 +854,11 @@ void MainMenu::connectButtonHandler()
 			client_port = std::to_string(port);
 
 			saveClientConfig();
+
+			// Set flags to be used
+			bool time_over = true;
+			bool connection_attempt_finished = true;
+			bool connection_established = false;
 		}
 		else
 		{
@@ -918,7 +937,8 @@ void MainMenu::optionsButtonHandler()
 	// Read Window data
 
 	// Set fullscreen
-	fullscreen_checkbox->setSelected(SDL_GetWindowFlags(RendererManager::window) & SDL_WINDOW_FULLSCREEN);
+	bool fullscreen = SDL_GetWindowFlags(RendererManager::window) & SDL_WINDOW_FULLSCREEN;
+	fullscreen_checkbox->setSelected(fullscreen);
 
 	// Get current window size
 	int w = 0;
@@ -929,20 +949,30 @@ void MainMenu::optionsButtonHandler()
 	window_height_input->setText(std::to_string(h));
 
 	// Sound
-	fullscreen_checkbox->setSelected(AudioManager::sound_enabled);
+	sound_checkbox->setSelected(AudioManager::sound_enabled);
 
 	int volume = AudioManager::volume;
 	sound_volume_input->setText(std::to_string(volume));
 }
 
+void MainMenu::tutorialButtonHandler()
+{
+	SceneManager::loadNextScene(new TutorialLevel());
+}
+
 void MainMenu::backButtonHandler()
 {
-	// Reset pos
-	setDefaultLayout();
-
 	switch (current_layer)
 	{
 	case CLIENT_CONNECTION_MENU_LAYER:
+
+		// Remove thread
+		if (connection_thread)
+		{
+			SDL_WaitThread(connection_thread, nullptr);
+			connection_thread = nullptr;
+		}
+
 		if (network_client)
 		{
 			// Destroy net agent
@@ -1039,6 +1069,10 @@ void MainMenu::backButtonHandler()
 
 	// Enable main menu
 	enableLayer(MAIN_MENU_LAYER);
+
+	// Reset pos
+	setDefaultLayout();
+
 }
 
 // TextInput methods
@@ -1376,6 +1410,7 @@ void MainMenu::setDefaultLayout()
 	friendly_fire_checkbox->tLabel->setTextColor({ 0,0,0 });
 	friendly_fire_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
 	friendly_fire_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+	friendly_fire_checkbox->setEnabled(true);
 
 	// Friendly fire check box
 	shared_power_up_checkbox->transform.parent = &player_amount_input->transform;
@@ -1386,6 +1421,7 @@ void MainMenu::setDefaultLayout()
 	shared_power_up_checkbox->tLabel->setTextColor({ 0,0,0 });
 	shared_power_up_checkbox->tLabel->setCenteredWithinParent({ -45, 0 });
 	shared_power_up_checkbox->setLayer(SERVER_MENU_LAYER | PLAYER_MENU_LAYER);
+	shared_power_up_checkbox->setEnabled(true);
 
 	// Frame amount input
 	frame_amount_input->setScale(Vector2<float>(2.5f, 1));

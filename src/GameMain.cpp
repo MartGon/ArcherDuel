@@ -17,6 +17,9 @@ int main(int argc, char* args[])
 	// Setup 720x480
 	gFirstScene = new MainMenu();
 
+	// Set window res
+	setWindowResolution(960, 520);
+
 	// Engine loop
 	engine_main();
 

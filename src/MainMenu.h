@@ -59,6 +59,7 @@ public:
 	Button* back_button = nullptr;
 	Button* exit_button = nullptr;
 	Button* options_button = nullptr;
+	Button* tutorial_button = nullptr;
 
 		// TextLabel
 	TextLabel* ip_label = nullptr;
@@ -157,6 +158,7 @@ public:
 	void clientButtonHandler();
 	void connectButtonHandler();
 	void optionsButtonHandler();
+	void tutorialButtonHandler();
 	void backButtonHandler();
 
 	// TextInput methods
