@@ -345,6 +345,10 @@ void Player::jump()
 		jump_nav->speed = 3;
 		animator->isEnabled = false;
 		airborne = true;
+
+		// Call tutorial callback
+		if (onJump)
+			onJump();
 	}
 }
 
@@ -355,6 +359,10 @@ void Player::fast_fall()
 		jump_nav->setDirection(Vector2<float>(0, 1));
 		jump_nav->speed = 3;
 		animator->isEnabled = false;
+
+		// Call tutorial callback
+		if (onFastFall)
+			onFastFall();
 	}
 }
 
@@ -375,6 +383,10 @@ void Player::strafe(MovDirection dir)
 	// Tweak navigator
 	mov_nav->setDirection(Vector2<float>(mov_dist, 0));
 	//transform.position = transform.position + Vector2<float>(mov_dist, 0);
+
+	// Call tutorial callback
+	if (onStrafe)
+		onStrafe();
 }
 
 void Player::stop()

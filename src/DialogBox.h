@@ -2,6 +2,8 @@
 
 #include "TextLabel.h"
 
+#include <functional>
+
 class DialogBox : public GameObject
 {
 public:
@@ -30,6 +32,9 @@ public:
 
 	// Overrided methods
 	void onUpdate() override;
+
+	// Callback
+	std::function<void()> onDisplayEnd;
 
 private:
 

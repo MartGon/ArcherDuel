@@ -65,7 +65,7 @@ void DialogBox::setText(std::string str)
 		if (last_label)
 		{
 			text_label->transform.position.y = last_label->transform.position.y + line_offset_y;
-			text_label->transform.position.x = -5;
+			//text_label->transform.position.x = -5;
 		}
 
 		last_label = text_label;
@@ -125,7 +125,7 @@ TextLabel* DialogBox::createTextLabel()
 
 		// Set downwards
 		text_label->transform.position.y = last_label->transform.position.y + line_offset_y;
-		text_label->transform.position.x = -5;
+		//text_label->transform.position.x = -5;
 	}
 
 	return text_label;
@@ -144,7 +144,7 @@ void DialogBox::onUpdate()
 			if (label->isActive)
 			{
 				int char_index = display_index.y;
-				if (char_index < label->font_tRenderers.size())
+				if (char_index < label->getText().size())
 				{
 					display_ctr = (display_ctr + 1) % text_speed;
 					bool display = display_ctr == 0;
@@ -180,6 +180,10 @@ void DialogBox::onUpdate()
 
 				// Set flag
 				isDisplayed = true;
+
+				// Call callback function
+				if (onDisplayEnd)
+					onDisplayEnd();
 			}
 		}
 		else
@@ -192,6 +196,10 @@ void DialogBox::onUpdate()
 
 			// Set flag
 			isDisplayed = true;
+
+			// Call callback function
+			if (onDisplayEnd)
+				onDisplayEnd();
 		}
 	}
 	else

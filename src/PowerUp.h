@@ -4,6 +4,8 @@
 
 #include "Timer.h"
 
+#include <functional>
+
 class Player;
 class PowerUp;
 class TextLabel;
@@ -67,6 +69,9 @@ public:
 	// Overridede Methods
 	void onTimerEnd(Uint32 flag) override;
 	void onVanish() override;
+
+	// Callbacks
+	std::function<void(PowerUp*)> onHit;
 };
 
 class PowerUpTimeDisplay : public GameObject

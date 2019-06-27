@@ -159,6 +159,9 @@ void Bow::onUpdate()
 {
 	pointBowToMouse();
 
+	if (!isEnabled)
+		return;
+
 	if (Player* player = this->owner)
 	{
 		if (!player->isAI)

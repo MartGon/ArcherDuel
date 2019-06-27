@@ -20,6 +20,7 @@ public:
 	};
 
 	// State
+	bool isEnabled = true;
 	BowState state = BOW_STATE_IDLE;
 
 	// Components

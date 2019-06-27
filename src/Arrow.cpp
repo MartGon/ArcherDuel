@@ -219,20 +219,26 @@ void Arrow::onColliderEnter(Collider* collider)
 		if(owner)
 			owner->addPowerUp(power_up);
 
-		LevelOne* level = owner->level;
-		if (level->shared_powerups)
+		if (LevelOne* level = owner->level)
 		{
-			// Don't replicate thunderstrike
-			if (power_up->type != POWER_UP_THUNDERSTRIKE)
+			if (level->shared_powerups)
 			{
-				for (auto player : level->players)
+				// Don't replicate thunderstrike
+				if (power_up->type != POWER_UP_THUNDERSTRIKE)
 				{
-					if(player->player_team == owner->player_team)
-						if (player != owner)
-							player->addPowerUp(power_up_object->getPowerUp(player));
+					for (auto player : level->players)
+					{
+						if (player->player_team == owner->player_team)
+							if (player != owner)
+								player->addPowerUp(power_up_object->getPowerUp(player));
+					}
 				}
 			}
 		}
+
+		// Call callback method
+		if (power_up_object->onHit)
+			power_up_object->onHit(power_up);
 	}
 
 	// Return if we dont have to create a timer

@@ -153,4 +153,9 @@ public:
 	void stun(int duration);
 	void knockback(Vector2<float> dir, float strength);
 	void recover();
+
+	// Tutorial hooks
+	std::function<void()> onStrafe;
+	std::function<void()> onJump;
+	std::function<void()> onFastFall;
 };
