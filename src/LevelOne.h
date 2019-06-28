@@ -47,15 +47,16 @@ public:
 
 	// Game
 	static MapRGB getColorMod(PlayerNumber number);
+	static bool isPlayerPosValid(Player* player);
+	static void resetPlayerPosition(Player* player);
+	static bool isObjectPositionValid(GameObject* go);
+	static Vector2<float> getCanonnBarPosByPlayer(Player* player);
+
 	Vector2<float> getCannonBarPos(PlayerNumber number);
 	NetworkOwner getNetworkOwner(PlayerNumber number);
 	Vector2<float> getPlayerPos(PlayerNumber number);
 	Player* createPlayer(PlayerNumber player_number, bool isAI = false);
 	void setWinnerTeam(Player::PlayerTeam winner_team);
-	bool isPlayerPosValid(Player* player);
-	void resetPlayerPosition(Player* player);
-
-	static bool isObjectPositionValid(GameObject* go);
 
 	// GUI
 	TextLabel* winner_banner = nullptr;

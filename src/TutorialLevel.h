@@ -6,6 +6,8 @@
 #include "DialogBox.h"
 #include "QuestTracker.h"
 
+#include "TimerHandler.h"
+
 #include <unordered_map>
 
 // Forward declaration
@@ -53,6 +55,7 @@ public:
 	};
 
 	// Phase
+	bool isGameOver = false;
 	TutorialLevelPhase phase = TUTORIAL_PHASE_NULL;
 
 	// Phase->Dialog map
@@ -72,6 +75,10 @@ public:
 
 	// GameObjects
 	Player* player = nullptr;
+	Player* player2 = nullptr;
+	std::vector<Player*> players;
+	std::unordered_map<Uint32, TimerObject*> player_timers;
+
 	Tower* tower = nullptr;
 	Tower* tower2 = nullptr;
 	std::vector<Bullseye*> targets;
@@ -81,6 +88,7 @@ public:
 	Button* continue_button = nullptr;
 	DialogBox* dialog_box = nullptr;
 	QuestTracker* quest_tracker = nullptr;
+	TextLabel* winner_banner = nullptr;
 
 	// GUI methods
 	void exitButtonHandler();
@@ -97,6 +105,7 @@ public:
 	void onPlayerStrafe();
 	void onPlayerJump();
 	void onPlayerFastFall();
+	void onPlayerShootCannon();
 
 	// Other callbacks
 	void onPracticeTargetHit();
@@ -104,4 +113,9 @@ public:
 
 	// Quest callback
 	void onCompleteQuest();
+
+	// LevelOne implementations
+	void setWinnerTeam(Player::PlayerTeam team);
+	void onPlayerTimerFinish(Uint32 flag);
+	void onEndGameTimerFininsh(Uint32 flag);
 };

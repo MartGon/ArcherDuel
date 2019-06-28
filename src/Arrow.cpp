@@ -262,13 +262,11 @@ void Arrow::afterMove()
 	{
 		if (owner)
 		{
-			if (LevelOne* level = owner->level)
-			{
-				bool interrupt = owner->powerUpHookTemplate(&PowerUp::onArrowOutofBounds, level, this);
+			Vector2<float> bounds(LevelOne::LEVEL_WIDTH, LevelOne::LEVEL_HEIGHT);
+			bool interrupt = owner->powerUpHookTemplate(&PowerUp::onArrowOutofBounds, bounds, this);
 
-				if (interrupt)
-					return;
-			}
+			if (interrupt)
+				return;
 		}
 
 		onVanish();

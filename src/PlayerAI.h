@@ -19,6 +19,7 @@ public:
 
 	// Attributes
 	PlayerAIState state = PLAYERAI_STATE_IDLE;
+	bool isStopped = false;
 
 	// References
 	Tower* enemy_tower = nullptr;

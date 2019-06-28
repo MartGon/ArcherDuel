@@ -5,6 +5,7 @@
 #include "Cannon.h"
 #include "HealthBar.h"
 #include "PowerUp.h"
+#include "TutorialLevel.h"
 
 #include <functional>
 
@@ -517,6 +518,9 @@ void Player::recover()
 
 void Player::increase_skill_points(float skill_points)
 {
+	if (!canGainSkill)
+		return;
+
 	if (isPlacingCannon | isChargingCannon)
 		return;
 

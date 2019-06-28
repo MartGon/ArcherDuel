@@ -280,6 +280,28 @@ Vector2<float> LevelOne::getCannonBarPos(PlayerNumber player_number)
 	return pos;
 }
 
+Vector2<float> LevelOne::getCanonnBarPosByPlayer(Player* player)
+{
+	Vector2<float> pos;
+	int number = static_cast<int>(player->player_number);
+
+	// It's odd
+	if (number & 1)
+	{
+		auto def_pos = player->tower->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+		float offset_x = 27.5f * (number - 1);
+		pos = { def_pos.x + offset_x, def_pos.y };
+	}
+	else
+	{
+		auto def_pos = player->tower->healthBar->getAbsolutePosition() + Vector2<float>{0, -15};
+		float offset_x = 27.5f * (number - 2);
+		pos = { def_pos.x + offset_x, def_pos.y };
+	}
+
+	return pos;
+}
+
 NetworkOwner LevelOne::getNetworkOwner(PlayerNumber player_number)
 {
 	int number = static_cast<int>(player_number) - 1;

@@ -17,6 +17,9 @@ PlayerAI::PlayerAI(PlayerNumber player_number) : Player(player_number)
 // Overrided Methods
 void PlayerAI::onPlayerUpdate()
 {
+	if (isStopped)
+		return;
+
 	switch (state)
 	{
 	case PLAYERAI_STATE_IDLE:
@@ -292,16 +295,18 @@ std::vector<PowerUpObject*> PlayerAI::getActivePowerUpObjects()
 {
 	std::vector<PowerUpObject*> power_ups;
 
-	for (auto goPair : level->gameObjectMap)
+	if (level)
 	{
-		GameObject* go = goPair.second;
-
-		if (PowerUpObject* puo = dynamic_cast<PowerUpObject*>(go))
+		for (auto goPair : level->gameObjectMap)
 		{
-			power_ups.push_back(puo);
+			GameObject* go = goPair.second;
+
+			if (PowerUpObject* puo = dynamic_cast<PowerUpObject*>(go))
+			{
+				power_ups.push_back(puo);
+			}
 		}
 	}
-
 	return power_ups;
 }
 

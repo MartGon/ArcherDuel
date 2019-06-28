@@ -6,6 +6,7 @@
 
 class TimerComponent;
 class LevelOne;
+class TutorialLevel;
 class StatusBar;
 class Fire;
 
@@ -23,6 +24,7 @@ public:
 
 	// Game
 	LevelOne* level_one = nullptr;
+	TutorialLevel* tLevel = nullptr;
 
 	// Components
 	AudioPlayer* aPlayer = nullptr;
@@ -46,8 +48,8 @@ public:
 	bool isCompletelyOnFire();
 	void disableFires();
 
-	double max_health = 1000.0f;
-	double health = 1000.0f;
+	double max_health = 500.0f;
+	double health = 500.0f;
 
 private:
 	// Attributes

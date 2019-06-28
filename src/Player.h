@@ -10,6 +10,7 @@ class StatusBar;
 class Cannon;
 class Tower;
 class LevelOne;
+class TutorialLevel;
 
 enum class PlayerNumber
 {
@@ -37,6 +38,7 @@ public:
 	bool isSkillReady = false;
 	bool isPlacingCannon = false;
 	bool isChargingCannon = false;
+	bool canGainSkill = true;
 	int stun_duration = 0;	// Duration in frames
 	PlayerNumber player_number = PlayerNumber::PLAYER_ONE;
 	PlayerTeam player_team = PlayerTeam::RED_TEAM;
@@ -52,6 +54,7 @@ public:
 
     // Game
     LevelOne* level = nullptr;
+	TutorialLevel* tLevel = nullptr;
 
     // Gameobjects
 	Tower* tower = nullptr;

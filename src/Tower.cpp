@@ -7,6 +7,7 @@
 
 #include "SceneManager.h"
 #include "MainMenu.h"
+#include "TutorialLevel.h"
 
 // TODO - Hacer que la torre se destruya por partes, al destruir una se baja un nivel
 
@@ -113,21 +114,23 @@ void Tower::onColliderEnter(Collider * collider)
 // Own Methods
 void Tower::takeDamage(float dmg)
 {
-	if (dynamic_cast<LevelOne*>(SceneManager::scene))
-	{
+	if(level_one || tLevel)
 		health = (health - dmg > 0) ? health - dmg : 0;
 
-		// Set winner
-		if (!health)
-		{
-			Player::PlayerTeam winner = team == ROOF_COLOR_RED ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
-			level_one->setWinnerTeam(winner);
-		}
+	// Set winner
+	if (!health)
+	{
+		Player::PlayerTeam winner = team == ROOF_COLOR_RED ? Player::PlayerTeam::BLUE_TEAM : Player::PlayerTeam::RED_TEAM;
 
-		// Update healthbar
-		double health_percent = health / max_health * (double)100;
-		healthBar->setHealthPercentage(health_percent, true);
+		if (LevelOne* level = level_one)
+			level->setWinnerTeam(winner);
+		else if (TutorialLevel* level = tLevel)
+			level->setWinnerTeam(winner);
 	}
+
+	// Update healthbar
+	double health_percent = health / max_health * (double)100;
+	healthBar->setHealthPercentage(health_percent, true);
 }
 
 void Tower::createFires()

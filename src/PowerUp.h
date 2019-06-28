@@ -135,7 +135,8 @@ public:
 	virtual void onBowRelease() {};
 
 	// Arrow
-	virtual void onArrowOutofBounds(LevelOne* level, Arrow* arrow) {};
+	virtual void onArrowOutofBounds(Vector2<float> bounds, Arrow* arrow) {};
+	virtual void onArrowOutofLevelBounds(LevelOne* level, Arrow* arrow) {};
 
 	// Status effect
 	virtual void onStun() {};
@@ -242,5 +243,6 @@ public:
 	PowerUpMirror(Player* owner) : PowerUp(owner, POWER_UP_MIRROR, 30 * 1000) {};
 
 	// Overrided methods
-	void onArrowOutofBounds(LevelOne* level, Arrow* arrow) override;
+	void onArrowOutofBounds(Vector2<float> bounds, Arrow* arrow);
+	void onArrowOutofLevelBounds(LevelOne* level, Arrow* arrow) override;
 };

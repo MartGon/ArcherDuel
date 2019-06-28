@@ -5,6 +5,7 @@
 #include "AudioManager.h"
 #include "SceneManager.h"
 
+#include "Cannon.h"
 #include "Tower.h"
 #include "HealthBar.h"
 
@@ -90,13 +91,14 @@ void TutorialLevel::loadMedia()
 	tower = new Tower();
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
-	//tower->healthBar->isActive = false;
+	tower->tLevel = this;
 
 	// Blue tower
 	tower2 = new Tower(Tower::ROOF_COLOR_BLUE);
 	Vector2<float> tower2_pos(LEVEL_WIDTH - 128, LEVEL_HEIGHT - 160 - 31);
 	tower2->transform.position = tower2_pos;
 	tower2->isActive = false;
+	tower2->tLevel = this;
 
 	// Create practice targets
 	for (int i = 0; i < 5; i++)
@@ -112,7 +114,7 @@ void TutorialLevel::loadMedia()
 
 	// Set targets pos
 	targets.at(0)->transform.position = { 50.f, 40.f };
-	targets.at(1)->transform.position = {220.f, 120.f};
+	targets.at(1)->transform.position = { 220.f, 120.f };
 	targets.at(2)->transform.position = { 170.f, 210.f };
 	targets.at(3)->transform.position = { 340.f, 40.f };
 	targets.at(4)->transform.position = { 420.f, 140.f };
@@ -146,20 +148,84 @@ void TutorialLevel::loadMedia()
 
 	// Create player
 	player = new Player(PlayerNumber::PLAYER_ONE);
+	players.push_back(player);
 	player->tower = tower;
+	player->tLevel = this;
+	player->transform.position = Vector2<float> (64, LEVEL_HEIGHT - 143);
 	player->isActive = false;
-	Vector2<float> player_pos(64, LEVEL_HEIGHT - 143);
-	player->transform.position = player_pos;
+	player->canGainSkill = false;
+
+	TimerObject* player_timer = new TimerObject(3 * 1000, player->id);
+	player_timer->timer->isOver = true;
+	player_timer->callback = std::bind(&TutorialLevel::onPlayerTimerFinish, this, std::placeholders::_1);
+
+	// Insert timer
+	player_timers.insert({ player->id,  player_timer });
 
 	// Set player callbacks
 	player->onStrafe = std::bind(&TutorialLevel::onPlayerStrafe, this);
 	player->onJump = std::bind(&TutorialLevel::onPlayerJump, this);
 	player->onFastFall = std::bind(&TutorialLevel::onPlayerFastFall, this);
+	player->cannon->onCannonShoot = std::bind(&TutorialLevel::onPlayerShootCannon, this);
 
 	// Disable bow
 	player->bow->isActive = false;
 	player->rHand->isActive = false;
 	player->pHand->isActive = false;
+
+	// Create player cannon bar
+	StatusBar* skill_bar = new StatusBar();
+	skill_bar->setScale({ 48, 1 });
+	skill_bar->setHealthPercentage(0);
+	skill_bar->tLabel->setText("Cannon");
+	skill_bar->tLabel->setTextColor(LevelOne::getColorMod(player->player_number));
+	skill_bar->transform.position = LevelOne::getCanonnBarPosByPlayer(player);
+	player->skill_bar = skill_bar;
+	player->skill_bar->isActive = false;
+
+	// Create AI player
+	player2 = new PlayerAI(PlayerNumber::PLAYER_TWO);
+	player2->player_team = Player::PlayerTeam::BLUE_TEAM;
+	players.push_back(player2);
+	player2->tower = tower2;
+	player2->tLevel = this;
+	player2->transform.position = Vector2<float>(LEVEL_WIDTH - 84, LEVEL_HEIGHT - 111 - 32);
+	player2->isActive = false;
+
+	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player2))
+	{
+		// Set movement boundaries
+		BoxCollider* floor_collider = playerAI->tower->getComponent<BoxCollider>();
+		int height = floor_collider->cHeight + floor_collider->offset.y + playerAI->tower->getAbsolutePosition().y;
+		int lLimit = floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
+		int rLimit = floor_collider->cWidth + floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
+
+		playerAI->setBoundaries(Vector2<float>(lLimit, height), Vector2<float>(rLimit, height));
+
+		// Set enemy player and tower
+		playerAI->enemy = player;
+		playerAI->enemy_tower = playerAI->enemy->tower;
+
+		// Set stopped
+		playerAI->isStopped = true; 
+	}
+
+	player_timer = new TimerObject(3 * 1000, player2->id);
+	player_timer->timer->isOver = true;
+	player_timer->callback = std::bind(&TutorialLevel::onPlayerTimerFinish, this, std::placeholders::_1);
+
+	// Insert timer
+	player_timers.insert({ player2->id,  player_timer });
+
+	// Create player2 cannon bar
+	skill_bar = new StatusBar();
+	skill_bar->setScale({ 48, 1 });
+	skill_bar->setHealthPercentage(0);
+	skill_bar->tLabel->setText("Cannon");
+	skill_bar->tLabel->setTextColor(LevelOne::getColorMod(player2->player_number));
+	skill_bar->transform.position = LevelOne::getCanonnBarPosByPlayer(player2);
+	player2->skill_bar = skill_bar;
+	player2->skill_bar->isActive = false;
 
 	// GUI
 	Button* button = new Button(Texture("ExitButton.png", RendererManager::renderer));
@@ -167,6 +233,13 @@ void TutorialLevel::loadMedia()
 	button->transform.position = Vector2<float>(5, 5);
 	button->setOnClickListener(std::bind(&TutorialLevel::exitButtonHandler, this));
 	button->tLabel->isActive = false;
+
+	// Winner banner
+	winner_banner = new TextLabel();
+	winner_banner->setTextScale(Vector2<float>(3, 3));
+	winner_banner->setText("red team wins");
+	winner_banner->setRelativePosition(Vector2<float>(0, 0), Vector2<float>(LEVEL_WIDTH, LEVEL_HEIGHT), { 30.f, 20.f }, { ALIGN_FROM_RIGHT, ALIGN_FROM_TOP });
+	winner_banner->isActive = false;
 
 	// DialogBox
 	dialog_box = new DialogBox("elcome to Archers Duel! \n Complete this short tutorial \n Or whatever dude \n 1 \n 2 \n 3 \n 4");
@@ -200,24 +273,36 @@ void TutorialLevel::loadMedia()
 	phase_dialog_map.insert({ TUTORIAL_PHASE_FASTFALL, {"You can increase your falling speed.\nThis can be done by pressing S key while on the air."} });
 	phase_dialog_map.insert({ TUTORIAL_PHASE_BOW, {"As any other archer, you have a bow and some arrows.\nYou can use them to shoot at your targets.", "Aim using your mouse. Press its left button to charge a shot.\nRelease close to the red zone so the arrow travels faster.", "Practice by shooting at these targets."} });
 	phase_dialog_map.insert({ TUTORIAL_PHASE_POWERUP, {"In archers duel you win the game by destroying the enemy tower.\nAs long as you do it before they destroy yours.", "You can deal damage to the enemy tower just with your arrows.\nBut there exist ways to increase your damage output.", "These are Power ups.\nYou can use them by hitting them with one of your arrows.", "Once you get one of them, information about it will be displayed."} });
+	phase_dialog_map.insert({ TUTORIAL_PHASE_CANNON, {"By doing damage to the enemy tower or hitting enemies\nwith your arrows your cannon bar is filled up.", "Once it is is full you can take out your cannon by\npressing the E key. Use your mouse to aim.",  "It can be placed wherever in your tower and once you press\nthe E key again, you will begin to charge a shot.", "While charging your cannon you cannot move. If you are stunned\nwhile charging a cannon you will not be able to use it again", "Practice by using it against the enemy tower.\nPress the E key to use your cannon."} });
+	phase_dialog_map.insert({ TUTORIAL_PHASE_FINALE, {"This tutorial is now over. You should now be able to finish\nthe game by yourself. Good Luck!" } });
 }
 
 void TutorialLevel::onUpdate()
 {
-
 	switch (phase)
 	{
 	case TutorialLevel::TUTORIAL_PHASE_NULL:
 	{		
 		// Set Intro phase
-
+		phase = TUTORIAL_PHASE_INTRO;
+		
 		// Temporary
-		phase = TUTORIAL_PHASE_POWERUP;
+		/*
 		player->isActive = true;
-
 		player->bow->isActive = true;
 		player->rHand->isActive = true;
 		player->pHand->isActive = true;
+		player->canGainSkill = true;
+		player->skill_bar->isActive = true;
+
+		tower2->isActive = true;
+		player2->isActive = true;
+		player2->skill_bar->isActive = true;
+
+		onChangeTutorialPhase(phase);
+		*/
+		// End Temporary
+
 
 		// Get text to display
 		std::string text = getNextText(phase, dialog_index);
@@ -242,6 +327,32 @@ void TutorialLevel::onUpdate()
 		break;
 	default:
 		break;
+	}
+
+	// Check if players are in a valid position
+	for (auto player : players)
+	{
+		if (player)
+		{
+			if (!LevelOne::isPlayerPosValid(player))
+			{
+				// Reset player pos and deactivate
+				LevelOne::resetPlayerPosition(player);
+				player->jump_nav->speed = 1;
+				player->isActive = false;
+
+				// Remove player buffs
+				while (!player->power_ups.empty())
+				{
+					PowerUp* power_up = player->power_ups.begin()->second;
+					power_up->remove();
+					player->removePowerUp(power_up);
+				}
+
+				// Activate timer
+				player_timers.at(player->id)->timer->reset();
+			}
+		}
 	}
 
 }
@@ -393,11 +504,45 @@ void TutorialLevel::onDisplayDialog()
 				// Enable powerUps
 				for (auto pou : power_up_objects)
 					pou->isActive = true;
+
+				// Disable button until quest completed
+				if (!quest_tracker->isComplete)
+					continue_button->setEnabled(false);
 			}
 			break;
 		default:
 			break;
 		}
+
+		break;
+	case TutorialLevel::TUTORIAL_PHASE_CANNON:
+
+		if (dialog_index == 4)
+		{
+			player->increase_skill_points(100);
+
+			quest_tracker->setQuestText("Shoot cannon");
+			quest_tracker->setType(QuestTracker::QUEST_TRACKER_UNIQUE_OBJECTIVE);
+			quest_tracker->isActive = true;
+
+			// Disable until quest is completed
+			continue_button->setEnabled(false);
+		}
+
+		break;
+	case TutorialLevel::TUTORIAL_PHASE_FINALE:
+
+		// Enable quest tracker
+		quest_tracker->setQuestText("Finish the game");
+		quest_tracker->setType(QuestTracker::QUEST_TRACKER_UNIQUE_OBJECTIVE);
+		quest_tracker->isActive = true;
+
+		// Enable enemy player
+		if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player2))
+			playerAI->isStopped = false;
+
+		// Disable until quest is completed
+		continue_button->setEnabled(false);
 
 		break;
 	default:
@@ -454,8 +599,19 @@ void TutorialLevel::onChangeTutorialPhase(TutorialLevel::TutorialLevelPhase phas
 		player->bow->reset();
 		player->bow->isEnabled = false;
 
-		// Enable tower2
+		// Enable tower2 and player2
 		tower2->isActive = true;
+		player2->isActive = true;
+
+		break;
+	case TutorialLevel::TUTORIAL_PHASE_CANNON:
+
+		// Set flag
+		player->skill_bar->isActive = true;
+		player->canGainSkill = true;
+
+		// Set playr2 flag 
+		player2->skill_bar->isActive = true;
 
 		break;
 	default:
@@ -473,22 +629,25 @@ void TutorialLevel::onPlayerStrafe()
 			quest_tracker->updateProgress(1);
 	}
 
-	// Check boundaries
-	if (BoxCollider* col = tower->getComponent<BoxCollider>())
+	if (phase != TUTORIAL_PHASE_FINALE)
 	{
-		// Player pos 
-		auto player_pos = player->transform.position;
-		if (auto player_col = player->getComponent<BoxCollider>())
+		// Check boundaries
+		if (BoxCollider* col = tower->getComponent<BoxCollider>())
 		{
-			auto player_col_w = player_col->getDimensions().x;
+			// Player pos 
+			auto player_pos = player->transform.position;
+			if (auto player_col = player->getComponent<BoxCollider>())
+			{
+				auto player_col_w = player_col->getDimensions().x;
 
-			if (player_pos.x < col->cLeft)
-			{
-				player->transform.position.x = col->cLeft;
-			}
-			else if (auto player_dim = (player_pos.x + player_col_w + player_col->offset.x); player_dim > col->cRight)
-			{
-				player->transform.position.x = col->cRight - (player_col_w + player_col->offset.x);
+				if (player_pos.x < col->cLeft)
+				{
+					player->transform.position.x = col->cLeft;
+				}
+				else if (auto player_dim = (player_pos.x + player_col_w + player_col->offset.x); player_dim > col->cRight)
+				{
+					player->transform.position.x = col->cRight - (player_col_w + player_col->offset.x);
+				}
 			}
 		}
 	}
@@ -508,6 +667,15 @@ void TutorialLevel::onPlayerFastFall()
 	if (phase == TUTORIAL_PHASE_FASTFALL)
 	{
 		if(dialog_box->isDisplayed)
+			quest_tracker->updateProgress(1);
+	}
+}
+
+void TutorialLevel::onPlayerShootCannon()
+{
+	if (phase == TUTORIAL_PHASE_CANNON)
+	{
+		if (dialog_box->isDisplayed)
 			quest_tracker->updateProgress(1);
 	}
 }
@@ -560,8 +728,11 @@ void TutorialLevel::onPowerUpHit(PowerUp* pu)
 	dialog_box->displayText();
 
 	// Stop powerup timer and remove time label
-	pu->timer->isStopped = true;
-	pu->time_display->time_label->isActive = false;
+	if (pu->type != POWER_UP_THUNDERSTRIKE)
+	{
+		pu->timer->isStopped = true;
+		pu->time_display->time_label->isActive = false;
+	}
 
 	// Remove power up if avialable
 	auto owner = pu->owner;
@@ -609,9 +780,54 @@ void TutorialLevel::onCompleteQuest()
 	case TUTORIAL_PHASE_JUMP:
 	case TUTORIAL_PHASE_STRAFE:
 	case TUTORIAL_PHASE_BOW:
+	case TUTORIAL_PHASE_CANNON:
 		continue_button->setEnabled(true);
 		break;
 	default:
 		break;
 	}
 }
+
+// Level One implementations
+void TutorialLevel::setWinnerTeam(Player::PlayerTeam team)
+{
+	// Can only set winner during finale
+	if (phase != TUTORIAL_PHASE_FINALE)
+		return;
+
+	// Check flag
+	if (isGameOver)
+		return;
+
+	// Set flag
+	isGameOver = true;
+
+	// Complete quest
+	if (phase == TUTORIAL_PHASE_FINALE)
+		quest_tracker->updateProgress(1);
+
+	// Update winner banner
+	std::string winner_str = team == Player::PlayerTeam::RED_TEAM ? "red" : "blu";
+	winner_banner->setText(winner_str + " team wins");
+	winner_banner->isActive = true;
+
+	// Set timer for finishing
+	TimerObject* timer = new TimerObject(10 * 1000, 0);
+	timer->callback = std::bind(&TutorialLevel::onEndGameTimerFininsh, this, 0);
+}
+
+void TutorialLevel::onPlayerTimerFinish(Uint32 flag)
+{
+	if (Player* player = dynamic_cast<Player*>(getGameObjectById(flag)))
+	{
+		player->isActive = true;
+		player->isInmunne = true;
+		player->tRenderer->setBlink(6, 60 * 3);
+	}
+}
+
+void TutorialLevel::onEndGameTimerFininsh(Uint32 flag)
+{
+	SceneManager::loadNextScene(new MainMenu());
+}
+

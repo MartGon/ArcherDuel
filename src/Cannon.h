@@ -4,6 +4,8 @@
 
 #include "Player.h"
 
+#include <functional>
+
 class Cannon : public GameObject
 {
 public:
@@ -48,4 +50,7 @@ public:
 
 		// TextureRenderer
 	void onVanish() override;
+
+	// Callbacks
+	std::function<void()> onCannonShoot;
 };

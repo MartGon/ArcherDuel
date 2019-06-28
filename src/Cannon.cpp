@@ -151,6 +151,10 @@ void Cannon::shoot()
 
 	// Set trail effect
 	ball->tRenderer->hasTrailEffect = true;
+
+	// OnShot callback
+	if (onCannonShoot)
+		onCannonShoot();
 }
 
 bool Cannon::isCurrentPosValid()

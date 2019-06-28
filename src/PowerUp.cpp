@@ -4,6 +4,7 @@
 #include "Arrow.h"
 #include "TextLabel.h"
 #include "LevelOne.h"
+#include "TutorialLevel.h"
 
 #include <sstream>
 #include <iomanip>
@@ -612,7 +613,7 @@ void PowerUpFire::onRemove()
 
 // Overrided methods
 
-void PowerUpMirror::onArrowOutofBounds(LevelOne* level, Arrow* arrow)
+void PowerUpMirror::onArrowOutofBounds(Vector2<float> bounds, Arrow* arrow)
 {
 	// Prevent arrow vanish
 	preventDefaultAction();
@@ -621,10 +622,18 @@ void PowerUpMirror::onArrowOutofBounds(LevelOne* level, Arrow* arrow)
 	auto pos = arrow->transform.position;
 
 	// Reposition
-	if (pos.x > level->LEVEL_WIDTH)
+	if (pos.x > bounds.x)
 		arrow->transform.position.x = -15;
 	else
-		arrow->transform.position.x = level->LEVEL_WIDTH;
+		arrow->transform.position.x = bounds.x;
+}
+
+void PowerUpMirror::onArrowOutofLevelBounds(LevelOne* level, Arrow* arrow)
+{
+	// Prevent arrow vanish
+	preventDefaultAction();
+
+	onArrowOutofBounds(Vector2<float>( level->LEVEL_WIDTH, level->LEVEL_HEIGHT ), arrow);
 }
 
 // Class PowerUpThunderStrike
@@ -644,33 +653,42 @@ void PowerUpThunderStrike::onExtend()
 
 void PowerUpThunderStrike::cast()
 {
+
+	std::vector<Player*> players;
 	if (LevelOne* level = owner->level)
 	{
-		// Find targets
-		for (auto player : level->players)
+		players = level->players;
+	}
+	else if (TutorialLevel* tLevel = owner->tLevel)
+	{
+		players = tLevel->players;
+	}
+
+	// Find targets
+	for (auto player : players)
+	{
+		// Launch arrow against this target if different team
+		if (player->player_team != owner->player_team)
 		{
-			// Launch arrow against this target if different team
-			if (player->player_team != owner->player_team)
+			// Create arrow and launch
+			Arrow* arrow = getArrow();
+			launchArrowAgainstTarget(player, arrow, 0);
+
+			// Check for triple buff
+			if (owner->power_ups.find(POWER_UP_TRIPLE) != owner->power_ups.end())
 			{
-				// Create arrow and launch
-				Arrow* arrow = getArrow();
-				launchArrowAgainstTarget(player, arrow, 0);
+				// Left Arrow
+				Arrow* lArrow = getArrow();
+				launchArrowAgainstTarget(player, lArrow, -5);
 
-				// Check for triple buff
-				if (owner->power_ups.find(POWER_UP_TRIPLE) != owner->power_ups.end())
-				{
-					// Left Arrow
-					Arrow* lArrow = getArrow();
-					launchArrowAgainstTarget(player, lArrow, -5);
-
-					// Right Arrow
-					Arrow* rArrow = getArrow();
-					launchArrowAgainstTarget(player, rArrow, 5);
-				}
-
+				// Right Arrow
+				Arrow* rArrow = getArrow();
+				launchArrowAgainstTarget(player, rArrow, 5);
 			}
+
 		}
 	}
+
 }
 
 void PowerUpThunderStrike::launchArrowAgainstTarget(Player* target, Arrow* arrow, float offset)
