@@ -290,6 +290,9 @@ void Bow::reset()
 		arrow->setAbsoluteRotationCenter(getAbsoluteRotationCenter());
 	}
 
+	// Stop sound effect
+	aPlayer->stop();
+
 	// Animation
 	animator->setCurrentAnimation(pull);
 	animator->isEnabled = false;

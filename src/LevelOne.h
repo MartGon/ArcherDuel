@@ -4,8 +4,9 @@
 #include "PlayerAI.h"
 #include "TimerHandler.h"
 
-
 class Player;
+class GameStartCounter;
+
 class LevelOne : public Scene
 {
 public:
@@ -59,9 +60,30 @@ public:
 	void setWinnerTeam(Player::PlayerTeam winner_team);
 
 	// GUI
+	GameStartCounter* start_counter = nullptr;
 	TextLabel* winner_banner = nullptr;
 	void exitGame();
 
 private:
 	bool isGameOver = false;
+};
+
+class GameStartCounter : public GameObject
+{
+public:
+	// Constructor
+	GameStartCounter(float seconds, LevelOne* level);
+
+	// Refs
+	LevelOne* level = nullptr;
+
+	// Members
+	TextLabel* time_display = nullptr;
+
+	// Components
+	TimerComponent* timer = nullptr;
+
+	// Overrided methods
+	void onUpdate();
+	void onTimerEnd(Uint32 flag);
 };

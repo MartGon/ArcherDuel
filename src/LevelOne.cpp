@@ -13,6 +13,8 @@
 #include "MainMenu.h"
 #include "InputManager.h"
 
+#include <iomanip>
+
 
 // Original 720 * 480
 
@@ -121,6 +123,11 @@ void LevelOne::loadMedia()
 	// Create PowerUpObject timers
 	spawn_pu_timer = new TimerObject(5 * 1000, 0);
 	spawn_pu_timer->callback = std::bind(&LevelOne::onSpawnPowerUpTimerFinish, this, std::placeholders::_1);
+
+	// Create gamestart counter
+	start_counter = new GameStartCounter(3, this);
+	start_counter->transform.position = Vector2<float>(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2);
+	start_counter->time_display->setCenteredWithinParent({0.f, -100.f});
 }
 
 void LevelOne::placeFloorBlocks()
@@ -351,6 +358,10 @@ Player* LevelOne::createPlayer(PlayerNumber player_number, bool isAI)
 	player->tower = static_cast<int>(player_number) & 1 ? tower : tower2;
 	player->network_owner = getNetworkOwner(player_number);
 
+	// Disable movement and bow at start
+	player->mov_enabled = false;
+	player->bow->isEnabled = false;
+
 	// Setting AI extra data
 	if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
 	{
@@ -361,6 +372,9 @@ Player* LevelOne::createPlayer(PlayerNumber player_number, bool isAI)
 		int rLimit = floor_collider->cWidth + floor_collider->offset.x + playerAI->tower->getAbsolutePosition().x;
 
 		playerAI->setBoundaries(Vector2<float>(lLimit, height), Vector2<float>(rLimit, height));
+
+		// Set stopped until game starts
+		playerAI->isStopped = true;
 	}
 
 	// Create player skill_bar
@@ -467,4 +481,76 @@ void LevelOne::exitGame()
 {
 	std::cout << "Se pulso el botonsito\n";
 	SceneManager::loadNextScene(new MainMenu());
+}
+
+// GameStartCounter
+
+GameStartCounter::GameStartCounter(float seconds, LevelOne* level)
+{
+	// Set TimerComponent
+	timer = setComponent(new TimerComponent(3 * 1000, 0));
+
+	// Set textlabel
+	time_display = new TextLabel();
+	time_display->setText("3.00");
+	time_display->setTextColor({ 255, 255, 255 });
+
+		// Pos and scale
+	time_display->transform.parent = &this->transform;
+	time_display->setCenteredWithinParent();
+	time_display->setTextScale({ 4.f, 4.f });
+
+	// Set Level ref
+	this->level = level;
+}
+
+
+// Overrided methods
+
+void GameStartCounter::onUpdate()
+{
+	if (!timer->isOver)
+	{
+		// Set time_display text to buff duration
+		Uint32 remaining_ms = timer->getTimeRemaining();
+		double remaining_sec = remaining_ms / (double)1000;
+
+		// Limit to two decimal values
+		std::ostringstream stream;
+		stream << std::setprecision(2) << std::fixed << remaining_sec;
+		std::string num_text = stream.str();
+
+		// Output
+		time_display->setText(num_text);
+	}
+}
+
+
+void GameStartCounter::onTimerEnd(Uint32 flag)
+{
+	std::vector<Player*> players = level->players;
+	for (auto player : players)
+	{
+		player->mov_enabled = true;
+		
+		if (Bow* bow = player->bow)
+		{
+			bow->isEnabled = true;
+		}
+
+		if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
+		{
+			playerAI->isStopped = false;
+		}
+	}
+
+	// Set text
+	time_display->setText("GO!");
+	time_display->setCenteredWithinParent({2.f, -100.f});
+	
+	for (auto tRenderer : time_display->font_tRenderers)
+	{
+		tRenderer->vanish_rate = 2;
+		tRenderer->isVanishing = true;
+	}
 }
