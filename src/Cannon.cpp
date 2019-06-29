@@ -79,8 +79,7 @@ void Cannon::onUpdate()
 	{
 		// Aim to mouse
 		Vector2<float> mouse_pos = input_mgr->getInputStatus(owner->network_owner).mouse_pos;
-		Vector2<float> dest = mouse_pos / RendererManager::getScaler();
-		aim(dest);
+		aim(mouse_pos);
 
 		// Set normal color when is valid
 		if (isCurrentPosValid())

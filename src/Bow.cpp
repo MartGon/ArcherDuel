@@ -372,9 +372,6 @@ void Bow::pointBowToMouse()
     dest.x = mouse_pos.x;
     dest.y = mouse_pos.y;
 
-    // Destination point
-    dest = dest / RendererManager::getScaler();
-
 	// Aim to point
 	aimBow(dest);
 }

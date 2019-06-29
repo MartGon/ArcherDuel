@@ -216,7 +216,7 @@ void Player::onUpdate()
 	else if (isPlacingCannon)
 	{
 		// Flip cannon and player by mouse pos
-		Vector2<float> mouse_pos = (Vector2<float>)input_mgr->getInputStatus(network_owner).mouse_pos / RendererManager::getScaler();
+		Vector2<float> mouse_pos = (Vector2<float>)input_mgr->getInputStatus(network_owner).mouse_pos;
 		Vector2<float> pos = getAbsolutePosition();
 
 		if (mouse_pos.x > pos.x)
