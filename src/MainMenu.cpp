@@ -417,7 +417,8 @@ void MainMenu::loadMedia()
 
 	// Init random
 	std::random_device rd;
-	Random::dre = std::mt19937(rd());
+	auto seed = Random::getRandomUniformInteger(0, INT32_MAX);
+	Random::setSeed(seed);
 }
 
 void MainMenu::onUpdate()
