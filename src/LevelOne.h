@@ -64,6 +64,9 @@ public:
 	TextLabel* winner_banner = nullptr;
 	void exitGame();
 
+	// Callbacks
+	void handleNaEvent(NetworkAgent::NetworkAgentEvent e);
+
 private:
 	bool isGameOver = false;
 };

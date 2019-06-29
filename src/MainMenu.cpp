@@ -537,7 +537,7 @@ void MainMenu::onUpdate()
 
 							// Set game config
 							friendly_fire = data.friendly_fire;
-							team_powerups = data.friendly_fire;
+							team_powerups = data.team_powerups;
 
 							// Enable game config checkboxes
 							friendly_fire_checkbox->transform.parent = &connection_action_label->transform;

@@ -47,7 +47,7 @@ void LevelOne::loadMedia()
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
 	int blue_players = player_amount / 2;
-	tower->max_health = blue_players * 500;
+	tower->max_health = blue_players * 5;
 	tower->health = tower->max_health;
 
 	// Blue Tower
@@ -128,6 +128,13 @@ void LevelOne::loadMedia()
 	start_counter = new GameStartCounter(3, this);
 	start_counter->transform.position = Vector2<float>(LEVEL_WIDTH / 2, LEVEL_HEIGHT / 2);
 	start_counter->time_display->setCenteredWithinParent({0.f, -100.f});
+
+	// Set callback to networkagent if online
+	if (isOnline())
+	{
+		if (networkAgent)
+			networkAgent->HandleNAEvent = std::bind(&LevelOne::handleNaEvent, this, std::placeholders::_1);
+	}
 }
 
 void LevelOne::placeFloorBlocks()
@@ -197,7 +204,6 @@ void LevelOne::handleConnectionEstablished()
 	//for (int i = 0; i < player_amount; i++)
 	//	createPlayer(static_cast<PlayerNumber>(i + 1));
 }
-
 
 // Timer handler
 
@@ -483,6 +489,15 @@ void LevelOne::exitGame()
 	SceneManager::loadNextScene(new MainMenu());
 }
 
+
+// Callbacks
+
+void LevelOne::handleNaEvent(NetworkAgent::NetworkAgentEvent e)
+{
+	if (e == NetworkAgent::EVENT_PAIR_DISCONNECTED)
+		exitGame();
+}
+
 // GameStartCounter
 
 GameStartCounter::GameStartCounter(float seconds, LevelOne* level)
@@ -554,3 +569,4 @@ void GameStartCounter::onTimerEnd(Uint32 flag)
 		tRenderer->isVanishing = true;
 	}
 }
+
