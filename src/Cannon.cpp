@@ -179,6 +179,7 @@ bool Cannon::isCurrentPosValid()
 			return true;
 		}
 	}
+	return false;
 }
 
 void Cannon::beforeAnimationFrame(Animation* anim, int frame_index)

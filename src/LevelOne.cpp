@@ -22,10 +22,9 @@
 const int LevelOne::LEVEL_WIDTH = 480;
 const int LevelOne::LEVEL_HEIGHT = 270;
 
-LevelOne::LevelOne(SceneMode mode, Uint32 player_amount)
+LevelOne::LevelOne(SceneMode mode, Uint32 player_amount) : Scene(mode)
 {
 	this->player_amount = player_amount;
-	this->mode = mode;
 }
 
 void LevelOne::loadMedia()
@@ -47,7 +46,7 @@ void LevelOne::loadMedia()
 	Vector2<float> tower_pos(0, LEVEL_HEIGHT - 160 - 31);
 	tower->transform.position = tower_pos;
 	int blue_players = player_amount / 2;
-	tower->max_health = blue_players * 5;
+	tower->max_health = blue_players * 500;
 	tower->health = tower->max_health;
 
 	// Blue Tower
@@ -62,14 +61,14 @@ void LevelOne::loadMedia()
 	placeFloorBlocks();
 
 	// Create players
-	for (int i = 0; i < player_amount; i++)
+	for (unsigned int i = 0; i < player_amount; i++)
 	{
 		bool isAI = isOnline() ? false : i != 0;
 		createPlayer(static_cast<PlayerNumber>(i + 1), isAI);
 	}
 
 	// Set references
-	for(int i = 0; i < players.size(); i++)
+	for(unsigned int i = 0; i < players.size(); i++)
 	{
 		Player* player = players[i];
 		if (PlayerAI* playerAI = dynamic_cast<PlayerAI*>(player))
@@ -101,7 +100,6 @@ void LevelOne::loadMedia()
 	// Music Player
 	GameObject* music = new GameObject();
 	AudioPlayer* aPlayer = music->setComponent(new AudioPlayer("adwsl.wav"));
-	aPlayer->volume = SDL_MIX_MAXVOLUME / 4;
 	aPlayer->loop = true;
 	aPlayer->play();
 
@@ -242,6 +240,7 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint32 flag)
 
 	// Reset Timer
 	spawn_pu_timer->timer->delay = Random::getRandomUniformFloat((4.f * mod) + 2, (10.f * mod) + 2) * 1000;
+	spawn_pu_timer->timer->delay = 2000;
 	spawn_pu_timer->timer->reset();
 }
 
