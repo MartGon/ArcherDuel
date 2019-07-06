@@ -236,11 +236,10 @@ void LevelOne::onSpawnPowerUpTimerFinish(Uint32 flag)
 	power_up_object->transform.position = spawn_pos;
 
 	int players = player_amount ? player_amount : 1;
-	float mod = 2.f / (float)players;
+	float mod = shared_powerups ? 1.f :  2.f / (float)players;
 
 	// Reset Timer
-	spawn_pu_timer->timer->delay = Random::getRandomUniformFloat((4.f * mod) + 2, (10.f * mod) + 2) * 1000;
-	spawn_pu_timer->timer->delay = 2000;
+	spawn_pu_timer->timer->delay = Random::getRandomUniformFloat((5.f * mod) + 1, (8.f * mod) + 4) * 1000;
 	spawn_pu_timer->timer->reset();
 }
 
